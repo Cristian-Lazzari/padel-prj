@@ -3,8 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 
-use App\Http\Controllers\Admin\SettingController;
 
+use App\Http\Controllers\Admin\MailerController;
 use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Guests\PageController as GuestsPageController;
 
@@ -23,7 +23,7 @@ Route::middleware(['auth', 'verified'])
     ->prefix('admin')
     ->group(function () {
 
-        Route::get('/',           [AdminPageController::class, 'dashboard'])->name('dashboard');
+        Route::get('/',           [AdminPageController::class, 'admin'])->name('dashboard');
 
 
         Route::get('/mailer/index',         [MailerController::class, 'mailer'])->name('mailer.index');
@@ -37,13 +37,14 @@ Route::middleware(['auth', 'verified'])
 
         Route::get('/mailer/edit_model/{id}', [MailerController::class, 'edit_model'])->name('mailer.edit_model');
 
-        Route::post('/mailer/update_model', [MailerController::class, 'update_model'])->name('mailer.update_model');
-        Route::delete('/models/{id}',       [MailerController::class, 'delete'])->name('models.delete');
-
+        Route::post('/mailer/update_model',   [MailerController::class, 'update_model'])->name('mailer.update_model');
+        Route::delete('/models/{id}',         [MailerController::class, 'delete'])->name('models.delete');
+        
+        Route::post('/settings/update',       [AdminPageController::class, 'update'])->name('settings.update');
 
 
         Route::resource('reservations',  ReservationController::class);
-        // Route::resource('players',  PlayerController::class);
+        Route::resource('players',  PlayerController::class);
 
     });
 

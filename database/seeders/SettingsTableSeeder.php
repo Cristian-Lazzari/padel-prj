@@ -16,11 +16,9 @@ class SettingsTableSeeder extends Seeder
      
             $settings = [
                 [
-                    'name' => 'Call reserving',  
-                    'status' => 1,
-                    'property' => [
-                        'empty' => 0
-                    ],
+                    'name' => 'Servizio di Prenotazione Online',  
+                    'status' => 0,
+                    'property' => []
                 ],
                 [
                     'name' => 'Periodo di Ferie',  
@@ -38,15 +36,7 @@ class SettingsTableSeeder extends Seeder
                     'name' => 'Contatti',
                     'property' => []
                 ],
-                [
-                    'name' => 'wa',
-                    'property' => [
-                        'last_response_wa_1' => '',
-                        'last_response_wa_2' => '',
-                        'numbers' => ['393271622244'],
-
-                    ]
-                ],
+                
             ];
       
 

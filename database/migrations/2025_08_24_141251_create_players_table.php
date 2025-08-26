@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 50);                            
             $table->string('surname', 50);
+            $table->string('nickname', 50)->unique()->nullable();
             $table->string('phone', 14);
             $table->string('mail', 50);
             $table->tinyInteger('level')->default(1);
