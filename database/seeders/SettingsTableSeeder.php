@@ -36,6 +36,12 @@ class SettingsTableSeeder extends Seeder
                     'name' => 'Contatti',
                     'property' => []
                 ],
+                [
+                    'name' => 'advanced',
+                    'property' => [
+                        'max_delay_default' => 24,
+                    ]
+                ],
                 
             ];
       

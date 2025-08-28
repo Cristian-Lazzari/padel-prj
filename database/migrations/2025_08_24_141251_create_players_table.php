@@ -17,11 +17,14 @@ return new class extends Migration
             $table->id();
             $table->string('name', 50);                            
             $table->string('surname', 50);
-            $table->string('nickname', 50)->unique()->nullable();
+            $table->string('nickname', 50)->unique();
             $table->string('phone', 14);
             $table->string('mail', 50);
             $table->tinyInteger('level')->default(1);
-
+            
+            $table->string('otp', 4)->nullable();
+            $table->date('otp_expires_at')->nullable();
+            
             $table->text('note')->nullable();
             
             $table->string('certificate')->nullable();    
