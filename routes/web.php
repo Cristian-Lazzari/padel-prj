@@ -5,6 +5,8 @@ use App\Http\Controllers\ProfileController;
 
 
 use App\Http\Controllers\Admin\MailerController;
+use App\Http\Controllers\Admin\PlayerController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Guests\PageController as GuestsPageController;
 
@@ -40,7 +42,7 @@ Route::middleware(['auth', 'verified'])
         Route::post('/mailer/update_model',   [MailerController::class, 'update_model'])->name('mailer.update_model');
         Route::delete('/models/{id}',         [MailerController::class, 'delete'])->name('models.delete');
         
-        Route::post('/settings/update',       [AdminPageController::class, 'update'])->name('settings.update');
+        Route::post('settings/updateAll',  [SettingController::class, 'updateAll'])->name('settings.updateAll');
 
 
         Route::resource('reservations',  ReservationController::class);

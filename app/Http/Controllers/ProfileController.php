@@ -41,7 +41,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
         if( auth()->check() && auth()->user()->role === 'admin' ){
-            return Redirect::route('profile.edit')->with('status', 'profile-updated');
+            return Redirect::route('admin.profile.edit')->with('status', 'profile-updated');
         }else{
             return Redirect::route('client.profile.edit')->with('status', 'profile-updated');
         }
