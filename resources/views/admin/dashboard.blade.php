@@ -21,8 +21,8 @@
             <div class="my-table">
                 <div class="head">
                     <p>Giocatore</p>
-                    <p class="ex-mb">Nick-Name</p>
-                    <p class="ex-mb">Livello</p>
+                    <p class="">Nick-Name</p>
+                    <p class="">Livello</p>
                     <a class="my_btn_3" href="{{route('admin.players.create')}}"> 
                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
@@ -36,8 +36,30 @@
                             <p class="name">
                               {{$c->name}} {{$c->surname}}
                             </p>
-                            <p class="pack ex-mb">{{$c->nickname}}</p>
-                            <p class="pack ex-mb">{{$c->level}}</p>
+                            <p class="pack ">{{$c->nickname}}</p>
+                            <p class="pack ">{{$c->level}}</p>
+                            <div class="actions">
+
+                                <a class="my_btn_1" href="{{route('admin.players.show', $c->id)}}"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
+                                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
+                                        <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
+                                    </svg>
+                                </a>
+                                <a class="my_btn_1" href="{{route('admin.players.edit', $c->id)}}"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                                    </svg>
+                                </a>
+                                <form action="{{route('admin.players.destroy', $c->id)}}" method="post">
+                                    @method('delete')
+                                    @csrf
+                                    <button type="submit" class="my_btn_2"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                                    </svg></button>
+                                </form>
+                            </div>
                               
                            
                         </div>
@@ -47,14 +69,14 @@
             <div class="my-table user">
                 <div class="head" >
                     <p>Collaboratore</p>
-                    <p class="ex-mb">Ruolo</p>
+                    <p class="">Ruolo</p>
                     <p>Info</p>
                 </div>
                 <div class="body">
                     @foreach ($users as $c)
                         <div class="client">
                             <p class="name">{{$c->name}}</span></p>
-                            <p class="date ex-mb">{{$role[$c->role]}}</p>
+                            <p class="date ">{{$role[$c->role]}}</p>
                             <p class="link">
                                 <a class="dt" href="{{route('admin.players.show', $c->id)}}"> 
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
@@ -72,7 +94,7 @@
                     <p>Data</p>
                     <p>campo</p>
                     <p>Cena</p>
-                    <p class="ex-mb">Giocatori</p>
+                    <p class="">Giocatori</p>
                 </div>
                 <div class="body">
                     
