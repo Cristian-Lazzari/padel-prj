@@ -8,6 +8,7 @@ use Illuminate\Database\Seeder;
 use Database\Seeders\UsersTableSeeder;
 
 use Database\Seeders\SettingsTableSeeder;
+use Database\Seeders\ReservationsTableSeeder;
 
 
 
@@ -20,6 +21,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UsersTableSeeder::class,
             SettingsTableSeeder::class,
+            ReservationsTableSeeder::class,
 
         ]);
     }

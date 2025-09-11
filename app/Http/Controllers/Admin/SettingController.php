@@ -12,6 +12,10 @@ class SettingController extends Controller
 {
 
     
+    public function index(){
+        $settings = Setting::all()->keyBy('name');
+        return view('admin.settings', compact('settings'));
+    }
 
     public function updateAll(Request $request)
     {

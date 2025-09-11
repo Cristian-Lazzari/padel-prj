@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Mail\otpUser;
+use App\Models\Player;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
@@ -75,11 +76,14 @@ class PlayerController extends Controller
             return response()->json([]);
         }
 
-        $players = User::where('name', 'LIKE', "%{$query}%")
+        $players = Player::where('name', 'LIKE', "%{$query}%")
             ->orWhere('surname', 'LIKE', "%{$query}%")
             ->orWhere('nickname', 'LIKE', "%{$query}%")
-            ->limit(10)
+            ->limit(5)
             ->get(['id', 'name', 'surname', 'nickname']);
+        foreach ($players as $p) {
+            $p['user'] = false;
+        }
 
         return response()->json($players);
     }

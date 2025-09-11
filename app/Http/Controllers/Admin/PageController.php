@@ -5,8 +5,9 @@
 namespace App\Http\Controllers\Admin;
 
 
-use App\Models\User;
+use Carbon\Carbon;
 
+use App\Models\User;
 use App\Models\Player;
 use App\Models\Setting;
 use App\Models\Reservation;
@@ -19,13 +20,14 @@ class PageController extends Controller
 {
 
     public function admin() {
-        $players  = Player::all();
-        $settings = Setting::all()->keyBy('name');
-        $users    = User::all();
+        $players        = Player::all();
+        $settings       = Setting::all()->keyBy('name');
+        $users          = User::all();
+        $reservations   = Reservation::all();
         $calendar = [];
-
-
-        return view('admin.dashboard', compact('players', 'calendar', 'settings', 'users'));
+        //this->get_date();
+        
+        return view('admin.dashboard', compact('players', 'calendar', 'settings', 'users', 'reservations'));
 
     }
 

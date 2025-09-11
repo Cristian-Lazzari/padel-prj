@@ -5,6 +5,10 @@
             <a class="my_btn_1 mylinknavs" href="{{ route('admin.dashboard') }}">Dashboard</a>
         </div>
 
+        <div class="">
+            <a class="my_btn_4 " href="{{ route('admin.settings') }}">Impostazioni</a>
+        </div>
+
         <button class="navbar-toggler myitem" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
