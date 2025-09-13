@@ -22,8 +22,8 @@ return new class extends Migration
             $table->string('mail', 50);
             $table->tinyInteger('level')->default(1);
             
-            $table->string('otp', 4)->nullable();
-            $table->date('otp_expires_at')->nullable();
+            $table->string('otp')->nullable();
+            $table->string('otp_expires_at')->nullable();
             
             $table->text('note')->nullable();
             

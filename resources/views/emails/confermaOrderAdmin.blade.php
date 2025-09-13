@@ -24,8 +24,8 @@
         @php
             use Carbon\Carbon;
             //$dateString = "31/03/2025 18:00"; 
-            $dateString = $xcontent_mail['date_slot']; 
-            $formattedDate = Carbon::createFromFormat('d/m/Y H:i', $dateString)
+            $dateString = $content_mail['date_slot']; 
+            $formattedDate = Carbon::createFromFormat('Y-m-d H:i', $dateString)
                 ->locale('it')
                 ->translatedFormat('l j F \a\l\l\e H:i');
         @endphp 
@@ -52,17 +52,14 @@
             <!-- Bottone per chiamare -->
             <a href="tel:{{$content_mail['phone']}}" style="display: block; width: 80%; text-align: center; padding: .8rem 1.6rem; background-color: #159478; font-size: 20px; font-weight:700; color: #f4f4f4; text-decoration: none; border-radius: 5px; margin: 5px auto;">Chiama {{$content_mail['name']}}</a>
             <!-- Bottone per visualizzare nella dashboard -->
-            @if ($content_mail['type'] == 'or')
-                <a href="{{config('configurazione.APP_URL')}}/admin/orders/{{$content_mail['order_id']}}" style="display: block; width: 80%; text-align: center; padding: .8rem 1.6rem; background-color: #04001d; font-size: 20px; font-weight:700; color: #f4f4f4; text-decoration: none; border-radius: 5px; margin: 5px auto;">Visualizza nella Dashboard</a>
-            @elseif($content_mail['type'] == 'res')
-                <a href="{{config('configurazione.APP_URL')}}/admin/reservations/{{$content_mail['res_id']}}" style="display: block; width: 80%; text-align: center; padding: .8rem 1.6rem; background-color: #04001d; font-size: 20px; font-weight:700; color: #f4f4f4; text-decoration: none; border-radius: 5px; margin: 5px auto;">Visualizza nella Dashboard</a>
-            @endif
+            <a href="{{config('configurazione.APP_URL')}}/admin/reservations/{{$content_mail['res_id']}}" style="display: block; width: 80%; text-align: center; padding: .8rem 1.6rem; background-color: #04001d; font-size: 20px; font-weight:700; color: #f4f4f4; text-decoration: none; border-radius: 5px; margin: 5px auto;">Visualizza nella Dashboard</a>
+
         @endif
         <!-- Se destinatario è user e la prenotazione è fatta a piu di 24 h dalla prenotazione -->
-        @if ($content_mail['to'] == 'user' && $dateString >= now()->format('d/m/Y H:i')->addHours($content_mail['max_delay_default']))
+        @if ($content_mail['to'] == 'user' && $dateString >= now()->addHours($content_mail['max_delay_default'])->format('d/m/Y H:i'))
             <p style="font-size: 13px; color: #04001d; opacity: .7;" >* Entro e non oltre {{$content_mail['max_delay_default']}} ore dalla data prenotata puoi annullare la prenotazione in autonomia premendo questo bottone </p>
             <p style="margin: 10px;">
-                <a href="{{config('configurazione.APP_URL')}}/api/client_default/?whatsapp_message_id={{$content_mail['whatsapp_message_id']}}" style="background-color: #9f2323d8; color: rgb(255, 255, 255); padding: 5px 16px; text-align: center; text-decoration: none; border-radius: 8px; font-size: 14px;">Annulla</a>
+                <a href="{{config('configurazione.APP_URL')}}/api/client_default/?id={{$content_mail['res_id']}}" style="background-color: #9f2323d8; color: rgb(255, 255, 255); padding: 5px 16px; text-align: center; text-decoration: none; border-radius: 8px; font-size: 14px;">Annulla</a>
             </p>
         @endif
 
@@ -71,7 +68,7 @@
     </div>
     <!-- Footer -->
     <div style="margin: 50px auto 0; background-color: #04001d; color: white; padding: 10px; text-align: center; font-size: 12px;">
-        @if ($content_mail['to'] == 'user' && $content_mail['status'] !== 0)
+        @if ($content_mail['to'] == 'user')
             <p style="color: #ffffff; font-size: 12px; line-height: 1.5; margin: 5px;">
                 Per assistenza o informazioni contatta il nostro numero
             </p>

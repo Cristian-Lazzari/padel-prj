@@ -45,6 +45,19 @@ class SettingController extends Controller
         $setting['Orari di attività']->property = json_encode($giorni_attivita);
         $setting['Orari di attività']->save();
 
+        $contatti = [
+            'telefono'  => $request->telefono,
+            'email'     => $request->email,
+            'instagram' => $request->instagram,
+            'facebook'  => $request->facebook,
+            'youtube'   => $request->youtube,
+            'tiktok'    => $request->tiktok,
+            'whatsapp'  => $request->whatsapp,
+        ];
+        $setting['Contatti']->property = json_encode($contatti);
+        $setting['Contatti']->save();      
+        
+
         $setting['advanced']->property = json_encode([
             'max_delay_default' => $data['max_delay_defalt'],
         ]);

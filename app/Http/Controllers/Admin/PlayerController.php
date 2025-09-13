@@ -30,7 +30,8 @@ class PlayerController extends Controller
     ];
     public function index()
     {
-        //
+        $players = Player::all();
+        return view('admin.Players.index', compact('players'));
     }
 
     
@@ -63,12 +64,11 @@ class PlayerController extends Controller
         $player->save();
         
         $m = 'Il giocatore "' . $data['nickname'] . '" è stato registrato correttamente';
-        return to_route('admin.dashboard')->with('create_success', $m);      
+        return to_route('admin.Player.index')->with('create_success', $m);      
     }
     
     public function show($id)
     {
-        //
         $player = Player::findOrFail($id);
         return view('admin.Players.show', compact('player'));
     }

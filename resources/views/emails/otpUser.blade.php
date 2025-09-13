@@ -17,7 +17,7 @@
         </center>
 
 
-        <h1 style="text-transform :uppercase; color: #04001d; font-size: 24px; margin-bottom: 12px; text-align: center">Ciao {{$contact['nickname']}} inserisci questo codice per effettuare accedere con il tuo account <br> {{$consumer['otp']}}</h1>
+        <h1 style="text-transform :uppercase; color: #04001d; font-size: 24px; margin-bottom: 12px; text-align: center">Ciao {{$consumer['nickname']}} inserisci questo codice per effettuare accedere con il tuo account <br> {{$consumer['otp']}}</h1>
         
     </div>
     <!-- Footer -->

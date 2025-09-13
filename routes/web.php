@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\MailerController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Guests\PageController as GuestsPageController;
 
@@ -25,8 +26,10 @@ Route::middleware(['auth', 'verified'])
     ->prefix('admin')
     ->group(function () {
 
-        Route::get('/',           [AdminPageController::class, 'admin'])->name('dashboard');
-
+        Route::get('/',           [AdminPageController::class, 'admin'])->name('dashboard'); //calendar
+        // /reservations
+        // /players
+        Route::get('/settings',            [SettingController::class, 'index'])->name('settings');
 
         Route::get('/mailer/index',         [MailerController::class, 'mailer'])->name('mailer.index');
         Route::get('/mailer/send_mail',     [MailerController::class, 'send_mail'])->name('mailer.send_mail');
@@ -42,7 +45,6 @@ Route::middleware(['auth', 'verified'])
         Route::post('/mailer/update_model',   [MailerController::class, 'update_model'])->name('mailer.update_model');
         Route::delete('/models/{id}',         [MailerController::class, 'delete'])->name('models.delete');
         
-        Route::get('settings/',            [SettingController::class, 'index'])->name('settings');
         Route::post('settings/updateAll',   [SettingController::class, 'updateAll'])->name('settings.updateAll');
 
 

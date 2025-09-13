@@ -120,12 +120,12 @@
         localStorage.setItem('theme', currentTheme)
         document.documentElement.setAttribute("data-theme", currentTheme);
         
-        toggleButton.addEventListener('click', () => {
-            const theme = localStorage.getItem('theme') == 'light' ? 'dark' : 'light';
-            localStorage.setItem("theme", theme);
-            console.log(theme)
-            document.documentElement.setAttribute("data-theme", theme);
-        });
+        // toggleButton.addEventListener('click', () => {
+        //     const theme = localStorage.getItem('theme') == 'light' ? 'dark' : 'light';
+        //     localStorage.setItem("theme", theme);
+        //     console.log(theme)
+        //     document.documentElement.setAttribute("data-theme", theme);
+        // });
    
         
 

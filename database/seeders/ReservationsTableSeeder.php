@@ -31,15 +31,16 @@ class ReservationsTableSeeder extends Seeder
             $dateSlot = $date->setTime($hour, (int) $minute);
 
             DB::table('Reservations')->insert([
-                'date_slot' => $dateSlot->format('d/m/Y H:i'),
+                'date_slot' => $dateSlot->format('Y-m-d H:i'),
                 'field'     => $fields[array_rand($fields)],
                 'status'    => $statuses[array_rand($statuses)],
                 'message'   => rand(0, 1) ? Str::random(20) : null,
                 'dinner'    => json_encode([
                     'status' => array_rand($status),
                     'guests' => rand(1, 8),
-                    'orario' => $dateSlot->format('H:i')
+                    'time' => $dateSlot->format('H:i')
                 ]),
+                'booking_subject' => rand(1, 10),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
