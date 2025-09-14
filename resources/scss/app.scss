@@ -199,12 +199,12 @@ $svg: clamp(22px, 3.8vw, 35px);
     backdrop-filter: blur(10px);
     position: fixed;
     padding: .7rem;
-    top: 85vh;
+    top: 8svh;
     left: 0;
     right: 0;
     z-index: 200;
     width: 98%;
-    max-width: 800px;
+    max-width: 850px;
     margin: 0 auto;
     border-radius: 20px;
     box-shadow: 0 0 20px -4px rgba(0, 0, 0, 0.8);
@@ -222,7 +222,7 @@ $svg: clamp(22px, 3.8vw, 35px);
         box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
         font-size: $fs_sm_1;
         font-weight: 600;
-        $svg_n: clamp(26px, 4vw, 33px);
+        $svg_n: clamp(28px, 6vw, 35px);
         svg{
             filter: drop-shadow(0 0 3px var(--c2_op));
             height: $svg_n;
@@ -230,7 +230,7 @@ $svg: clamp(22px, 3.8vw, 35px);
             padding: 3px;
         }
     }
-    @media (max-width: 800px) {
+    @media (max-width: 860px) {
         .link_nav{
            span{
             display: none;
