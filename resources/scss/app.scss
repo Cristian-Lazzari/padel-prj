@@ -96,7 +96,7 @@ $cfilter : var(--c2);
 $fs_xsm: clamp(10px, 1.4vw, 12px);
 $fs_sm: clamp(14px, 2vw, 16px);
 $fs_sm_1: clamp(15px, 2.1vw, 17px);
-$fs_sm_2: clamp(16px, 2.2vw, 19px);
+$fs_sm_2: clamp(17px, 2.2vw, 19px);
 $fs_sm_3: clamp(17px, 2.3vw, 21px);
 $fs_md: clamp(18px, 2.5vw, 24px);
 $fs_lg: clamp(20px, 3.2vw, 35px);
@@ -127,7 +127,7 @@ $svg: clamp(22px, 3.8vw, 35px);
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    font-size: $fs_sm;
+    font-size: $fs_sm_2;
     text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.367);
     box-shadow: 1px 1px 7px rgba(0, 0, 0, 0.301);
     transition: all .2s ease-in-out;
@@ -847,17 +847,35 @@ body{
         padding: 1rem;
         display: flex;
         justify-content: flex-end;
+        flex-wrap: wrap;
         gap: .5rem;
         align-items: center;
         max-width: 700px;
         margin: 0 auto;
     }
+
     z-index: 1000;
 }
 .floating.bottom{
-    top: 75svh;
+    top: 74svh;
     justify-content: center;
 }
+.floating.bottom_1{
+    top: 70svh;
+    justify-content: center;
+    .int{
+        button{
+            display: flex;
+            justify-content: space-between;
+            flex: 1;
+        }
+        .on{
+            background-color: var(--c1);
+            color: var(--c3);
+        }
+    }
+}
+
 
 .mydash{
     display: flex;

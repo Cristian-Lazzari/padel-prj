@@ -25,7 +25,7 @@
         PREONOTAZIONI
     </h1>
 
-    <div class="floating bottom">
+    <div class="floating bottom_1">
         <div class="int">
             <button class="my_btn_3" data-sort="created_at_asc">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down" viewBox="0 0 16 16">
@@ -169,6 +169,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     buttons.forEach(btn => {
         btn.addEventListener("click", () => {
+            buttons.forEach(btn => {
+                btn.classList.remove('on')
+            })
+            btn.classList.add('on')
             const value = btn.dataset.sort;
             const items = Array.from(container.querySelectorAll(".res_item"));
 
