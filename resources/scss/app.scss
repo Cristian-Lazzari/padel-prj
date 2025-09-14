@@ -199,7 +199,7 @@ $svg: clamp(22px, 3.8vw, 35px);
     backdrop-filter: blur(10px);
     position: fixed;
     padding: .7rem;
-    top: 85svh;
+    top: 85vh;
     left: 0;
     right: 0;
     z-index: 200;
@@ -222,10 +222,11 @@ $svg: clamp(22px, 3.8vw, 35px);
         box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
         font-size: $fs_sm_1;
         font-weight: 600;
+        $svg_n: clamp(26px, 4vw, 33px);
         svg{
             filter: drop-shadow(0 0 3px var(--c2_op));
-            height: $svg;
-            width: $svg;
+            height: $svg_n;
+            width: $svg_n;
             padding: 3px;
         }
     }
@@ -841,8 +842,6 @@ body{
         max-width: 700px;
         margin: 0 auto;
     }
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
     z-index: 1000;
 }
 
