@@ -16,7 +16,7 @@ class ReservationController extends Controller
      */
     public function index()
     {
-        $reservations = Reservation::all();
+        $reservations = Reservation::orderBy('date_slot', 'desc')->get();
         foreach ($reservations as $r) {
             $player = Player::find($r->booking_subject);
             $r->booking_subject_name = $player->name ?? '';
@@ -54,7 +54,7 @@ class ReservationController extends Controller
      */
     public function show($id)
     {
-        $reservation = Reservation::findOrFail($id);
+        $reservation = Reservation::where('id',$id)->with('players')->first();
         return view('admin.reservations.show', compact('reservation'));
     }
 
