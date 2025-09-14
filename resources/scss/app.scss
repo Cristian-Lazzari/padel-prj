@@ -13,6 +13,10 @@ $bp_md : 750px;
 $bp_sm : 550px;
 $bp_xsm : 370px;
 
+*{
+    touch-action: manipulation;
+}
+
 
 
 :root {
