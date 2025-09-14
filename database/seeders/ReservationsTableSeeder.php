@@ -30,7 +30,7 @@ class ReservationsTableSeeder extends Seeder
 
             $dateSlot = $date->setTime($hour, (int) $minute);
 
-            DB::table('Reservations')->insert([
+            DB::table('reservations')->insert([
                 'date_slot' => $dateSlot->format('Y-m-d H:i'),
                 'field'     => $fields[array_rand($fields)],
                 'status'    => $statuses[array_rand($statuses)],

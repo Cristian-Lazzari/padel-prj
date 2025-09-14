@@ -4,9 +4,7 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
 use Database\Seeders\UsersTableSeeder;
-
 use Database\Seeders\SettingsTableSeeder;
 use Database\Seeders\ReservationsTableSeeder;
 
