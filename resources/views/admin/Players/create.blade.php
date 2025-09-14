@@ -118,8 +118,13 @@
     
         </section>
         <p>* Campi facoltativi</p>
-        
-        <button class="my_btn_2 mb-5  w-75 m-auto" type="submit">Crea player</button>
+        <div class="floating bottom">
+            <div class="int">
+    
+                <button class="my_btn_3"  type="submit">Conferma</button>
+                <button class="my_btn_2" name="add_new" value="1" type="submit">Conferma e creane un altro</button>
+            </div>
+        </div>
         
     </form>
 </div>

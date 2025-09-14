@@ -126,8 +126,14 @@
 
         </section>
         <p>* Campi facoltativi</p>
+        <div class="floating bottom">
+            <div class="int">
+    
+                <button class="my_btn_3"  type="submit">Modifica</button>
+
+            </div>
+        </div>
         
-        <button class="my_btn_2 mb-5  w-75 m-auto" type="submit">Modifica Giocatore</button>
         
     </form>
 

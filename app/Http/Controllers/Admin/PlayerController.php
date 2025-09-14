@@ -62,9 +62,14 @@ class PlayerController extends Controller
             $player->cretificate = $cretificatePath;
         } 
         $player->save();
+
+        if (isset($data['add_new'])) {
+            $m = 'Il giocatore "' . $data['nickname'] . '" è stato registrato correttamente. Puoi aggiungerne un altro';
+            return to_route('admin.players.create')->with('create_success', $m);      
+        }
         
         $m = 'Il giocatore "' . $data['nickname'] . '" è stato registrato correttamente';
-        return to_route('admin.players.index')->with('create_success', $m);      
+        return to_route('admin.players.index')->with('message', $m);      
     }
     
     public function show($id)
@@ -105,8 +110,8 @@ class PlayerController extends Controller
         } 
         $player->update();
 
-        $m = 'Il giocatore "' . $data['nickname'] . '" è stato modificato correttamente';
-        return to_route('admin.dashboard')->with('edit_success', $m);      
+        $message = 'Il giocatore "' . $data['nickname'] . '" è stato modificato correttamente';
+        return to_route('admin.players.index')->with('message', $message);      
     }
 
     
