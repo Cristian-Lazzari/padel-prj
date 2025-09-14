@@ -64,7 +64,7 @@ class PlayerController extends Controller
         $player->save();
         
         $m = 'Il giocatore "' . $data['nickname'] . '" è stato registrato correttamente';
-        return to_route('admin.Players.index')->with('create_success', $m);      
+        return to_route('admin.players.index')->with('create_success', $m);      
     }
     
     public function show($id)
