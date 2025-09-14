@@ -55,7 +55,7 @@ class ReservationController extends Controller
     public function show($id)
     {
         $reservation = Reservation::where('id',$id)->with('players')->first();
-        return view('admin.reservations.show', compact('reservation'));
+        return view('admin.Reservations.show', compact('reservation'));
     }
 
     /**
