@@ -17,8 +17,9 @@
     
 <div class="page_nav">
     <div class="view_box pt-5">
-        <div class="central">
+         <div class="central">
             <h1>Dettagli del MATCH</h1>
+            <h2><span>Prenotato da:</span> <a class="my_btn_5" href="{{route('admin.players.show', $reservation->booking_subject)}}">{{$reservation->booking_subject_name}} {{$reservation->booking_subject_surnname}}</a></h2>
         </div>
         <div class="box_container">
             <div class="box personal">
@@ -30,7 +31,7 @@
                 </div>
                 <div class="date">{{$data}}</div>
             </div>
-            <div class="box contact ">
+            <div class="box dinner ">
                 <h2>Cena</h2>
                 @if ($dinner['status'])
                 <p>
@@ -98,7 +99,15 @@
                 <strong>Aggiornato il</strong> {{$reservation->updated_at->format('d/m/Y')}}
             </p>
         </div>
-    
-        <a class="my_btn_2" href="{{ route('admin.reservations.edit', $reservation) }}">Modifica</a>
+         <div class="floating bottom">
+            <div class="int">
+                <a class="my_btn_7" href="{{ route('admin.reservations.edit', $reservation) }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                    </svg>
+                    Modifica</a>
+            </div>
+        </div>
     </div>
 </div>

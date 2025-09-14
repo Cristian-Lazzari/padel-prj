@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Player;
+use App\Models\Reservation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
@@ -75,7 +76,8 @@ class PlayerController extends Controller
     public function show($id)
     {
         $player = Player::findOrFail($id);
-        return view('admin.Players.show', compact('player'));
+        $player_reservations = Reservation::where('booking_subject',$id)->with('players')->get();
+        return view('admin.Players.show', compact('player', 'player_reservations'));
     }
     
     

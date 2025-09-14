@@ -24,31 +24,77 @@
         </svg>
         PREONOTAZIONI
     </h1>
-    <div class="newtable">
-        @foreach ($reservations as $r)
-        @php
-            // Parsing della stringa
-            $datetime = Carbon\Carbon::parse($r->date_slot)->locale('it');
 
-            // Variabili separate
-            $data = $datetime->translatedFormat('D j M'); // es: giovedì 25 settembre
-            $ora = $datetime->format('H:i');              // es: 18:00
-            $ora_fine = $datetime->addHour()->addMinutes(30)->format('H:i'); // es: 19:00
-        @endphp
-            <div class="res_item">
+    <div class="floating bottom">
+        <div class="int">
+            <button class="my_btn_3" data-sort="created_at_asc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down" viewBox="0 0 16 16">
+                    <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5M7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1z"/>
+                </svg>
+                <span>Ricevute </span>
+            </button>
+    
+            <button class="my_btn_3" data-sort="created_at_desc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up-alt" viewBox="0 0 16 16">
+                    <path d="M3.5 13.5a.5.5 0 0 1-1 0V4.707L1.354 5.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.5.5 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 4.707zm4-9.5a.5.5 0 0 1 0-1h1a.5.5 0 0 1 0 1zm0 3a.5.5 0 0 1 0-1h3a.5.5 0 0 1 0 1zm0 3a.5.5 0 0 1 0-1h5a.5.5 0 0 1 0 1zM7 12.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 0-1h-7a.5.5 0 0 0-.5.5"/>
+                </svg>
+                <span>Ricevute </span>
+            </button>
+    
+            <button class="my_btn_3" data-sort="date_slot_asc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down" viewBox="0 0 16 16">
+                    <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5M7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1z"/>
+                </svg>
+                <span>Data prenotata </span>
+            </button>
+    
+            <button class="my_btn_3" data-sort="date_slot_desc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up-alt" viewBox="0 0 16 16">
+                    <path d="M3.5 13.5a.5.5 0 0 1-1 0V4.707L1.354 5.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.5.5 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 4.707zm4-9.5a.5.5 0 0 1 0-1h1a.5.5 0 0 1 0 1zm0 3a.5.5 0 0 1 0-1h3a.5.5 0 0 1 0 1zm0 3a.5.5 0 0 1 0-1h5a.5.5 0 0 1 0 1zM7 12.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 0-1h-7a.5.5 0 0 0-.5.5"/>
+                </svg>
+                <span>Data prenotata</span>
+            </button>
+        </div>
+    </div>
+
+
+
+
+    <div class="newtable" id="reservations-list">
+        @foreach ($reservations as $r)
+            @php
+                $datetime = Carbon\Carbon::parse($r->date_slot)->locale('it');
+                $data = $datetime->translatedFormat('D j M');
+                $ora = $datetime->format('H:i');
+                $ora_fine = $datetime->copy()->addHour()->addMinutes(30)->format('H:i');
+            @endphp
+
+            <div class="res_item"
+                data-created="{{ $r->created_at }}"
+                data-slot="{{ $r->date_slot }}">
+                
                 <div class="left">
-                    <div class="time_slot">{{$ora}}   
-                    <span class="second">{{$ora_fine}}
-                    </span>
-                    
+                    <div class="time_slot">
+                        {{ $ora }} <span class="second">{{ $ora_fine }}</span>
+                    </div>
+                    <div class="date">{{ $data }}</div>
                 </div>
-                <div class="date">{{$data}}</div>
-                </div>
+                
                 <div class="center">
-                    <span class="field">{{$r->field}}</span>
-                    <p>{{$r->booking_subject_name}}</p>
-                    <p>{{$r->booking_subject_surname}}</p>
+                    <div>
+                        <span class="pl">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
+                                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                            </svg>
+                            {{ count($r->players) }}
+                        </span>
+                        <span class="field">C {{ $r->field }}</span>
+                    </div>
+                    <p>{{ $r->booking_subject_name }}</p>
+                    <p>{{ $r->booking_subject_surname }}</p>
                 </div>
+
+                {{-- le tue actions qui restano identiche --}}
                 <div class="actions">
                     @php
                         $dinner = json_decode($r->dinner, true);
@@ -110,14 +156,44 @@
                         </svg>
                     </a>
                 </div>
-
             </div>
         @endforeach
-
-
     </div>
-
 </div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+    const buttons = document.querySelectorAll(".my_btn_3");
+    const container = document.getElementById("reservations-list");
+
+    buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const value = btn.dataset.sort;
+            const items = Array.from(container.querySelectorAll(".res_item"));
+
+            items.sort((a, b) => {
+                if (value === "created_at_asc") {
+                    return new Date(a.dataset.created) - new Date(b.dataset.created);
+                }
+                if (value === "created_at_desc") {
+                    return new Date(b.dataset.created) - new Date(a.dataset.created);
+                }
+                if (value === "date_slot_asc") {
+                    return new Date(a.dataset.slot) - new Date(b.dataset.slot);
+                }
+                if (value === "date_slot_desc") {
+                    return new Date(b.dataset.slot) - new Date(a.dataset.slot);
+                }
+            });
+
+            container.innerHTML = "";
+            items.forEach(i => container.appendChild(i));
+        });
+    });
+});
+</script>
+
 
 
 

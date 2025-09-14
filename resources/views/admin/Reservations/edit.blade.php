@@ -21,7 +21,7 @@
         @method('PUT')
 
         <div class="central">
-            <h1>Dettagli del MATCH</h1>
+            <h1>Modifica il MATCH</h1>
             <h2><span>Prenotato da:</span> <a class="my_btn_5" href="{{route('admin.players.show', $reservation->booking_subject)}}">{{$reservation->booking_subject_name}} {{$reservation->booking_subject_surnname}}</a></h2>
         </div>
         <div class="box_container">
@@ -94,7 +94,7 @@
 
          <div class="floating bottom">
             <div class="int">
-                <button class="my_btn_3"  type="submit">Modifica</button>
+                <button class="my_btn_3"  type="submit">Conferma modifiche</button>
             </div>
         </div>
     </form>
