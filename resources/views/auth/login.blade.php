@@ -44,7 +44,7 @@
             
                     <div class="act">
 
-                        <a href="{{route('register')}}" class="my_btn_5 ">Registrati</a>
+                        {{-- <a href="{{route('register')}}" class="my_btn_5 ">Registrati</a> --}}
                         <button type="submit" class="my_btn_7">Login</button>
                     </div>
                 </form>    

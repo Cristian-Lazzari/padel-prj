@@ -24,6 +24,7 @@
                                 <input type="radio" name="status_service"  @if($settings['Servizio di Prenotazione Online']['status'] == 0) checked  @endif value="0" >
                                 <span class="name">Off</span>
                             </label>
+
                             <label class="radio">
                                 <input type="radio" name="status_service"  @if($settings['Servizio di Prenotazione Online']['status'] == 2) checked  @endif value="2" >
                                 <span class="name">On</span>
@@ -72,7 +73,7 @@
             </div>
             <div class="bottom-set">
                 <div class="accordion accordion-flush" id="accordionFlushExample">
-                    {{-- <div class="accordion-item">
+                    <div style="opacity: 0" class="accordion-item">
                         <h4 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
                             Giorni e orari d'apertura
@@ -80,7 +81,10 @@
                         </h4>
                         <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
                             <div class="accordion-body">
-                                
+                                @php 
+                                    $property_orari = json_decode($settings['Orari di attività']['property'], true);
+                                    $property_contatti = json_decode($settings['Contatti']['property'], true);
+                                @endphp
                                 <section class="activity-day">
                                     @foreach (['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'] as $giorno)
                                         <div class="input-group mb-3">
@@ -94,11 +98,8 @@
                             </div>
                         </div>
                     </div>
-                    --}}
-                    @php 
-                        $property_orari = json_decode($settings['Orari di attività']['property'], true);
-                        $property_contatti = json_decode($settings['Contatti']['property'], true);
-                    @endphp
+                   
+
                     <div class="accordion-item"> 
                         <h4 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
