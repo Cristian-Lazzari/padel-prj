@@ -78,22 +78,31 @@ class PlayerController extends Controller
     {
         $data = $request->all();
         $query = $data['q'];
-        $players = $data['players'];
+        
 
         if (!$query) {
             return response()->json([]);
         }
 
-        $players = Player::where('name', 'LIKE', "%{$query}%")
-            ->orWhere('surname', 'LIKE', "%{$query}%")
-            ->orWhere('nickname', 'LIKE', "%{$query}%")
-            ->whereNotIn('id', $players)
-            ->limit(5)
-            ->get(['id', 'name', 'surname', 'nickname']);
+        if(isset($data['players'])){
+            $q_p = $data['players'];
+            $players = Player::where('name', 'LIKE', "%{$query}%")
+                ->orWhere('surname', 'LIKE', "%{$query}%")
+                ->orWhere('nickname', 'LIKE', "%{$query}%")
+                ->whereNotIn('id', $q_p)
+                ->limit(5)
+                ->get(['id', 'name', 'surname', 'nickname']);
+        }else{
+            $players = Player::where('name', 'LIKE', "%{$query}%")
+                ->orWhere('surname', 'LIKE', "%{$query}%")
+                ->orWhere('nickname', 'LIKE', "%{$query}%")
+                ->limit(5)
+                ->get(['id', 'name', 'surname', 'nickname']);
+        }
+
         foreach ($players as $p) {
             $p['user'] = false;
         }
-
         return response()->json($players);
     }
 
