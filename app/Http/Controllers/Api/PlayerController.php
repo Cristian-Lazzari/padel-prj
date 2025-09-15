@@ -77,7 +77,7 @@ class PlayerController extends Controller
     public function search_nn(Request $request)
     {
         $data = $request->all();
-        $query = $data['p'];
+        $query = $data['q'];
         $players = $data['players'];
 
         if (!$query) {
