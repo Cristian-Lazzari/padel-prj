@@ -83,8 +83,9 @@ class PlayerController extends Controller
         if (!$query) {
             return response()->json([]);
         }
-
+        
         if(isset($data['players'])){
+            return response()->json($q_p);
             $q_p = $data['players'];
             $players = Player::where('name', 'LIKE', "%{$query}%")
                 ->orWhere('surname', 'LIKE', "%{$query}%")
