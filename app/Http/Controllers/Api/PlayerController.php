@@ -86,7 +86,7 @@ class PlayerController extends Controller
         
         if(isset($data['players'])){
             $q_p = $data['players'];
-            return response()->json($q_p);
+            // return response()->json($q_p);
             if (is_string($q_p)) {
                 $q_p = json_decode($q_p, true);
             }
