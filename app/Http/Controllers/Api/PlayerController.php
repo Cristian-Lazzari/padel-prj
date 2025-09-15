@@ -76,7 +76,9 @@ class PlayerController extends Controller
     }
     public function search_nn(Request $request)
     {
-        $query = $request->input('q');
+        $data = $request->all();
+        $query = $data['p'];
+        $players = $data['players'];
 
         if (!$query) {
             return response()->json([]);
@@ -85,6 +87,7 @@ class PlayerController extends Controller
         $players = Player::where('name', 'LIKE', "%{$query}%")
             ->orWhere('surname', 'LIKE', "%{$query}%")
             ->orWhere('nickname', 'LIKE', "%{$query}%")
+            ->whereNotIn('id', $players)
             ->limit(5)
             ->get(['id', 'name', 'surname', 'nickname']);
         foreach ($players as $p) {
