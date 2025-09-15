@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use Carbon\Carbon;
+use App\Models\Setting;
+use App\Models\Reservation;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class SettingController extends Controller
 {
@@ -24,10 +27,20 @@ class SettingController extends Controller
             return response()->json(['error' => 'id mancante'], 400);
         }
         $reservation = Reservation::where('id', $id)->first();
+         // parse della data
+        $date = Carbon::createFromFormat('Y/m/d H:i', $reservation->date_slot);
+
+        // se la data è già passata → false
+        if ($date->isPast()) {
+            return false;
+        }
+
+        // controlla se manca almeno 1 giorno
+        $is_ok=  $date->gte(now()->addDay());
         if (!$reservation) {
             return response()->json(['error' => 'Nessuna prenotazione trovata'], 404);
         }
-        if(in_array($reservation->status, [0])){
+        if(in_array($reservation->status, [0]) && $is_ok){
             $reservation->status = 0;
             
             return view('guests.delete_success');
