@@ -85,7 +85,7 @@ class ReservationController extends Controller
 
             'field' => $match->field,
             'phone' => $booking_subject->phone,
-            'admin_phone' => $contact['telefono'] ?? null,
+            'admin_phone' => $contact['phone'] ?? null,
 
             'max_delay_default' => $advanced['max_delay_default'],
         

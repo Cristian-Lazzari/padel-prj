@@ -80,10 +80,7 @@
                         </h4>
                         <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
                             <div class="accordion-body">
-                                @php 
-                                    $property_orari = json_decode($settings['Orari di attività']['property'], true);
-                                    $property_contatti = json_decode($settings['Contatti']['property'], true);
-                                @endphp
+                                
                                 <section class="activity-day">
                                     @foreach (['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'] as $giorno)
                                         <div class="input-group mb-3">
@@ -98,7 +95,10 @@
                         </div>
                     </div>
                     --}}
-
+                    @php 
+                        $property_orari = json_decode($settings['Orari di attività']['property'], true);
+                        $property_contatti = json_decode($settings['Contatti']['property'], true);
+                    @endphp
                     <div class="accordion-item"> 
                         <h4 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
@@ -109,8 +109,8 @@
                             <div class="accordion-body">
                                 <section>
                                     <div class="input-group mb-3">
-                                        <label for="telefono" class="input-group-text">Telefono</label>
-                                        <input type="text" class="form-control"  name="telefono" @if($property_contatti) value="{{ $property_contatti['telefono'] }}" @endif>
+                                        <label for="phone" class="input-group-text">Telefono</label>
+                                        <input type="text" class="form-control"  name="phone" @if($property_contatti) value="{{ $property_contatti['phone'] }}" @endif>
                                     </div>
                                     <div class="input-group mb-3">
                                         <label for="email" class="input-group-text">Email</label>

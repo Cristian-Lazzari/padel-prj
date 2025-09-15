@@ -55,7 +55,7 @@ class PlayerController extends Controller
                 'otp' => $otp,
                 'email' => $player->mail,
                 'nickname' => $player->nickname,
-                'admin_phone' => $contact['telefono'],
+                'admin_phone' => $contact['phone'],
             ];
            
             $mail = new otpUser($bodymail);

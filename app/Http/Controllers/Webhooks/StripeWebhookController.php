@@ -404,7 +404,7 @@ class StripeWebhookController extends Controller
             'date_slot' => $order->date_slot,
             'message' => $order->message,
             'phone' => $order->phone,
-            'admin_phone' => $p_set['telefono'],
+            'admin_phone' => $p_set['phone'],
             
             'comune' => $order->comune,
             'address' => $order->address,

@@ -46,7 +46,7 @@ class SettingController extends Controller
         $setting['Orari di attività']->save();
 
         $contatti = [
-            'telefono'  => $request->telefono,
+            'phone'  => $request->phone,
             'email'     => $request->email,
             'instagram' => $request->instagram,
             'facebook'  => $request->facebook,

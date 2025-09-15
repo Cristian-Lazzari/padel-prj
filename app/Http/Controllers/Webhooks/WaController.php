@@ -333,7 +333,7 @@ class WaController extends Controller
             'date_slot' => $order->date_slot,
             'message' => $order->message,
             'phone' => $order->phone,
-            'admin_phone' => $p_set['telefono'],
+            'admin_phone' => $p_set['phone'],
             
             'comune' => $order->comune,
             'address' => $order->address,
@@ -427,7 +427,7 @@ class WaController extends Controller
             'message' => $res->message,
             'sala' => $res->sala,
             'phone' => $res->phone,
-            'admin_phone' => $p_set['telefono'],
+            'admin_phone' => $p_set['phone'],
             
             'whatsapp_message_id' => $res->whatsapp_message_id,
             'n_person' => $res->n_person,
