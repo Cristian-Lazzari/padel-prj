@@ -87,10 +87,17 @@ class PlayerController extends Controller
         if(isset($data['players'])){
             $q_p = $data['players'];
             return response()->json($q_p);
-            $players = Player::where('name', 'LIKE', "%{$query}%")
-                ->orWhere('surname', 'LIKE', "%{$query}%")
-                ->orWhere('nickname', 'LIKE', "%{$query}%")
-                ->whereNotIn('id', $q_p)
+            if (is_string($q_p)) {
+                $q_p = json_decode($q_p, true);
+            }
+            $q_p = array_values($q_p ?? []); // normalizza
+
+            $players = Player::where(function ($q) use ($query) {
+                    $q->where('name', 'LIKE', "%{$query}%")
+                    ->orWhere('surname', 'LIKE', "%{$query}%")
+                    ->orWhere('nickname', 'LIKE', "%{$query}%");
+                })
+                ->when(!empty($q_p), fn($q) => $q->whereNotIn('id', $q_p))
                 ->limit(5)
                 ->get(['id', 'name', 'surname', 'nickname']);
         }else{
