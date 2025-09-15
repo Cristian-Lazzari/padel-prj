@@ -2961,10 +2961,23 @@ section{
         margin: 0;
     }
     .central{
+        display: flex;
+        flex-direction: column;
         h2{
             display: flex;
             gap: 1.5rem;
         }
+        select{
+            margin-left: auto;
+            background-color: rgba(255, 0, 0, 0);
+            color: var(--c3);
+            font-size: $fs_md;
+            border: 0;
+            &:focus{
+                outline: 0;
+            }
+        }
+
     }
     .box_container{
         
@@ -3201,6 +3214,11 @@ section{
     display: flex;
     flex-direction: column;
     gap: .6rem;  
+}
+
+.res_item.off{
+    background-color: red;
+    opacity: .7;
 }
 .res_item{
     display: flex;

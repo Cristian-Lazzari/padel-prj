@@ -15,4 +15,26 @@ class SettingController extends Controller
             'social' => $setting['Contatti']->property
         ]);
     }
+
+    public function client_default(Request $request) {
+        $id = $request->query('id');
+        //return $messageId;
+
+        if (!$id) {
+            return response()->json(['error' => 'id mancante'], 400);
+        }
+        $reservation = Reservation::where('id', $id)->first();
+        if (!$reservation) {
+            return response()->json(['error' => 'Nessuna prenotazione trovata'], 404);
+        }
+        if(in_array($reservation->status, [0])){
+            $reservation->status = 0;
+            
+            return view('guests.delete_success');
+        }
+
+
+
+        return response()->json(['error' => 'Prenotazione gia annullata'], 400);
+    }
 }

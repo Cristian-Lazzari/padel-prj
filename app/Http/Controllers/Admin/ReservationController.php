@@ -96,6 +96,7 @@ class ReservationController extends Controller
             $old_dinner['time'] = $data['time'];
             $reservation->dinner = json_encode($old_dinner);
         }
+        $reservation->status = $data['status'];
         $reservation->update();
         if (array_key_exists('players',$data)) {
             $reservation->players()->sync($data['players']);

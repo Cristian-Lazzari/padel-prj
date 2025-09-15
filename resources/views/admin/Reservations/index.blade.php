@@ -69,7 +69,11 @@
                 $ora_fine = $datetime->copy()->addHour()->addMinutes(30)->format('H:i');
             @endphp
 
-            <div class="res_item"
+            <div class="res_item
+            @if($r->status == 0)
+            off
+            @endif
+            "
                 data-created="{{ $r->created_at }}"
                 data-slot="{{ $r->date_slot }}">
                 

@@ -23,6 +23,10 @@
         <div class="central">
             <h1>Modifica il MATCH</h1>
             <h2><span>Prenotato da:</span> <a class="my_btn_5" href="{{route('admin.players.show', $reservation->booking_subject)}}">{{$reservation->booking_subject_name}} {{$reservation->booking_subject_surnname}}</a></h2>
+            <select name="status" id="">
+                <option value="1">Confermata</option>
+                <option value="0">Annullata</option>
+            </select>
         </div>
         <div class="box_container">
             <div class="box personal">
