@@ -20,7 +20,7 @@ class ReservationsTableSeeder extends Seeder
         $statuses = [1, 2, 3];
         $status   = [true, false];
 
-        for ($i = 0; $i < 50; $i++) { // più prenotazioni
+        for ($i = 0; $i < 5; $i++) { // più prenotazioni
             // giorno casuale entro i prossimi 30 giorni
             $date = now()->addDays(rand(0, 30));
 
@@ -40,7 +40,7 @@ class ReservationsTableSeeder extends Seeder
                     'guests' => rand(1, 8),
                     'time' => $dateSlot->format('H:i')
                 ]),
-                'booking_subject' => rand(1, 10),
+                'booking_subject' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
