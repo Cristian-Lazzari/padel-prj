@@ -34,9 +34,9 @@ class SettingController extends Controller
         if ($date->isPast()) {
             return false;
         }
-
+        $hours = json_decode(Setting::where('name', 'advanced')->property, 1)['max_delay_default'];
         // controlla se manca almeno 1 giorno
-        $is_ok=  $date->gte(now()->addDay());
+        $is_ok=  $date->gte(now()->addHours($hours));
         if (!$reservation) {
             return response()->json(['error' => 'Nessuna prenotazione trovata'], 404);
         }
