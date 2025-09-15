@@ -25,12 +25,8 @@
                                 <span class="name">Off</span>
                             </label>
                             <label class="radio">
-                                <input type="radio" name="status_service"  @if($settings['Servizio di Prenotazione Online']['status'] == 1) checked  @endif value="1" >
-                                <span class="name">Chiamate</span>
-                            </label>
-                            <label class="radio">
                                 <input type="radio" name="status_service"  @if($settings['Servizio di Prenotazione Online']['status'] == 2) checked  @endif value="2" >
-                                <span class="name">Web App</span>
+                                <span class="name">On</span>
                             </label>
                         </div>
                         @php
