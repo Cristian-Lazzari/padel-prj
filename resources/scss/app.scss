@@ -214,7 +214,7 @@ html{
     max-width: 850px;
     margin: 0 auto;
     border-radius: 20px;
-    box-shadow: 0 0 23px -2px rgba(0, 0, 0, 1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 1);
     display: flex;
     align-items: stretch;
     justify-content: space-between;
@@ -826,9 +826,10 @@ body{
 .page_nav{
     width: 100% !important;
     padding: 1.4rem 3px 200px;
+    height: 100vh !important;
     max-width: 700px;
     margin: 0 auto;
-    overflow: hidden;
+    overflow-y: auto;
     position: relative;
     h1{
         //text-align: center;
@@ -867,7 +868,8 @@ body{
     justify-content: center;
 }
 .floating.bottom_1{
-    top: 69svh;
+    position: sticky !important;
+    top: 5dvh;
     justify-content: center;
     .int{
         button{
@@ -881,11 +883,11 @@ body{
         }
     }
 }
-@media (min-width: 660px) {
-    .floating.bottom_1{
-    top: 79svh;
-}
-}
+// @media (min-width: 660px) {
+//     .floating.bottom_1{
+//     bottom: 79svh;
+// }
+// }
 
 
 .mydash{
