@@ -882,6 +882,7 @@ body{
         .on{
             background-color: var(--c1);
             color: var(--c3);
+            border: 0 !important;
         }
     }
 }
@@ -892,9 +893,12 @@ body{
     background-color: var(--c3_op_8);
     border-radius: 10px;
     backdrop-filter: blur(3px);
+    box-shadow: 0 0 10px var(--c3_op);
     overflow:hidden;
+    width: 98%;
+    margin: 0 auto;
     button{
-        padding: .3rem .5rem;
+        padding: .3rem 1.2rem;
         border-radius: 0 !important;
         box-shadow: 0 0 0;
         background-color: #00000000;

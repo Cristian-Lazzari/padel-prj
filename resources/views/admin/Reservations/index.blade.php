@@ -166,41 +166,53 @@
 </div>
 
 <script>
-
 document.addEventListener("DOMContentLoaded", () => {
     const buttons = document.querySelectorAll(".my_btn_7");
     const container = document.getElementById("reservations-list");
 
+    function parseDateString(s) {
+        if (!s) return new Date(0);
+        s = s.trim();
+        // match formati tipo: 2025-10-02 17:00 oppure 2025-09-15 18:22:42
+        const match = s.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})(?::(\d{2}))?$/);
+        if (match) {
+            const [, y, m, d, hh, mm, ss] = match;
+            return new Date(+y, +m - 1, +d, +hh, +mm, ss ? +ss : 0);
+        }
+        // fallback
+        return new Date(s.replace(" ", "T"));
+    }
+
     buttons.forEach(btn => {
         btn.addEventListener("click", () => {
-            buttons.forEach(btn => {
-                btn.classList.remove('on')
-            })
-            btn.classList.add('on')
+            buttons.forEach(b => b.classList.remove("on"));
+            btn.classList.add("on");
+
             const value = btn.dataset.sort;
             const items = Array.from(container.querySelectorAll(".res_item"));
 
             items.sort((a, b) => {
                 if (value === "created_at_asc") {
-                    return new Date(a.dataset.created) - new Date(b.dataset.created);
+                    return parseDateString(a.dataset.created) - parseDateString(b.dataset.created);
                 }
                 if (value === "created_at_desc") {
-                    return new Date(b.dataset.created) - new Date(a.dataset.created);
+                    return parseDateString(b.dataset.created) - parseDateString(a.dataset.created);
                 }
                 if (value === "date_slot_asc") {
-                    return new Date(a.dataset.slot) - new Date(b.dataset.slot);
+                    return parseDateString(a.dataset.slot) - parseDateString(b.dataset.slot);
                 }
                 if (value === "date_slot_desc") {
-                    return new Date(b.dataset.slot) - new Date(a.dataset.slot);
+                    return parseDateString(b.dataset.slot) - parseDateString(a.dataset.slot);
                 }
+                return 0;
             });
 
-            container.innerHTML = "";
             items.forEach(i => container.appendChild(i));
         });
     });
 });
 </script>
+
 
 
 
