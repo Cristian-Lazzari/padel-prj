@@ -3574,17 +3574,15 @@ section{
 */
 
 .registration-modal{
-    padding: 4rem 3rem;
+    padding: 1.5rem 1rem 4rem;
     background-color: #d8dde8da;
     color: #090333;
     max-width: 700px;
-    max-height: 95svh;
     margin: 0 auto;
     border-radius: 20px;
     display: flex;
     gap: 3rem;
     flex-direction: column;
-    overflow: auto;
     .top{
        
         h1{
@@ -3598,63 +3596,8 @@ section{
             font-size: $fs_md;
             text-transform: uppercase;
         }
-        .crumbles{
-            opacity: .8;
-            $w : 1px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            .line{
-                height: $w;
-                width: 1rem;
-                background-color: var(--c1);
-            }
-            .circle{
-                height: 2rem;
-                width: 2rem;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                border: $w solid var(--c1);
-                border-radius: 50%;
-                cursor: pointer;
-            }
-            .active{
-                color: var(--c3);
-                scale: 1.2;
-                border: $w solid var(--c1);
-                background-color: $c1;
-            }
-        }
     }
-    .body{
-        #payment-form{
-            margin: 0 auto;
-            max-width: 450px;
-            padding: 1.4rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            background-color: $c1_op;
-            box-shadow: -4px 4px 0 $c1;
-            border-radius: 20px;
-            label{
-                color: $c3;
-            }
-            #card-number, #card-expiry, #card-cvc {
-                border-radius: 10px;
-                border: none;
-                color: $c1;
-                background: linear-gradient(145deg, rgba($c3_op, .5) , rgba($c3_op, .8));
 
-                font-size: $fs_xsm;
-                padding: .5rem;
-                border: 1px solid $c3_op;
-            }
-
-
-        }
-    }
     .foot{
         display: flex;
         justify-content: space-between;
