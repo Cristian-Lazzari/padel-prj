@@ -15,6 +15,13 @@
         <button type="button" class="btn-close close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     @endif
+    <div class="alert-cont">
+
+        <div class="alert alert-dismissible fade show notify_success" role="alert">
+            syubdsjbjsb skdh siduh osudh osuhdohsodhsod 
+            <button type="button" class="btn-close close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
 
 
     <h1>

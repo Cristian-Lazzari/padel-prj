@@ -783,34 +783,45 @@ body{
     }
 }
 
-.notify_success{
-    //display: flex;
-    //align-items: center;
-    border: solid 2px $c2;
-    box-shadow: 0 0 13px $c2;
-    border-radius: 15px;  
-    padding: 2rem;
+.alert-cont{
     position: fixed;
     z-index: 222222;
-    top: 10%;
-    left: 50%;
-    //min-width: 270px;
-    transform: translate(-50%, -50%);
-    //margin: 0 auto;
-    //min-width: 200px;
-    background-color: rgba($c1, .95);
-    font-size: $fs_sm_2;
-    .close.btn-close{
-        font-size: $fs_xsm !important;
-        aspect-ratio: 1 !important;
-        border-radius: 10px;
-        padding: .5rem !important;
-        top: 5px !important;
-        right: 5px !important;
-        background-color: $c3;
-        color: $c2 !important;
-        svg{
+    top: 0%;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top:100px;
+    .notify_success{
+        //display: flex;
+        //align-items: center;
+        border: solid 2px $c2;
+        box-shadow: 0 0 13px $c2;
+        border-radius: 15px;  
+        padding: 2rem;
+        position: relative;
+    
+        width: 90%;
+        margin: auto;
+    
+    
+        //margin: 0 auto;
+        //min-width: 200px;
+        background-color: rgba($c1, .95);
+        font-size: $fs_sm_2;
+        .close.btn-close{
+            font-size: $fs_xsm !important;
+            aspect-ratio: 1 !important;
+            border-radius: 10px;
+            padding: .5rem !important;
+            top: 5px !important;
+            right: 5px !important;
+            background-color: $c3;
             color: $c2 !important;
+            svg{
+                color: $c2 !important;
+            }
         }
     }
 }
@@ -898,7 +909,7 @@ body{
         border-radius: 0 !important;
         box-shadow: 0 0 0;
         background-color: #00000000;
-        flex: 1 1 50% !important;
+        flex: 1 1 47% !important;
         border: 0 !important;
         &:hover{
             box-shadow: 0 0 0;
