@@ -37,7 +37,7 @@
 
     <div class="floating bottom_1">
         <div class="int">
-            <input type="text" id="searchInput" class="my_btn_7 w-75 m-auto my-5" placeholder="Cerca giocatore...">
+            <input type="text" id="searchInput" class="my_btn_7 w-75 m-auto " placeholder="Cerca giocatore...">
         </div>
     </div>
    

@@ -16,7 +16,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        if( auth()->check() && auth()->user()->role === 'admin' ){
+        if(in_array(auth()->check() && auth()->user()->role, ['trainer', 'admin'])){
            return view('profile.edit', [
             'user' => $request->user(),
         ]);
@@ -40,7 +40,7 @@ class ProfileController extends Controller
         }
 
         $request->user()->save();
-        if( auth()->check() && auth()->user()->role === 'admin' ){
+        if( in_array(auth()->check() && auth()->user()->role, ['trainer', 'admin'])){
             return Redirect::route('admin.profile.edit')->with('status', 'profile-updated');
         }else{
             return Redirect::route('client.profile.edit')->with('status', 'profile-updated');

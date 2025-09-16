@@ -39,7 +39,7 @@ class RouteServiceProvider extends ServiceProvider
     }
     public static function home()
     {
-        return auth()->check() && auth()->user()->role === 'admin' 
+        return auth()->check() && auth()->user()->role !== 'client' 
             ? route('admin.dashboard') 
             : route('client.dashboard');
     }

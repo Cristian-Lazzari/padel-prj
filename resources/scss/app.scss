@@ -86,7 +86,8 @@ $cfilter : var(--c2);
     opacity: .5;
 }
 .main-container-page{
-    min-height: 100lvh;
+    height: 100dvh;
+    overflow: hidden !important;
     padding: 25px;
     margin: 0 auto;
 }
@@ -871,6 +872,7 @@ body{
     position: sticky !important;
     top: 5dvh;
     justify-content: center;
+    margin-bottom: 2.3rem;
     .int{
         button{
             display: flex;
@@ -880,6 +882,27 @@ body{
         .on{
             background-color: var(--c1);
             color: var(--c3);
+        }
+    }
+}
+.pop_filt{
+    gap: 0 !important;
+    border: 2px solid var(--c1) !important;
+    padding: 0 !important;
+    background-color: var(--c3_op_8);
+    border-radius: 10px;
+    backdrop-filter: blur(3px);
+    overflow:hidden;
+    button{
+        padding: .3rem .5rem;
+        border-radius: 0 !important;
+        box-shadow: 0 0 0;
+        background-color: #00000000;
+        flex: 1 1 50% !important;
+        border: 0 !important;
+        &:hover{
+            box-shadow: 0 0 0;
+            transform: scale(1) !important;
         }
     }
 }
