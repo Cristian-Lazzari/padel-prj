@@ -907,7 +907,7 @@ body{
     width: 98%;
     margin: 0 auto;
     button{
-        padding: .3rem 1.2rem .3rem .8rem;
+        padding: .4rem !important;
         border-radius: 0 !important;
         box-shadow: 0 0 0;
         background-color: #00000000;
@@ -3312,6 +3312,7 @@ section{
     .center{
         justify-content: space-between;
         align-items: flex-end;
+        line-height: 1;
     }
     .actions{
         
