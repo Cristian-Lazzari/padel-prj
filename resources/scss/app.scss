@@ -894,6 +894,8 @@ body{
     }
 }
 .pop_filt{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0 !important;
     border: 2px solid var(--c1) !important;
     padding: 0 !important;
@@ -905,7 +907,7 @@ body{
     width: 98%;
     margin: 0 auto;
     button{
-        padding: .3rem 1.2rem;
+        padding: .3rem 1.2rem .3rem .8rem;
         border-radius: 0 !important;
         box-shadow: 0 0 0;
         background-color: #00000000;
