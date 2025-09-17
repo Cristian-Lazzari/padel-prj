@@ -3218,7 +3218,8 @@ section{
         position: relative;
         cursor: pointer;
         transition: all .2s ease-in-out .1s;
-        p{
+        position: relative;
+        p, label{
             margin: 0;
             background-color: $c3;
             color: $c1;
@@ -3230,6 +3231,17 @@ section{
             font-weight: 700;
             text-shadow: 1px 1px 0 $c1_op;
             transition: all .2s ease-in-out .1s;
+        }
+        input[type="checkbox"]:checked + label{
+            background: var(--c3);
+            color: var(--c1);
+        }
+        
+        input[type="checkbox"]{
+            width: 0;
+            height: 0;
+            position: absolute;
+            opacity: 0;
         }
         &::after{
             content: "";

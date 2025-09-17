@@ -41,6 +41,7 @@ class PageController extends Controller
                 DB::raw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS t")
             )
             ->whereRaw("STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i') >= ?", [$now])
+            ->where('status', '!=', 0) // 👈 controllo aggiunto
             ->orderByRaw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i')) ASC")
             ->orderByRaw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i')) ASC")
             ->get();
@@ -174,8 +175,10 @@ class PageController extends Controller
                     ];    
                 }
                 
-                $hour   = $first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t * 3))->format('H:i');
-                $hour_1 = $first_day->copy()->setTime(9, 0)->addMinutes(30 * (($t * 3) + 1))->format('H:i');
+                $hour   = $first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t))->format('H:i');
+                $hour_1 = $first_day->copy()->setTime(9, 0)->addMinutes(30 * (($t) + 1))->format('H:i');
+                // $hour   = $first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t * 3))->format('H:i');
+                // $hour_1 = $first_day->copy()->setTime(9, 0)->addMinutes(30 * (($t * 3) + 1))->format('H:i');
                 
             }
             // dump($first_day->format('Y-m-d H:i'));

@@ -81,7 +81,7 @@
             </div>
         </button>
     </div>
-
+    
     <!-- Qui appariranno le fasce orarie -->
     <div id="slots" class="my-3"></div>
 
@@ -125,7 +125,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             html += `<span class="booking_subject">#${slot.booking_subject}</span>`;
                             html += `</a>`;
                         }else{
-                            html += `<p>${slot.time}</p>`;
+                            html +=`<input type="checkbox" name="${slot.time}_${day.date}" id="i_${slot.time}">
+                                    <label for="i_${slot.time}">${slot.time}</label> `;
                         }
                         html += `</div>`;
                     });
