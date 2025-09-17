@@ -12,7 +12,7 @@
         <!-- Informazioni automatizzate -->
         <p style="font-size: 10px;  margin: 5px; color: #04001d80;">* questa email viene automaticamente generata dal sistema, si prega di non rispondere a questa email</p>
         <center>
-            <img style="width: 80px; margin: 25px; background-color: #090333; border-radius: 26px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.272); padding: 2px; border: solid 2px #090333;" src="{{config('configurazione.domain') . '/img/favicon.png'}}" alt="">
+            <img style="width: 80px; margin: 25px; background-color: #090333; border-radius: 26px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.272); padding: 2px; border: solid 2px #090333;" src="https://free-sport-padel.future-plus.it/img/favicon.png" alt="">
             
         </center>
 
@@ -52,14 +52,14 @@
             <!-- Bottone per chiamare -->
             <a href="tel:{{$content_mail['phone']}}" style="display: block; width: 80%; text-align: center; padding: .8rem 1.6rem; background-color: #159478; font-size: 20px; font-weight:700; color: #f4f4f4; text-decoration: none; border-radius: 5px; margin: 5px auto;">Chiama {{$content_mail['name']}}</a>
             <!-- Bottone per visualizzare nella dashboard -->
-            <a href="{{config('configurazione.APP_URL')}}/admin/reservations/{{$content_mail['res_id']}}" style="display: block; width: 80%; text-align: center; padding: .8rem 1.6rem; background-color: #04001d; font-size: 20px; font-weight:700; color: #f4f4f4; text-decoration: none; border-radius: 5px; margin: 5px auto;">Visualizza nella Dashboard</a>
+            <a href="{{config('c.APP_URL')}}/admin/reservations/{{$content_mail['res_id']}}" style="display: block; width: 80%; text-align: center; padding: .8rem 1.6rem; background-color: #04001d; font-size: 20px; font-weight:700; color: #f4f4f4; text-decoration: none; border-radius: 5px; margin: 5px auto;">Visualizza nella Dashboard</a>
 
         @endif
         <!-- Se destinatario è user e la prenotazione è fatta a piu di 24 h dalla prenotazione -->
         @if ($content_mail['to'] == 'user' && $content_mail['status'] == 1 && $dateString >= now()->addHours($content_mail['max_delay_default'])->format('d/m/Y H:i'))
             <p style="font-size: 13px; color: #04001d; opacity: .7;" >* Entro e non oltre {{$content_mail['max_delay_default']}} ore dalla data prenotata puoi annullare la prenotazione in autonomia premendo questo bottone </p>
             <p style="margin: 10px;">
-                <a href="{{config('configurazione.APP_URL')}}/api/client_default/?id={{$content_mail['res_id']}}" style="background-color: #9f2323d8; color: rgb(255, 255, 255); padding: 5px 16px; text-align: center; text-decoration: none; border-radius: 8px; font-size: 14px;">Annulla</a>
+                <a href="{{config('c.APP_URL')}}/api/client_default/?id={{$content_mail['res_id']}}" style="background-color: #9f2323d8; color: rgb(255, 255, 255); padding: 5px 16px; text-align: center; text-decoration: none; border-radius: 8px; font-size: 14px;">Annulla</a>
             </p>
         @endif
 
@@ -73,10 +73,10 @@
                 Per assistenza o informazioni contatta il nostro numero
             </p>
             <p style="color: #ffffff; line-height: 1.5; margin: 15px;">
-                <a href="tel:{{$content_mail['admin_phone']}}" style="background-color: #ffffff; color: rgb(0, 0, 0); padding: 8px 12px; text-align: center; text-decoration: none; border-radius: 8px; font-size: 18px;">Chiama {{config('configurazione.APP_NAME')}}</a>
+                <a href="tel:{{$content_mail['admin_phone']}}" style="background-color: #ffffff; color: rgb(0, 0, 0); padding: 8px 12px; text-align: center; text-decoration: none; border-radius: 8px; font-size: 18px;">Chiama {{config('c.APP_NAME')}}</a>
             </p>
         @endif
-        <p style="color: #ffffff; font-size: 12px; line-height: 1.5; margin: 5px;">&copy; 2025 {{ config('configurazione.APP_NAME') }}. Tutti i diritti riservati.</p>
+        <p style="color: #ffffff; font-size: 12px; line-height: 1.5; margin: 5px;">&copy; 2025 {{ config('c.APP_NAME') }}. Tutti i diritti riservati.</p>
         <p style="color: #ffffff; font-size: 12px; line-height: 1.5; margin: 5px;" > Powered by <a style="color: white; text-decoration: none" href="https://future-plus.it">Future +</a></p>
     </div>
     
