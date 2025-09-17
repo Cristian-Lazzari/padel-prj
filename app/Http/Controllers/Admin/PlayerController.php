@@ -126,6 +126,6 @@ class PlayerController extends Controller
         $player->reservations()->detach();
 
         $m = 'Il giocatore "' . $player->nickname . '" è stato eliminato correttamente';
-        return to_route('admin.Players.index')->with('message', $m);      
+        return to_route('admin.players.index')->with('message', $m);      
     }
 }
