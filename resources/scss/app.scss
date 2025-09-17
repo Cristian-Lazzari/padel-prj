@@ -147,6 +147,10 @@ $svg: clamp(22px, 3.8vw, 35px);
         text-shadow: 0px 0px 4px rgba(220, 220, 220, 0);
     }
 }
+.btn_delete{
+    background-color: red !important;
+
+}
 @media (max-width: $bp_sm) {
     .my_btn_1, .my_btn_2, .my_btn_3, .my_btn_4, .my_btn_5, .my_btn_6, .my_btn_7{
         padding: .4rem 1rem !important;
@@ -332,7 +336,8 @@ body{
     background-size: cover;
     background-repeat: no-repeat;
     //padding-top: 80px;
-    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
     //padding-bottom: 100%;
     color: var(--c3);
     
@@ -872,7 +877,8 @@ body{
     }
 }
 .floating.bottom{
-    top: 74svh;
+    bottom: 15svh !important;
+    top: auto !important;
     justify-content: center;
 }
 .floating.bottom_1{
@@ -917,6 +923,20 @@ body{
         &:hover{
             box-shadow: 0 0 0;
             transform: scale(1) !important;
+        }
+    }
+}
+.action_page{
+    margin: 1rem 0;
+    display: flex;
+    justify-content: space-around;
+    gap: 1rem;
+    a, button, form{
+        flex: 1;
+    }
+    form{
+        button{
+            width: 100%;
         }
     }
 }
@@ -3361,28 +3381,26 @@ section{
             p{
                 margin: 0 auto 0 0;
             }
-            .btn_close{
-                display: flex;
-                justify-content: flex-end;
-                //border: 2px solid var(--c1);
-                border-radius: 4px;
-                padding: .3rem;
-                svg{
-                    height: $svg;
-                    width: $svg;
-                    padding: .2rem;
-                }
-                background: none;
-                color: var(--c3);
-                cursor: pointer;
-            }
+           
         }
     }
-
-    
-
 }
-
+.btn_close{
+    display: flex;
+    justify-content: flex-end;
+    //border: 2px solid var(--c1);
+    border-radius: 4px;
+    padding: .3rem;
+    svg{
+        height: $svg;
+        width: $svg;
+        padding: .2rem;
+        color: var(--c1);
+    }
+    background: none;
+    color: var(--c3);
+    cursor: pointer;
+}
 
 
     /* From Uiverse.io by Yaya12085 */ 

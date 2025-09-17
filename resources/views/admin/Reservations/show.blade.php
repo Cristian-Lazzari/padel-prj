@@ -18,8 +18,11 @@
 <div class="page_nav">
     <div class="view_box pt-5">
          <div class="central">
-            <h1>Dettagli del MATCH</h1>
+            <h1>Dettagli del MATCH {{$reservation->status}}</h1>
             <h2><span>Prenotato da:</span> <a class="my_btn_5" href="{{route('admin.players.show', $reservation->booking_subject)}}">{{$reservation->booking_subject_name}} {{$reservation->booking_subject_surnname}}</a></h2>
+            <div class=" my_btn_2 ml-auto 
+            @if($reservation->status == 0)  btn_delete @endif
+            ">{{$reservation->status == 1 ? 'Confermata' : 'Annullata'}}</div>
         </div>
         <div class="box_container">
             <div class="box personal">
@@ -99,14 +102,41 @@
                 <strong>Aggiornato il</strong> {{$reservation->updated_at->format('d/m/Y')}}
             </p>
         </div>
-         <div class="floating bottom">
-            <div class="int">
-                <a class="my_btn_7" href="{{ route('admin.reservations.edit', $reservation) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                    </svg>
-                    Modifica</a>
+        <div class="action_page">
+            <a class="my_btn_7" href="{{ route('admin.reservations.edit', $reservation) }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                </svg>
+                Modifica
+            </a>
+            <button class="my_btn_6 btn_delete" type="button" data-bs-toggle="modal" data-bs-target="#exampleModaldelete">
+                Annulla
+            </button>
+
+                
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModaldelete" tabindex="-1" aria-labelledby="exampleModaldeleteLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <button type="button" class="btn_close mb-3" data-bs-dismiss="modal">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1.146 4.854a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H12.5A2.5 2.5 0 0 1 15 6.5v8a.5.5 0 0 1-1 0v-8A1.5 1.5 0 0 0 12.5 5H2.707l3.147 3.146a.5.5 0 1 1-.708.708z"/>
+                            </svg>
+                        </button>
+                        <h3>Sei sicuro di voler anullare questo Match?</h3>
+                        <p>Annullando il match da questa finestra manderai automaticamente la mail con la disdetta a {{$reservation->booking_subject_name}}</p>
+                        <form class="w-100" action="{{ route('admin.reservations.cancel') }}" method="post" >
+                            @method('POST')
+                            @csrf
+                            <input value="{{$reservation->id}}" type="hidden" name="id">
+                            <button class="my_btn_1 btn_delete m-auto mt-4" type="submit">Annulla</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

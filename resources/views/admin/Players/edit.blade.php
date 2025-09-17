@@ -126,12 +126,8 @@
 
         </section>
         <p>* Campi facoltativi</p>
-        <div class="floating bottom">
-            <div class="int">
-    
-                <button class="my_btn_3"  type="submit">Modifica</button>
-
-            </div>
+        <div class="action_page">    
+            <button class="my_btn_3"  type="submit">Modifica</button>
         </div>
         
         

@@ -4,6 +4,20 @@
     
 
 <div class="page_nav">
+
+@if (session('message'))
+    @php
+        $message = session('message');
+    @endphp
+    <div class="alert-cont">
+        <div class="alert alert-dismissible fade show notify_success" role="alert">
+            {{$message}}
+            <button type="button" class="btn-close close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+@endif
+
+
     <h1 class="my-3">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus-circle-fill mx-3" viewBox="0 0 16 16">
             <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
@@ -118,14 +132,14 @@
     
         </section>
         <p>* Campi facoltativi</p>
-        <div class="floating bottom">
-            <div class="int">
-    
-                <button class="my_btn_3"  type="submit">Conferma</button>
-                <button class="my_btn_2" name="add_new" value="1" type="submit">Conferma e creane un altro</button>
-            </div>
-        </div>
+
         
+        
+        <div class="action_page">
+    
+            <button class="my_btn_3"  type="submit">Conferma</button>
+            <button class="my_btn_2" name="add_new" value="1" type="submit">Conferma e creane un altro</button>
+        </div>
     </form>
 </div>
 

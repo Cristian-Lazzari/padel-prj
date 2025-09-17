@@ -96,10 +96,8 @@
             <h3 class="second">Aggiungi giocatori</h3>
         </div>
 
-         <div class="floating bottom">
-            <div class="int">
-                <button class="my_btn_3"  type="submit">Conferma modifiche</button>
-            </div>
+         <div class="action_page">
+            <button class="my_btn_3"  type="submit">Conferma modifiche</button>
         </div>
     </form>
 </div>

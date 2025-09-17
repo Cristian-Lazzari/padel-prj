@@ -121,7 +121,11 @@ class PlayerController extends Controller
     {
         $player = Player::findOrFail($id);
         $player->delete();
+
+        // stacca tutte le associazioni con le reservations
+        $player->reservations()->detach();
+
         $m = 'Il giocatore "' . $player->nickname . '" è stato eliminato correttamente';
-        return to_route('admin.dashboard')->with('delete_success', $m);      
+        return to_route('admin.dashboard')->with('message', $m);      
     }
 }

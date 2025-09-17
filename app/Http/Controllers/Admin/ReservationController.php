@@ -3,17 +3,57 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Player;
+use App\Models\Setting;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
 
 class ReservationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    
+
+    public function cancel(Request $request){
+        $data = $request->all();
+        $reservation = Reservation::where('id', $data['id'])->with('players')->first();
+        $booking_subject = Player::where('id', $reservation->booking_subject)->first();
+        $reservation->status = 0;
+        $reservation->update();
+
+        $contact = json_decode(Setting::where('name', 'Contatti')->first()->property, 1);
+        $advanced = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
+        $bodymail = [
+            'to' => 'user',
+            'res_id' => $match->id,
+            
+            'title' => 'Ci dispiace informarti che la tua prenotazione del campo ' . $match->field . ' per il ' . $match->date_slot . ' è stata annullata',
+            'subtitle' => '',
+            
+            'name' => $booking_subject->name,
+            'surname' => $booking_subject->surname,
+            'mail' => $booking_subject->mail,
+
+            'date_slot' => $match->date_slot,
+            'status' => $match->status,
+            'team' => $match->players,
+
+            'message' => $data['message'] ?? null,
+
+            'field' => $match->field,
+            'phone' => $booking_subject->phone,
+            'admin_phone' => $contact['phone'] ?? null,
+
+            'max_delay_default' => $advanced['max_delay_default'],
+        
+        ];
+        $mailAdmin = new confermaOrdineAdmin($bodymail);
+        Mail::to($bodymail['mail'])->send($mail);
+
+        return redirect()->route('admin.reservations.index')->with('message', 'Prenotazione modificata con successo');
+
+    }
+
+
     public function index()
     {
         $reservations = Reservation::orderBy('date_slot', 'desc')->get();

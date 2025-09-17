@@ -71,7 +71,7 @@ class ReservationController extends Controller
             'to' => 'admin',
             'res_id' => $match->id,
 
-            'title' =>  $booking_subject->name . ' ha appena prenotato il campo ' . $match->field . ' per il ' . $match->date_slot,
+            'title' =>  $booking_subject->name . ' ha appena prenotato il campo ' . $match->field,
             'subtitle' => $data['dinner']['status'] ? 'Ha anche prenotato la cena per ' . $data['dinner']['guests'] . ' persone alle ore ' . $data['dinner']['time'] : 'Non ha prenotato la cena',
             
             'name' => $booking_subject->name,
@@ -80,6 +80,7 @@ class ReservationController extends Controller
 
             'date_slot' => $match->date_slot,
             'team' => $match->players,
+            'status' => $match->status,
 
             'message' => $data['message'] ?? null,
 
