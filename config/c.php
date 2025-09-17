@@ -12,7 +12,7 @@ return [
     'WA_TO'                 => env('WA_TO'),
     'WA_ID'                 => env('WA_ID'),
     'WA_N'                  => env('WA_N'),
-    'domain'                => 'https://classico-demo-f.netlify.app',
+    'domain'                => 'https://free-sport-padel.future-plus.it',
 
     'pack'          => 4,
     'typeOfOrdering' => true,

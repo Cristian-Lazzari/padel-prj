@@ -8,6 +8,7 @@ use App\Models\Reservation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\confermaOrdineAdmin;
 
 class ReservationController extends Controller
 {
@@ -15,10 +16,10 @@ class ReservationController extends Controller
 
     public function cancel(Request $request){
         $data = $request->all();
-        $reservation = Reservation::where('id', $data['id'])->with('players')->first();
-        $booking_subject = Player::where('id', $reservation->booking_subject)->first();
-        $reservation->status = 0;
-        $reservation->update();
+        $match = Reservation::where('id', $data['id'])->with('players')->first();
+        $booking_subject = Player::where('id', $match->booking_subject)->first();
+        $match->status = 0;
+        $match->update();
 
         $contact = json_decode(Setting::where('name', 'Contatti')->first()->property, 1);
         $advanced = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
@@ -26,7 +27,7 @@ class ReservationController extends Controller
             'to' => 'user',
             'res_id' => $match->id,
             
-            'title' => 'Ci dispiace informarti che la tua prenotazione del campo ' . $match->field . ' per il ' . $match->date_slot . ' è stata annullata',
+            'title' => 'Ci dispiace informarti che la tua prenotazione del campo ' . $match->field,
             'subtitle' => '',
             
             'name' => $booking_subject->name,
@@ -46,7 +47,7 @@ class ReservationController extends Controller
             'max_delay_default' => $advanced['max_delay_default'],
         
         ];
-        $mailAdmin = new confermaOrdineAdmin($bodymail);
+        $mail = new confermaOrdineAdmin($bodymail);
         Mail::to($bodymail['mail'])->send($mail);
 
         return redirect()->route('admin.reservations.index')->with('message', 'Prenotazione modificata con successo');
