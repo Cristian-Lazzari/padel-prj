@@ -16,7 +16,7 @@
 @endphp
     
 <div class="page_nav">
-    <form class="view_box pt-5" action="{{ route('admin.reservations.update', $reservation) }}"  enctype="multipart/form-data"  method="POST">
+    <form class="view_box pt-5" action="{{ route('admin.reservations.update', $reservation) }}"   method="POST">
         @csrf
         @method('PUT')
 

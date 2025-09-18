@@ -12,21 +12,23 @@ class PlayerController extends Controller
 {
     private $validations = [
         'nickname'   => 'required|string|min:2|unique:players,nickname',
-        'mail'       => 'required|string|min:2',
+        'mail'       => 'required|string|min:5|unique:players,mail',
         'phone'      => 'required|min:9',
         'name'       => 'required|string',
         'surname'    => 'required|string',
         'level'      => 'required|numeric|min:1|max:5',
+        'sex'        => 'required',
         'certificate'=> 'nullable|file|mimes:pdf,jpg,jpeg,png,gif,webp,svg,bmp,tiff|max:1024',
     ];
     
     private $validations_1 = [
-        'nickname'          => 'required|string|min:2',
+        'nickname'   => 'required|string|min:2',
         'mail'       => 'required|string|min:2',
         'phone'      => 'required|min:9',
         'name'       => 'required|string',
         'surname'    => 'required|string',
         'level'      => 'required|numeric|min:1|max:5',
+        'sex'        => 'required',
         'certificate'=> 'nullable|file|mimes:pdf,jpg,jpeg,png,gif,webp,svg,bmp,tiff|max:1024',
     ];
     public function index()
@@ -57,6 +59,7 @@ class PlayerController extends Controller
         $player->mail = $data['mail'];
         $player->note = $data['note'];
         $player->level = $data['level'];
+        $player->sex = $data['sex'];
         
         if (isset($data['cretificate'])) {
             $cretificatePath = Storage::put('public/uploads', $data['cretificate']);
@@ -102,6 +105,7 @@ class PlayerController extends Controller
         $player->mail = $data['mail'];
         $player->level = $data['level'];
         $player->note = $data['note'];
+        $player->sex = $data['sex'];
         
         if (isset($data['cretificate'])) {
             if($player->cretificate){

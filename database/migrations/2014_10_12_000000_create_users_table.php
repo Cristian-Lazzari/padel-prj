@@ -20,9 +20,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             
-            $table->string('name', 50)->nullable();                            //dati personali
+            $table->string('name', 50)->nullable();                           
             $table->string('surname', 50)->nullable();
             $table->string('phone', 15)->nullable();  
+            $table->tinyInteger('id_player')->nullable();  
             $table->rememberToken();
             $table->timestamps();
         });

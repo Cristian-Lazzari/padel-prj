@@ -50,6 +50,7 @@ class ReservationController extends Controller
         $match->date_slot = $date_slot;
         $match->field = $field; // 1, 2, 3 
         $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
+        $match->duration = 3; 
         $match->dinner = json_encode($data['dinner']); //[ status, guests, time] 
         $match->message = $data['message'] ?? null;
         $match->booking_subject = $booking_subject->id;

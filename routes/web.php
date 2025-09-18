@@ -49,6 +49,8 @@ Route::middleware(['auth', 'verified'])
 
         Route::post('reservations/cancel',    [ReservationController::class, 'cancel'])->name('reservations.cancel');
 
+        Route::post('reservations/createFromD',    [ReservationController::class, 'createFromD'])->name('reservations.createFromD');
+
 
         Route::resource('reservations',  ReservationController::class);
         Route::resource('players',  PlayerController::class);

@@ -40,6 +40,7 @@ class ReservationsTableSeeder extends Seeder
                     'guests' => rand(1, 8),
                     'time' => $dateSlot->format('H:i')
                 ]),
+                'duration' => rand(2, 3),
                 'booking_subject' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),

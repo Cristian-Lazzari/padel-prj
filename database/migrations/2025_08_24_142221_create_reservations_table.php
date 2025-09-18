@@ -18,8 +18,9 @@ return new class extends Migration
             $table->string('field'); // 1, 2, 3 
             $table->string('status'); // 1 confirmed, 2 cancelled, 3 noshow
             $table->string('message')->nullable(); // messaggio opzionale
-            $table->text('dinner'); //[ status, ospiti, orario]
+            $table->text  ('dinner'); //[ status, ospiti, orario]
             $table->tinyInteger('booking_subject'); //[id di chi ha fatto la prenotazione]
+            $table->tinyInteger('duration'); //n * 30minuti
 
 
             $table->timestamps();

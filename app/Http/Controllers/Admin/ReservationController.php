@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Carbon\Carbon;
 use App\Models\Player;
 use App\Models\Setting;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
+use App\Mail\confermaOrdineAdmin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\confermaOrdineAdmin;
 
 class ReservationController extends Controller
 {
@@ -52,6 +53,61 @@ class ReservationController extends Controller
 
         return redirect()->route('admin.reservations.index')->with('message', 'Prenotazione modificata con successo');
 
+    }
+
+    public function createFromD(Request $request){
+        $data = $request->all();
+        $times = $data['times'];
+        $arr_times = [];
+        sort($times);
+        $field = explode('/', $times[0])[2];
+        $time = explode('/', $times[0])[1];
+        $date = explode('/', $times[0])[0];
+        foreach ($times as $t) {
+            $tm = explode('/', $t)[1];
+            if($field !== explode('/', $t)[2]){
+                return redirect()->route('admin.dashboard')->with('error', 'Errore: gli orari devono essere dello stesso campo !');
+            }
+            $arr_times[] = $tm;
+        }
+        if(!$this->checkHalfHourIntervals($arr_times)){
+            return redirect()->route('admin.dashboard')->with('error', 'Errore: gli orari devono essere distanziati da mezzora !');
+        }
+        $date_slot = $date . ' ' . $time;
+
+        $match = new Reservation();
+        $match->date_slot = $date_slot;
+        $match->duration = count($arr_times);
+        $match->field = explode('_', $field)[1]; // 1, 2, 3 
+        $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
+        $match->dinner = json_encode([
+            'status' => false,
+            'guests' => false,
+            'time' => false,
+        ]); //[ status, guests, time] 
+        $match->message = $data['message'] ?? null;
+        $match->booking_subject =  auth()->user()->id_player;
+        $match->save();
+        if (array_key_exists('players',$data)) {
+            $match->players()->sync($data['players']);
+        } else {
+            $match->players()->sync([]);
+        }
+
+        return redirect()->route('admin.dashboard')->with('message', 'Prenotazione modificata con successo');
+    }
+    private function checkHalfHourIntervals(array $times): bool
+    {
+        // Ordino l'array per sicurezza
+        sort($times);
+        for ($i = 0; $i < count($times) - 1; $i++) {
+            $current = Carbon::createFromFormat('H:i', $times[$i]);
+            $next = Carbon::createFromFormat('H:i', $times[$i + 1]);
+            if ($current->diffInMinutes($next) !== 30) {
+                return false;
+            }
+        }
+        return true;
     }
 
 

@@ -21,7 +21,7 @@ class PageController extends Controller
 
     public function admin() { //calendar
 
-
+        $players = Player::all();
         $reservations   = Reservation::all();
         $calendar = [];
         
@@ -30,13 +30,14 @@ class PageController extends Controller
         $oldestCarbon = Carbon::parse($oldestDate);
         $year = $this->get_date($oldestCarbon);
 
-        return view('admin.dashboard', compact('year'));
+        return view('admin.dashboard', compact('year','players'));
 
     }
     private function get_res($now){
         $rows = DB::table('reservations')
             ->select(
                 'field',
+                'duration',
                 DB::raw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS day"),
                 DB::raw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS t")
             )
@@ -59,10 +60,10 @@ class PageController extends Controller
                     3 => [],
                 ];
             }
-
-            $reserved[$day][$field][] = substr($r->t, 0, 5);
+            $reserved[$day][$field][substr($r->t, 0, 5)] = $r->duration;
         }
         ksort($reserved);
+        //dd($reserved);
 
         return $reserved;
     }
@@ -79,7 +80,19 @@ class PageController extends Controller
             $first_day = Carbon::tomorrow();
         }
 
-        $day_in_calendar = 180; // giorni da mostrare
+        $day_in_calendar = 30; // giorni da mostrare
+
+        $hour_arr = [];
+        $hour_arr_1 = [];
+        $hour_test = Carbon::createFromTime(9, 0);
+        $hour_test_1 = Carbon::createFromTime(9, 0)->addMinutes(30);
+        for ($t = 1 ; $t < 11; $t++) {
+            $hour_arr[] = $hour_test->copy()->format('H:i');
+            $hour_arr_1[] = $hour_test_1->copy()->format('H:i');
+            $hour_test->addMinutes(90);
+            $hour_test_1->addMinutes(90);
+        }
+        
 
         for ($i = 0 ; $i < $day_in_calendar; $i++) { 
             $day = [
@@ -98,91 +111,117 @@ class PageController extends Controller
             ];
             
             
-            $hour   = $first_day->setTime(9, 0)->format('H:i');
-            $hour_1 = $first_day->setTime(9, 0)->addMinutes(30)->format('H:i');
-         
-            for ($t = 1 ; $t < 11; $t++) {
+            $end_1 = Carbon::createFromTime(23, 0); // 08:00
+            $end_2 = Carbon::createFromTime(23, 0)->addMinutes(30); // 12:00
+            
+            $hour_1   = Carbon::createFromTime(9, 0);
+            do {
+                $hour_f =  $hour_1->copy()->format('H:i');
+
+                $hour_null = [
+                    'time' => $hour_f,
+                    's' => in_array($hour_f, $hour_arr) ? 1 : 0,
+                    'status' => 0,
+                    'id' => null,
+                    'booking_subject' => null,
+                ];
+               //dd(!isset($reserved[$day['date']][1][$hour_f]));
                 if(isset($reserved[$day['date']])) {
-                    if(!in_array($hour, $reserved[$day['date']][1])) {
+                   
+                    
+                    if(!isset($reserved[$day['date']][1][$hour_f])) {
+                        $day['fields']['field_1'][] = $hour_null;
+                    }else{
+                        $res = Reservation::where('date_slot', $day['date'].' '.$hour_f)->where('field', 1)->first();
                         $day['fields']['field_1'][] = [
-                            'time' => $hour,
-                            'status' => 0,
-                            'id' => null,
-                            'booking_subject' => null
-                        ];
-                    }else{
-                        $res = Reservation::where('date_slot', $day['date'].' '.$hour)->where('field', 1)->first();
-                        $day['fields']['field_1'][] = [
-                            'time' => $hour,
+                            'time' => $hour_f,
                             'status' => 1,
-                            'id' => $res->id,
-                            'booking_subject' => Player::where('id', $res->booking_subject)->value('nickname')
+                            's' => in_array($hour_f, $hour_arr) ? 1 : 0,
+                            'id' => $res->id ?? '',
+                            'd' => $reserved[$day['date']][1][$hour_f],
+                            'booking_subject' => Player::where('id', $res->booking_subject)->value('nickname') ?? 'utente cancellato',
+                            
                         ];
                         $day['reserved']++;
-                    }
-                    if(!in_array($hour, $reserved[$day['date']][3])) {
-                        $day['fields']['field_3'][] = [
-                            'time' => $hour,
-                            'status' => 0,
-                            'id' => null,
-                            'booking_subject' => null
-                        ];
-                    }else{
-                        $res = Reservation::where('date_slot', $day['date'].' '.$hour)->where('field', 3)->first();
-                        $day['fields']['field_3'][] = [
-                            'time' => $hour,
-                            'status' => 1,
-                            'id' => $res->id,
-                            'booking_subject' => Player::where('id', $res->booking_subject)->value('nickname')
-                        ];
-                        $day['reserved']++;
-                    }
-                    if(!in_array($hour_1, $reserved[$day['date']][2])) {
-                        $day['fields']['field_2'][] = [
-                            'time' => $hour_1,
-                            'status' => 0,
-                            'id' => null,
-                            'booking_subject' => null
-                        ];
-                    }else{
-                        $res = Reservation::where('date_slot', $day['date'].' '.$hour_1)->where('field', 2)->first();
-                        $day['fields']['field_2'][] = [
-                            'time' => $hour_1,
-                            'status' => 1,
-                            'id' => $res->id,
-                            'booking_subject' => Player::where('id', $res->booking_subject)->value('nickname')
-                        ];
-                        $day['reserved']++;
+                        $hour_1->addMinutes(30 * ($reserved[$day['date']][1][$hour_f] - 1));
+                        //dd('evvai');
+                        
                     }
                 }else{
-                    $day['fields']['field_1'][] = [
-                        'time' => $hour,
-                        'status' => 0,
-                        'id' => null,
-                        'booking_subject' => null
-                    ];
-                    $day['fields']['field_2'][] = [
-                        'time' => $hour_1,
-                        'status' => 0,
-                        'id' => null,
-                        'booking_subject' => null
-                    ];
-                    $day['fields']['field_3'][] = [
-                        'time' => $hour,
-                        'status' => 0,
-                        'id' => null,
-                        'booking_subject' => null
-                    ];    
+                    $day['fields']['field_1'][] = $hour_null;
                 }
-                
-                $hour   = $first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t))->format('H:i');
-                $hour_1 = $first_day->copy()->setTime(9, 0)->addMinutes(30 * (($t) + 1))->format('H:i');
-                // $hour   = $first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t * 3))->format('H:i');
-                // $hour_1 = $first_day->copy()->setTime(9, 0)->addMinutes(30 * (($t * 3) + 1))->format('H:i');
-                
-            }
-            // dump($first_day->format('Y-m-d H:i'));
-            // dump('---');
+                $hour_1->addMinutes(30);
+                // dump($hour_1);
+                // dump($end_1);
+            } while ($hour_1->lessThan($end_1));
+            //  dd('--');
+
+            $hour_2   = Carbon::createFromTime(9, 0)->addMinutes(30);
+            
+            do {
+                $hour_f =  $hour_2->copy()->format('H:i');
+                $hour_null = [
+                    'time' => $hour_f,
+                    'status' => 0,
+                    'id' => null,
+                    'booking_subject' => null,
+                    's' => in_array($hour_f, $hour_arr_1) ? 1 : 0
+                ];
+                if(isset($reserved[$day['date']])) {
+                    if(!isset($reserved[$day['date']][2][$hour_f])) {
+                        $day['fields']['field_2'][] = $hour_null;
+                    }else{
+                        $res = Reservation::where('date_slot', $day['date'].' '.$hour_f)->where('field', 2)->first();
+                        $day['fields']['field_2'][] = [
+                            'time' => $hour_f,
+                            'status' => 1,
+                            'id' => $res->id ?? '',
+                            'booking_subject' => Player::where('id', $res->booking_subject)->value('nickname') ?? 'utente cancellato',
+                            'd' => $reserved[$day['date']][2][$hour_f],
+                            's' => in_array($hour_f, $hour_arr_1) ? 1 : 0
+                        ];
+                        $day['reserved']++;
+                        $hour_2->addMinutes(30 * ($reserved[$day['date']][2][$hour_f] - 1));
+                    }
+                }else{
+                    $day['fields']['field_2'][] = $hour_null;
+                }
+                $hour_2->addMinutes(30);
+            } while ($hour_2->lessThan($end_2));
+
+            $hour_3   = Carbon::createFromTime(9, 0);
+            do {
+                $hour_f =  $hour_3->copy()->format('H:i');
+                $hour_null = [
+                    'time' => $hour_f,
+                    'status' => 0,
+                    'id' => null,
+                    'booking_subject' => null,
+                    's' => in_array($hour_f, $hour_arr) ? 1 : 0
+                ];
+                if(isset($reserved[$day['date']])) {
+                    if(!isset($reserved[$day['date']][3][$hour_f])) {
+                        $day['fields']['field_3'][] = $hour_null;
+                    }else{
+                        $res = Reservation::where('date_slot', $day['date'].' '.$hour_f)->where('field', 3)->first();
+                        $day['fields']['field_3'][] = [
+                            'time' => $hour_f,
+                            'status' => 1,
+                            'id' => $res->id ?? '',
+                            'd' => $reserved[$day['date']][3][$hour_f],
+                            's' => in_array($hour_f, $hour_arr) ? 1 : 0,
+                            'booking_subject' => Player::where('id', $res->booking_subject)->value('nickname') ?? 'utente cancellato',
+                        ];
+                        $day['reserved']++;
+                        $hour_3->addMinutes(30 * ($reserved[$day['date']][3][$hour_f] - 1));
+                    }
+                }else{
+                    $day['fields']['field_3'][] = $hour_null;
+                }
+                $hour_3->addMinutes(30);
+            } while ($hour_3->lessThan($end_1));
+
+            
             $days[] = $day;
             
             $first_day->addDay();
@@ -205,11 +244,81 @@ class PageController extends Controller
             // aggiungi il giorno dentro il mese corrispondente
             $result[$monthNumber]['days'][] = $day;
         }
+        //dd('ciao');
 
         // se vuoi che sia un array con indici consecutivi
+        // dd($result);
         return array_values($result);
     }
 
 
 }
 
+// for ($t = 1 ; $t < 11; $t++) {
+//                 $hour_null = [
+//                     'time' => $hour->format('H:i'),
+//                     'status' => 0,
+//                     'id' => null,
+//                     'booking_subject' => null
+//                 ];
+//                 $hour_2_null = [
+//                     'time' => $hour_1->format('H:i'),
+//                     'status' => 0,
+//                     'id' => null,
+//                     'booking_subject' => null
+//                 ];
+//                 if(isset($reserved[$day['date']])) {
+//                     if(!in_array($hour, $reserved[$day['date']][1])
+//                       &&!in_array($first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t + 1))->format('H:i'), $reserved[$day['date']][1]) 
+//                       &&!in_array($first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t + 2))->format('H:i'), $reserved[$day['date']][1]) 
+//                         ) {
+//                         $day['fields']['field_1'][] = $hour_null;
+//                     }else{
+//                         $res = Reservation::where('date_slot', $day['date'].' '.$hour)->where('field', 1)->first();
+//                         $day['fields']['field_1'][] = [
+//                             'time' => $hour,
+//                             'status' => 1,
+//                             'id' => $res->id,
+//                             'booking_subject' => Player::where('id', $res->booking_subject)->value('nickname')
+//                         ];
+//                         $day['reserved']++;
+//                     }
+//                     if(!in_array($hour, $reserved[$day['date']][3])
+//                       &&!in_array($first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t + 1))->format('H:i'), $reserved[$day['date']][3]) 
+//                       &&!in_array($first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t + 2))->format('H:i'), $reserved[$day['date']][3]) 
+//                         ) {
+//                         $day['fields']['field_3'][] = $hour_null;
+//                     }else{
+//                         $res = Reservation::where('date_slot', $day['date'].' '.$hour)->where('field', 3)->first();
+//                         $day['fields']['field_3'][] = [
+//                             'time' => $hour,
+//                             'status' => 1,
+//                             'id' => $res->id,
+//                             'booking_subject' => Player::where('id', $res->booking_subject)->value('nickname')
+//                         ];
+//                         $day['reserved']++;
+//                     }
+//                     if(!in_array($hour_1, $reserved[$day['date']][2])
+//                       &&!in_array($first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t + 1 + 1))->format('H:i'), $reserved[$day['date']][2]) 
+//                       &&!in_array($first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t + 2 + 1))->format('H:i'), $reserved[$day['date']][2])
+//                     ){
+//                         $day['fields']['field_2'][] = $hour_2_null;
+//                     }else{
+//                         $res = Reservation::where('date_slot', $day['date'].' '.$hour_1)->where('field', 2)->first();
+//                         $day['fields']['field_2'][] = [
+//                             'time' => $hour_1,
+//                             'status' => 1,
+//                             'id' => $res->id,
+//                             'booking_subject' => Player::where('id', $res->booking_subject)->value('nickname')
+//                         ];
+//                         $day['reserved']++;
+//                     }
+//                 }else{
+//                     $day['fields']['field_1'][] = $hour_null;
+//                     $day['fields']['field_3'][] = $hour_null;
+//                     $day['fields']['field_2'][] = $hour_2_null;
+//                 }
+                
+//                 $hour   = $first_day->copy()->setTime(9, 0)->addMinutes(30 * ($t))->format('H:i');
+//                 $hour_1 = $first_day->copy()->setTime(9, 0)->addMinutes(30 * (($t) + 1))->format('H:i');
+//             }
