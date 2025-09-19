@@ -126,13 +126,13 @@ class PlayerController extends Controller
 
     public function register(Request $request){
         $data = $request->all();
-        if(!$request->validate($this->validations)){
+        // if(!$request->validate($this->validations)){
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Dati incompleti',
-            ]); 
-        }
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Dati incompleti',
+        //     ]); 
+        // }
         
         $existingPlayer = Player::where('nickname', $data['nickname'])->orWhere('mail', $data['mail'])->first();
         if($existingPlayer){
