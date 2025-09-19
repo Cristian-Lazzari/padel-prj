@@ -182,8 +182,7 @@ class ReservationController extends Controller
                 ],
                 'status' => true // libero, pieno, parziale
             ];
-            
-                       
+
             $end_1 = Carbon::createFromTime(23, 0); // 08:00
             $end_2 = Carbon::createFromTime(23, 0)->addMinutes(30); // 12:00
             $hour_1   = Carbon::createFromTime(9, 0);
@@ -212,11 +211,11 @@ class ReservationController extends Controller
                 $hour_f =  $hour_2->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
 
                 if(isset($reserved[$day['date']])) {
-                    if(!isset($reserved[$day['date']][1][$hour_f]) &&
-                    !isset($reserved[$day['date']][1][$hour_2->copy()->addMinutes(30)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][1][$hour_2->copy()->addMinutes(60)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][1][$hour_2->copy()->subMinutes(30)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][1][$hour_2->copy()->subMinutes(60)->format('H:i')])
+                    if(!isset($reserved[$day['date']][2][$hour_f]) &&
+                    !isset($reserved[$day['date']][2][$hour_2->copy()->addMinutes(30)->format('H:i')]) &&
+                    !isset($reserved[$day['date']][2][$hour_2->copy()->addMinutes(60)->format('H:i')]) &&
+                    !isset($reserved[$day['date']][2][$hour_2->copy()->subMinutes(30)->format('H:i')]) &&
+                    !isset($reserved[$day['date']][2][$hour_2->copy()->subMinutes(60)->format('H:i')])
                     ) {
                     //if(!isset($reserved[$day['date']][1][$hour_f])) {
                         $day['fields']['field_2'][] = $hour_f;
@@ -230,11 +229,11 @@ class ReservationController extends Controller
                 $hour_f =  $hour_3->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
 
                 if(isset($reserved[$day['date']])) {
-                    if(!isset($reserved[$day['date']][1][$hour_f]) &&
-                    !isset($reserved[$day['date']][1][$hour_3->copy()->addMinutes(30)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][1][$hour_3->copy()->addMinutes(60)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][1][$hour_3->copy()->subMinutes(30)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][1][$hour_3->copy()->subMinutes(60)->format('H:i')])
+                    if(!isset($reserved[$day['date']][3][$hour_f]) &&
+                    !isset($reserved[$day['date']][3][$hour_3->copy()->addMinutes(30)->format('H:i')]) &&
+                    !isset($reserved[$day['date']][3][$hour_3->copy()->addMinutes(60)->format('H:i')]) &&
+                    !isset($reserved[$day['date']][3][$hour_3->copy()->subMinutes(30)->format('H:i')]) &&
+                    !isset($reserved[$day['date']][3][$hour_3->copy()->subMinutes(60)->format('H:i')])
                     ) {
                     //if(!isset($reserved[$day['date']][1][$hour_f])) {
                         $day['fields']['field_3'][] = $hour_f;
