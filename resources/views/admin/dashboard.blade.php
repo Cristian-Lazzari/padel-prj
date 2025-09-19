@@ -163,7 +163,7 @@
                         </div>
                         <div class="actions w-100">
                             <button class="my_btn_3 ml-auto"  type="submit">Conferma</button>
-                            <button class="my_btn_1 ml-auto" value="1" name="mail" type="submit">Conferma e Avvisa giocatori</button>
+                            {{-- <button class="my_btn_1 ml-auto" value="1" name="mail" type="submit">Conferma e Avvisa giocatori</button> --}}
                         </div>
                     </div>
                 </div>
