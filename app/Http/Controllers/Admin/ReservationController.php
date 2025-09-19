@@ -86,8 +86,8 @@ class ReservationController extends Controller
             'time' => false,
         ]); //[ status, guests, time] 
         $match->message = $data['message'] ?? null;
-        dd(auth()->user()->id_player);
-        $match->booking_subject =  auth()->user()->id_player;
+        // /dd(auth()->user()->playerId);
+        $match->booking_subject =  auth()->user()->playerId;
         $match->save();
         if (array_key_exists('players',$data)) {
             $match->players()->sync($data['players']);

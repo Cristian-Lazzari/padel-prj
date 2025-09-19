@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('name', 50)->nullable();                           
             $table->string('surname', 50)->nullable();
             $table->string('phone', 15)->nullable();  
-            $table->tinyInteger('id_player')->nullable();  
+            $table->tinyInteger('playerId')->nullable();  
             $table->rememberToken();
             $table->timestamps();
         });
