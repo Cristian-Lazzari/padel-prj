@@ -242,7 +242,7 @@ class ReservationController extends Controller
                 }else{
                     $day['fields']['field_3'][] = $hour_f;
                 }
-                $hour_3->addMinutes(30);
+                $hour_3->addMinutes(90);
             } while ($hour_3->lessThan($end_1));
 
             $days[] = $day;
