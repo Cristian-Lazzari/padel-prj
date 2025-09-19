@@ -21,7 +21,7 @@ class PageController extends Controller
 
     public function admin() { //calendar
 
-        $players = Player::all();
+        $players = Player::where("role", "player")->get();
         $reservations   = Reservation::all();
         $calendar = [];
         

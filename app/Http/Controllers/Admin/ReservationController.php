@@ -169,7 +169,7 @@ class ReservationController extends Controller
     public function edit($id)
     {
         $reservation = Reservation::where('id',$id)->with('players')->first();
-        $players = Player::all();
+        $players = Player::where("role", "player")->get();
         $player = Player::find($reservation->booking_subject);
         $reservation->booking_subject_name = $player->name ?? '';
         $reservation->booking_subject_surnname = $player->surname ?? '';
