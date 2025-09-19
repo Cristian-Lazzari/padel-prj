@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified'])
         Route::post('reservations/cancel',    [ReservationController::class, 'cancel'])->name('reservations.cancel');
 
         Route::post('reservations/createFromD',    [ReservationController::class, 'createFromD'])->name('reservations.createFromD');
+        Route::post('settings/cancelDates',        [SettingController::class, 'cancelDates'])->name('settings.cancelDates');
 
 
         Route::resource('reservations',  ReservationController::class);

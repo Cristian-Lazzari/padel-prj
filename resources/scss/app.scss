@@ -452,7 +452,7 @@ body{
 
 .selected{
     background-color: rgba($c2, .2) !important;
-    border: solid 4px var(--c2) !important;
+    border: solid 3px var(--c2) !important;
     color: var(--c1) !important;
     font-weight: 700;
     font-size: $fs_md !important;
@@ -526,11 +526,10 @@ body{
             font-size: $fs_sm_3;
             font-weight: light;
             transition: all .2s ease-in-out;
+            border: solid 3px var(--c1);
             @media (min-width: 800px) {
                 &:hover{
-                    background-color: rgba($c2, .2);
-                    border: solid 4px var(--c2);
-                    color: var(--c1);
+                    border: solid 3px var(--c2) !important;
                     font-weight: 700;
                     font-size: $fs_md !important;
                     text-shadow: 1px 1px 0px var(--c1_op);
@@ -556,10 +555,28 @@ body{
             }
 
         }
+        input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        input[type="checkbox"]:checked + .day{
+            border-color: rgba(255, 0, 0, 0.673) !important;
+            background-color: rgba(255, 0, 0, 0.673)!important;
+            color: var(--c3) !important;
+        }
+        .day.day_off{
+            border-color: rgba(255, 0, 0, 0.673) !important;
+            background-color: rgba(255, 0, 0, 0.673)!important;
+            color: var(--c3) !important;
+        }
+
         .day-off{
             opacity: .4;
         }
         .day-active{
+            border-color: var(--c2)!important;
             background-color: var(--c2);
             .b{
                 font-weight: bold;
@@ -3170,6 +3187,19 @@ section{
         opacity: 0;
     }
 }
+.mymodal_calendar{
+    max-width: 800px !important;
+    width: 100% !important;
+    .modal-content{
+        max-width: 800px !important;
+        width: 100% !important;
+        .modal-body{
+            width: 100% !important;
+            max-width: 800px !important;
+         }
+    }
+
+}
 .mymodal_make_res{
     border: 2px solid var(--c1) !important;
     border-radius: 20px;
@@ -3220,7 +3250,9 @@ section{
         }
         .actions{
             display: flex;
-            gap: 1rem;
+            justify-content: flex-end;
+            align-items: stretch;
+            gap: .5rem;
         }
     }
 

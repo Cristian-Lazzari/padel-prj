@@ -71,4 +71,18 @@ class SettingController extends Controller
 
         return redirect()->back()->with('success', $m);   
     }
+
+    public function cancelDates(Request $request){
+        $data = $request->all();
+        $s = Setting::where('name', 'advanced')->first();
+        // /dd($data['day_off']);
+        $adv = json_decode($s->property, 1);
+        $adv['day_off'] = $data['day_off'] ?? [];
+
+        $s->property = json_encode($adv);
+        $s->update();
+        
+        return redirect()->route('admin.dashboard')->with('message', 'Le date sono state modificate correttamente');
+
+    }
 }

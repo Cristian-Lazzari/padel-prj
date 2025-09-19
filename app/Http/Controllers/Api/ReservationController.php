@@ -169,6 +169,7 @@ class ReservationController extends Controller
             $hour_test_1->addMinutes(90);
         }
         //---
+        $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
         for ($i = 0 ; $i < 7; $i++) { 
             $day = [
                 'date' => $first_day->format('Y-m-d'),
@@ -181,69 +182,69 @@ class ReservationController extends Controller
                 ],
                 'status' => true // libero, pieno, parziale
             ];
-
-            $end_1 = Carbon::createFromTime(23, 0); // 08:00
-            $end_2 = Carbon::createFromTime(23, 0)->addMinutes(30); // 12:00
-            $hour_1   = Carbon::createFromTime(9, 0);
-            $hour_2   = Carbon::createFromTime(9, 0)->addMinutes(30);
-            $hour_3   = Carbon::createFromTime(9, 0);
-            
-            do {
-                $hour_f =  $hour_1->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
-
-                if(isset($reserved[$day['date']])) {
-                    if(!isset($reserved[$day['date']][1][$hour_f]) &&
-                    !isset($reserved[$day['date']][1][$hour_1->copy()->addMinutes(30)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][1][$hour_1->copy()->addMinutes(60)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][1][$hour_1->copy()->subMinutes(30)->format('H:i')]) && 
-                    !(isset($reserved[$day['date']][1][$hour_1->copy()->subMinutes(60)->format('H:i')]) && $reserved[$day['date']][1][$hour_1->copy()->subMinutes(60)->format('H:i')] == 3)
-                    ) {
-                    //if(!isset($reserved[$day['date']][1][$hour_f])) {
+            if(!in_array($first_day->copy()->format('Y-m-d'), $adv['day_off'])){
+                $end_1 = Carbon::createFromTime(23, 0); // 08:00
+                $end_2 = Carbon::createFromTime(23, 0)->addMinutes(30); // 12:00
+                $hour_1   = Carbon::createFromTime(9, 0);
+                $hour_2   = Carbon::createFromTime(9, 0)->addMinutes(30);
+                $hour_3   = Carbon::createFromTime(9, 0);
+                do {
+                    $hour_f =  $hour_1->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
+    
+                    if(isset($reserved[$day['date']])) {
+                        if(!isset($reserved[$day['date']][1][$hour_f]) &&
+                        !isset($reserved[$day['date']][1][$hour_1->copy()->addMinutes(30)->format('H:i')]) &&
+                        !isset($reserved[$day['date']][1][$hour_1->copy()->addMinutes(60)->format('H:i')]) &&
+                        !isset($reserved[$day['date']][1][$hour_1->copy()->subMinutes(30)->format('H:i')]) && 
+                        !(isset($reserved[$day['date']][1][$hour_1->copy()->subMinutes(60)->format('H:i')]) && $reserved[$day['date']][1][$hour_1->copy()->subMinutes(60)->format('H:i')] == 3)
+                        ) {
+                        //if(!isset($reserved[$day['date']][1][$hour_f])) {
+                            $day['fields']['field_1'][] = $hour_f;
+                        }
+                    }else{
                         $day['fields']['field_1'][] = $hour_f;
                     }
-                }else{
-                    $day['fields']['field_1'][] = $hour_f;
-                }
-                $hour_1->addMinutes(90);
-            } while ($hour_1->lessThan($end_1));
-            do {
-                $hour_f =  $hour_2->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
-
-                if(isset($reserved[$day['date']])) {
-                    if(!isset($reserved[$day['date']][2][$hour_f]) &&
-                    !isset($reserved[$day['date']][2][$hour_2->copy()->addMinutes(30)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][2][$hour_2->copy()->addMinutes(60)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][2][$hour_2->copy()->subMinutes(30)->format('H:i')]) &&
-                    !(isset($reserved[$day['date']][2][$hour_2->copy()->subMinutes(60)->format('H:i')]) && $reserved[$day['date']][2][$hour_2->copy()->subMinutes(60)->format('H:i')] == 3)
-                    ) {
-                    //if(!isset($reserved[$day['date']][1][$hour_f])) {
+                    $hour_1->addMinutes(90);
+                } while ($hour_1->lessThan($end_1));
+                do {
+                    $hour_f =  $hour_2->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
+    
+                    if(isset($reserved[$day['date']])) {
+                        if(!isset($reserved[$day['date']][2][$hour_f]) &&
+                        !isset($reserved[$day['date']][2][$hour_2->copy()->addMinutes(30)->format('H:i')]) &&
+                        !isset($reserved[$day['date']][2][$hour_2->copy()->addMinutes(60)->format('H:i')]) &&
+                        !isset($reserved[$day['date']][2][$hour_2->copy()->subMinutes(30)->format('H:i')]) &&
+                        !(isset($reserved[$day['date']][2][$hour_2->copy()->subMinutes(60)->format('H:i')]) && $reserved[$day['date']][2][$hour_2->copy()->subMinutes(60)->format('H:i')] == 3)
+                        ) {
+                        //if(!isset($reserved[$day['date']][1][$hour_f])) {
+                            $day['fields']['field_2'][] = $hour_f;
+                        }
+                    }else{
                         $day['fields']['field_2'][] = $hour_f;
                     }
-                }else{
-                    $day['fields']['field_2'][] = $hour_f;
-                }
-                $hour_2->addMinutes(90);
-            } while ($hour_2->lessThan($end_2));
-            do {
-                $hour_f =  $hour_3->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
-
-                if(isset($reserved[$day['date']])) {
-                    if(!isset($reserved[$day['date']][3][$hour_f]) &&
-                    !isset($reserved[$day['date']][3][$hour_3->copy()->addMinutes(30)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][3][$hour_3->copy()->addMinutes(60)->format('H:i')]) &&
-                    !isset($reserved[$day['date']][3][$hour_3->copy()->subMinutes(30)->format('H:i')]) &&
-                    !(isset($reserved[$day['date']][3][$hour_3->copy()->subMinutes(60)->format('H:i')]) && $reserved[$day['date']][3][$hour_3->copy()->subMinutes(60)->format('H:i')] == 3)
-                    ) {
-                    //if(!isset($reserved[$day['date']][1][$hour_f])) {
+                    $hour_2->addMinutes(90);
+                } while ($hour_2->lessThan($end_2));
+                do {
+                    $hour_f =  $hour_3->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
+    
+                    if(isset($reserved[$day['date']])) {
+                        if(!isset($reserved[$day['date']][3][$hour_f]) &&
+                        !isset($reserved[$day['date']][3][$hour_3->copy()->addMinutes(30)->format('H:i')]) &&
+                        !isset($reserved[$day['date']][3][$hour_3->copy()->addMinutes(60)->format('H:i')]) &&
+                        !isset($reserved[$day['date']][3][$hour_3->copy()->subMinutes(30)->format('H:i')]) &&
+                        !(isset($reserved[$day['date']][3][$hour_3->copy()->subMinutes(60)->format('H:i')]) && $reserved[$day['date']][3][$hour_3->copy()->subMinutes(60)->format('H:i')] == 3)
+                        ) {
+                        //if(!isset($reserved[$day['date']][1][$hour_f])) {
+                            $day['fields']['field_3'][] = $hour_f;
+                        }
+                    }else{
                         $day['fields']['field_3'][] = $hour_f;
                     }
-                }else{
-                    $day['fields']['field_3'][] = $hour_f;
-                }
-                $hour_3->addMinutes(90);
-            } while ($hour_3->lessThan($end_1));
+                    $hour_3->addMinutes(90);
+                } while ($hour_3->lessThan($end_1));
+                $days[] = $day;
+            }
 
-            $days[] = $day;
             
             $first_day->addDay();
         }

@@ -92,8 +92,10 @@ class PageController extends Controller
             $hour_test->addMinutes(90);
             $hour_test_1->addMinutes(90);
         }
-        
-        $day_in_calendar = 30; // giorni da mostrare
+
+        $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
+
+        $day_in_calendar = 120; // giorni da mostrare
         for ($i = 0 ; $i < $day_in_calendar; $i++) { 
             $day = [
                 'date' => $first_day->format('Y-m-d'),
@@ -109,14 +111,14 @@ class PageController extends Controller
                 'status' => true, // libero, pieno, parziale 
                 'reserved' => 0,
             ];
-            
-            
+            if(in_array($first_day->copy()->format('Y-m-d'), $adv['day_off'])){
+                $day['status'] = false;
+            }
             $end_1 = Carbon::createFromTime(23, 0); // 08:00
             $end_2 = Carbon::createFromTime(23, 0)->addMinutes(30); // 12:00
             $hour_1   = Carbon::createFromTime(9, 0);
             $hour_2   = Carbon::createFromTime(9, 0)->addMinutes(30);
             $hour_3   = Carbon::createFromTime(9, 0);
-            
             do {
                 $hour_f =  $hour_1->copy()->format('H:i');
 
@@ -127,9 +129,9 @@ class PageController extends Controller
                     'id' => null,
                     'booking_subject' => null,
                 ];
-               //dd(!isset($reserved[$day['date']][1][$hour_f]));
+                //dd(!isset($reserved[$day['date']][1][$hour_f]));
                 if(isset($reserved[$day['date']])) {
-                   
+                    
                     
                     if(!isset($reserved[$day['date']][1][$hour_f])) {
                         $day['fields']['field_1'][] = $hour_null;
@@ -156,7 +158,7 @@ class PageController extends Controller
                 // dump($hour_1);
                 // dump($end_1);
             } while ($hour_1->lessThan($end_1));
-   
+    
             do {
                 $hour_f =  $hour_2->copy()->format('H:i');
                 $hour_null = [
@@ -218,7 +220,8 @@ class PageController extends Controller
                 }
                 $hour_3->addMinutes(30);
             } while ($hour_3->lessThan($end_1));
-
+            
+            
             
             $days[] = $day;
             

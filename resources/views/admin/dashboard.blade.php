@@ -34,7 +34,15 @@
     <h1> <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-calendar2-week mx-3" viewBox="0 0 16 16">
             <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
             <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5zM11 7.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z"/>
-        </svg> CALENDARIO</h1>
+        </svg> CALENDARIO
+    </h1>
+
+    <button  type="button" class="ml-auto my_btn_2 btn_delete mt-4" data-bs-toggle="modal" data-bs-target="#exampleModal1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-ban" viewBox="0 0 16 16">
+  <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"/>
+</svg>
+        Blocca Giorni
+    </button>
     <div id="carouselExampleIndicators" class="carousel slide my_carousel" >
         <div class="carousel-indicators">
             @foreach ($year as $m)
@@ -71,8 +79,9 @@
                             @foreach ($m['days'] as $d)
                                 <button data-day='@json($d)'
                                 class="day  
-                                @if($currentMonth == $m['month'] && $currentYear == $m['year'] && $currentDay == $d['day']) day-active @endif " 
-                                style="grid-column-start:{{$d['day_w'] }}" method="get">        
+                                @if($currentMonth == $m['month'] && $currentYear == $m['year'] && $currentDay == $d['day']) day-active @endif 
+                                @if(!$d['status']) day_off @endif " 
+                                style="grid-column-start:{{$d['day_w'] }}">        
                                     <p class="p_day">{{$d['day']}}</p>
                                     @if ($d['reserved'] > 0)
                                         <span class="bookings">{{$d['reserved']}} 
@@ -104,8 +113,8 @@
         </button>
     </div>
 
+    
 
-<!-- Button trigger modal -->
     <form  action="{{ route('admin.reservations.createFromD')}}"   method="POST">
         @csrf
         <!-- Modal -->
@@ -178,6 +187,95 @@
                         <div class="actions w-100">
                             <button class="my_btn_3 ml-auto"  type="submit">Conferma</button>
                             {{-- <button class="my_btn_1 ml-auto" value="1" name="mail" type="submit">Conferma e Avvisa giocatori</button> --}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Qui appariranno le fasce orarie -->
+        <div id="slots" class="my-3"></div>
+    </form>
+    <form  action="{{ route('admin.settings.cancelDates')}}"   method="POST">
+        @csrf
+        <!-- Modal -->
+         @php $i= 0; @endphp
+        <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModal1Label" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered mymodal_calendar">
+                <div class="modal-content  mymodal_make_res">
+                    <div class="modal-body box_container">
+                        <div id="c2" class="carousel slide my_carousel" >
+                            <div class="carousel-indicators">
+                                @foreach ($year as $m)
+                                    <button  type="button" data-bs-target="#c2" data-bs-slide-to="{{$i}}"
+                                    @if ($currentMonth == $m['month'] && $currentYear == $m['year']) class="active" aria-current="true"@endif
+                                    aria-label="{{ 'Slide ' . $i }}"></button>
+                                    @php $i ++ @endphp
+                                @endforeach
+                            </div>
+                            <div id="calendar" class="carousel-inner">
+                                @php $i = 0; @endphp
+                                @foreach ($year as $m)
+                                    <div class="carousel-item
+                                    @if ($currentMonth == $m['month'] && $currentYear == $m['year'])
+                                        active 
+                                    @endif
+                                    ">
+                                        <h2 class="my">{{['', 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'][$m['month']]}} - {{$m['year']}}</h2>
+                                        <div class="calendar-c">
+                                        
+                                            <div class="c-name">
+                                                @php
+                                                $day_name = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
+                                                @endphp
+                                                @foreach ($day_name as $item)
+                                                    <h4>{{$item}}</h4>
+                                                @endforeach
+                                            </div>
+                                            <div class="calendar">
+
+                                                @foreach ($m['days'] as $d)
+
+                                                    <input type="checkbox" name="day_off[]" id="{{$d['date']}}" value="{{$d['date']}}"
+                                                    @if (!$d['status']) checked @endif
+                                                    >
+                                                    <label for="{{$d['date']}}"
+                                                        class="day  
+                                                        @if($currentMonth == $m['month'] && $currentYear == $m['year'] && $currentDay == $d['day']) day-active @endif " 
+                                                        style="grid-column-start:{{$d['day_w'] }}"
+                                                    >        
+                                                        <p class="p_day">{{$d['day']}}</p>
+                                                        @if ($d['reserved'] > 0)
+                                                            <span class="bookings">{{$d['reserved']}} 
+                                                                <svg xmlns="http://www.w3.org/2000/svg"  fill="currentColor" class="bi bi-dice-4" viewBox="0 0 16 16">
+                                                                    <path d="M13 1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2zM3 0a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V3a3 3 0 0 0-3-3z"/>
+                                                                    <path d="M5.5 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m8 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m-8 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                                                                </svg>
+                                                            </span>
+                                                        @endif
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @php $i ++ @endphp
+                                @endforeach
+                            </div>
+                            <button class="carousel-control-prev" style="width: 7% !important;" type="button" data-bs-target="#c2" data-bs-slide="prev">
+                                <div class="lez-c prev">
+                                    <div class="line"></div>
+                                    <div class="line l2"></div>
+                                </div>
+                            </button>
+                            <button class="carousel-control-next" style="width: 7% !important;" type="button" data-bs-target="#c2" data-bs-slide="next">
+                                <div class="lez-c ">
+                                    <div class="line"></div>
+                                    <div class="line l2"></div>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="actions w-100">
+                            <button class="my_btn_2 btn_delete" type="button" data-bs-dismiss="modal" >Annulla</button>
+                            <button class="my_btn_3" type="submit">Conferma</button>
                         </div>
                     </div>
                 </div>
