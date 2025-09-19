@@ -18,7 +18,6 @@ class PlayerController extends Controller
         'phone'      => 'required|min:9',
         'name'       => 'required|string',
         'surname'    => 'required|string',
-        'level'      => 'required|numeric|min:1|max:5',
         'sex'        => 'required',
         'certificate'=> 'nullable|file|mimes:pdf,jpg,jpeg,png,gif,webp,svg,bmp,tiff|max:1024',
     ];
@@ -128,7 +127,11 @@ class PlayerController extends Controller
     public function register(Request $request){
         $data = $request->all();
         if(!$request->validate($this->validations)){
-            
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Dati incompleti',
+            ]); 
         }
         
         $existingPlayer = Player::where('nickname', $data['nickname'])->orWhere('mail', $data['mail'])->first();

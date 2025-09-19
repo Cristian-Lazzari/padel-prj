@@ -31,7 +31,7 @@ class PlayersTableSeeder extends Seeder
                 'name'      => 'Daniel',
                 'surname'   => 'Martín',
                 'phone'     => '3394773897',
-                'mail'      => 'info@future-plus.it',
+                'mail'      => 'rdanielmartin10@gmail.com',
                 'sex'       => 'm'
             ],
             [
