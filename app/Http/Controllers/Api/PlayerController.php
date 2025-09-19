@@ -12,6 +12,17 @@ use Illuminate\Support\Facades\Mail;
 
 class PlayerController extends Controller
 {
+    private $validations = [
+        'nickname'   => 'required|string|min:2|unique:players,nickname',
+        'mail'       => 'required|string|min:5|unique:players,mail',
+        'phone'      => 'required|min:9',
+        'name'       => 'required|string',
+        'surname'    => 'required|string',
+        'level'      => 'required|numeric|min:1|max:5',
+        'sex'        => 'required',
+        'certificate'=> 'nullable|file|mimes:pdf,jpg,jpeg,png,gif,webp,svg,bmp,tiff|max:1024',
+    ];
+
     public function verifyOtp(Request $request){
 
         $user = Player::where('nickname', $request->nickname)->first();
@@ -116,6 +127,10 @@ class PlayerController extends Controller
 
     public function register(Request $request){
         $data = $request->all();
+        if(!$request->validate($this->validations)){
+            
+        }
+        
         $existingPlayer = Player::where('nickname', $data['nickname'])->orWhere('mail', $data['mail'])->first();
         if($existingPlayer){
             return response()->json([
@@ -128,6 +143,7 @@ class PlayerController extends Controller
         $newPlayer->surname = $data['surname'];
         $newPlayer->nickname = $data['nickname'];
         $newPlayer->mail = $data['mail'];
+        $newPlayer->sex = $data['sex'];
         $newPlayer->phone = $data['phone'] ?? null;
         $newPlayer->save();
         
