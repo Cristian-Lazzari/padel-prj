@@ -57,7 +57,7 @@ class SettingController extends Controller
         $setting['Contatti']->property = json_encode($contatti);
         $setting['Contatti']->save();      
         
-        $day_off = json_decode($setting['advanced']->property)['day_off'];
+        $day_off = json_decode($setting['advanced']->property, 1)['day_off'];
         $setting['advanced']->property = json_encode([
 
             'day_off' => $day_off,
