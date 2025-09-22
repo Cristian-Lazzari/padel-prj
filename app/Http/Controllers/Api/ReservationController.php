@@ -33,8 +33,9 @@ class ReservationController extends Controller
         $date = Carbon::parse($date_slot)->format('Y-m-d');
 
 
-        $reserved = $this->get_res();
-
+        $now = Carbon::now('Europe/Rome');
+        $reserved = $this->get_res($now->addMinutes(30));
+        
         if (isset($reserved[$date])) {
             if (in_array($time, $reserved[$date][$field])) {
                 return response()->json([
