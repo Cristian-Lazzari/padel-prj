@@ -33,7 +33,7 @@ class ReservationController extends Controller
         $date = Carbon::parse($date_slot)->format('Y-m-d');
 
 
-        $reserved = $this->get_res_from_now();
+        $reserved = $this->get_res();
 
         if (isset($reserved[$date])) {
             if (in_array($time, $reserved[$date][$field])) {
