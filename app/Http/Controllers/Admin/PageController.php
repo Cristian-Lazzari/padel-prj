@@ -94,8 +94,8 @@ class PageController extends Controller
         }
 
         $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
-
-        $day_in_calendar = 120; // giorni da mostrare
+        
+        $day_in_calendar = $oldestCarbon->diffInDays(Carbon::now()) + 90; // giorni da mostrare
         for ($i = 0 ; $i < $day_in_calendar; $i++) { 
             $day = [
                 'date' => $first_day->format('Y-m-d'),
