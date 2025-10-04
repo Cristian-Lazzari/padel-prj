@@ -74,11 +74,11 @@ class PageController extends Controller
 
         $days = [];
         
-        $limite = $now->setTime(20, 0); 
+        //$limite = $now->setTime(20, 0); 
         $first_day = $now;
-        if($now->greaterThan($limite)){
-            $first_day = Carbon::tomorrow();
-        }
+        // if($now->greaterThan($limite)){
+        //     $first_day = Carbon::tomorrow();
+        // }
 
         
 
