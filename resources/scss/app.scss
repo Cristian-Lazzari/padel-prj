@@ -402,6 +402,26 @@ body{
     transform: rotateY(180deg);
 
 }
+.top_line{
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    z-index: 100;
+    .prev_btn, .post_btn {
+        background-color: var(--c1);
+        border: 2px solid var(--c3);
+        border-radius: 8px;
+        padding: 4px;
+        svg{
+            color: var(--c3);
+            width: 20px;
+            height: 20px;
+        }
+    }
+}
 .carousel-inner{
     display: flex;
     align-items: stretch !important;
@@ -425,39 +445,26 @@ body{
     
 }
 
-.lez-c{
-    padding: 0 15px;
-    height: 30px;
-    width: 13px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    .line{
-        background-color: var(--c1); 
-        height: 13px;
-        width: 2px;
-        position: absolute;
-        transform:translate(50%, 50%) rotateZ(45deg);
-        border-radius: 2px;
-    }
-    .l2{
-        height: 13px;
-        transform:translate(50%, -11%) rotateZ(-45deg);
-    }
-}
-.prev{
-    transform: rotateY(180deg);
 
-}
 
 .selected{
-    background-color: rgba($c2, .2) !important;
-    border: solid 3px var(--c2) !important;
-    color: var(--c1) !important;
-    font-weight: 700;
-    font-size: $fs_md !important;
-    text-shadow: 1px 1px 0px var(--c1_op);
-    transition: all .2s ease-in-out;
+    border-color: var(--c2)!important;
+    box-shadow: inset 0 0 10px var(--c2);
+    .p_day{
+        text-shadow: 0 0 10px var(--c2_op);
+        font-weight: 700 !important;
+    }
+}
+.day.current.selected{
+    border-color: var(--c1)!important;
+    color: var(--c3) !important;
+    .p_day{
+        text-shadow: 1px 1px 0  var(--c1) !important;
+    }
+    svg{
+        filter: drop-shadow( 1px 1px var(--c1));
+    }
+    box-shadow: inset 0 0 8px var(--c1);
 }
 .calendar-c{
     .date-set{
@@ -584,8 +591,136 @@ body{
         }
     }
 }
+.calendar{
+    width: 100%;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    
+    .c-name{
+        display: flex;
+        flex-grow: 1;
+        justify-content: space-around;
+        align-items: center;
+        text-transform: capitalize;
+        margin:  auto;
+        padding: 1.3rem 0;
+        width: 100%;
+        max-width: 100%;
+        color: var(--c3);
+        //background-color:  var(--c2) !important;
+        border-radius: 17px;
+        h4{
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            margin-bottom: 0;
+            color: var(--c3);
+            font-size: $fs_sm;
+            font-weight: 400;
+        }
+    }
+    .calendar_page{
+        text-align: center;
+        display: grid;
+        justify-content: center;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        gap: .2rem;
+        width: 100%;
+        
+        .day{
+            color: var(--c1);
+            background-color: var(--c3); 
+            width: auto;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            //aspect-ratio: 1;
+            border-radius: 6px;
+            position: relative;
+            border: none;
+            font-weight: light;
+            transition: all .2s ease-in-out;
+            border: solid 2px var(--c3);
+
+            .p_day{
+                margin: 0;
+                font-size: $fs_sm_3 !important;   
+            }
+            .bookings{
+                justify-content: flex-start;
+                align-items: flex-start;
+                gap: 3px;
+                position: absolute;
+                bottom: 3px;
+                left: 3px;
+                flex-wrap: nowrap;
+                font-size: $fs_xsm !important;   
+                svg{
+                    width: $fs_xsm;
+                    height: $fs_xsm;
+                       
+                }
+                strong{
+                    padding-bottom: 3px;
+                }
+            }
+            .bookings.top{
+                top: 3px;
+                right: 3px;
+                bottom: auto;
+                left: auto;
+
+            }
+
+        }
+        input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        input[type="checkbox"]:checked + .day{
+            border-color: rgba(255, 0, 0, 0.673) !important;
+            background-color: rgba(255, 0, 0, 0.673)!important;
+            box-shadow: none !important;
+            color: var(--c3) !important;
+        }
+        .day.day_off{
+            border-color: rgba(255, 0, 0, 0)!important;
+            background-color: var(--c3_op_3)!important;
+            color: var(--c3) !important;
+        }
+        .day.day-active{
+            border-color: var(--c2)!important;
+            box-shadow: inset 0 0 10px var(--c2);
+            //background-color: var(--c2);
+            .p_day{
+                text-shadow: 0 0 10px var(--c2_op);
+                font-weight: 700 !important;
+            }
+        }
+        .day.current{
+            border-color: var(--c2);
+            background-color: var(--c2) !important; 
+        }
+        .day.current.day-active{
+            border-color: var(--c1)!important;
+            color: var(--c3);
+            text-shadow: 1px 1px var(--c1);
+            .p_day{
+                text-shadow: 1px 1px var(--c1);
+            }
+            svg{
+                filter: drop-shadow( 1px 1px var(--c1));
+            }
+            box-shadow: inset 0 0 8px var(--c1);
+        }
+    }
+}
 .carousel-indicators{
-    background-color: #2b2b2b00 !important;
+    bottom: -3rem;
     button{
         //margin: 0 !important;
         border-radius: 10px !important;
@@ -593,6 +728,9 @@ body{
         width: 20px !important;
         border: 1px solid var(--c3) !important;
         background-color: #090333 !important;
+    }
+    button.active{
+        background-color: var(--c3) !important;
     }
 }
 
@@ -3197,8 +3335,12 @@ section{
         .modal-body{
             width: 100% !important;
             max-width: 800px !important;
+            
          }
     }
+    // .carousel-inner{
+    //     bottom: -3rem !important;
+    // }
 
 }
 .mymodal_make_res{
@@ -3306,7 +3448,7 @@ section{
     gap: 1rem;
     width: 100%;
     padding: .3rem;
-    margin-bottom: 10svh;
+    margin: 3rem 0 10svh;
     h4{
         text-align: center;
         font-size: $fs_sm_3;

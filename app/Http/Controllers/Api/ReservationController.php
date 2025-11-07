@@ -158,20 +158,26 @@ class ReservationController extends Controller
         if($now->greaterThan($limite)){
             $first_day = Carbon::tomorrow();
         }
-        //array di controllo
+
         $hour_arr = [];
         $hour_arr_1 = [];
         $hour_test = Carbon::createFromTime(9, 0);
         $hour_test_1 = Carbon::createFromTime(9, 0)->addMinutes(30);
-        for ($t = 1 ; $t < 11; $t++) {
+        
+        $slot_on_day = 11;
+        $minutes_on_slot = 90;
+
+        for ($t = 1 ; $t < $slot_on_day; $t++) {
             $hour_arr[] = $hour_test->copy()->format('H:i');
             $hour_arr_1[] = $hour_test_1->copy()->format('H:i');
-            $hour_test->addMinutes(90);
-            $hour_test_1->addMinutes(90);
+            $hour_test->addMinutes($minutes_on_slot);
+            $hour_test_1->addMinutes($minutes_on_slot);
         }
+        
         //---
+        $day_in_calendar = 7;
         $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
-        for ($i = 0 ; $i < 7; $i++) { 
+        for ($i = 0 ; $i < $day_in_calendar; $i++) { 
             $day = [
                 'date' => $first_day->format('Y-m-d'),
                 'day' => $first_day->format('j'), // 1 - 31

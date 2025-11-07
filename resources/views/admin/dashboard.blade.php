@@ -37,7 +37,7 @@
         </svg> CALENDARIO
     </h1>
 
-    <button  type="button" class="ml-auto my_btn_2 btn_delete mt-4" data-bs-toggle="modal" data-bs-target="#exampleModal1">
+    <button  type="button" class="ml-auto my_btn_2 mb-4 btn_delete mt-4" data-bs-toggle="modal" data-bs-target="#exampleModal1">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-ban" viewBox="0 0 16 16">
             <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"/>
             </svg>
@@ -54,18 +54,24 @@
                 @php $i ++ @endphp
             @endforeach
         </div>
+        <div class="top_line">
+            <button class="prev_btn" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-left-fill" viewBox="0 0 16 16">
+                <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
+                </svg>
+            </button>
+            <button class="post_btn" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16">
+                <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
+                </svg>
+            </button>
+        </div>
         <div id="calendar" class="carousel-inner">
             @php $i = 0; @endphp
             @foreach ($year as $m)
-                <div class="carousel-item
-                @if ($currentMonth == $m['month'] && $currentYear == $m['year'])
-                    active 
-                @endif
-                ">
-                    
+                <div class="carousel-item @if ($currentMonth == $m['month'] && $currentYear == $m['year']) active @endif">
                     <h2 class="my">{{['', 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'][$m['month']]}} - {{$m['year']}}</h2>
-                    <div class="calendar-c">
-                    
+                    <div class="calendar">
                         <div class="c-name">
                             @php
                             $day_name = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
@@ -74,12 +80,11 @@
                                 <h4>{{$item}}</h4>
                             @endforeach
                         </div>
-                        <div class="calendar">
-
+                        <div class="calendar_page">
                             @foreach ($m['days'] as $d)
                                 <button data-day='@json($d)'
                                 class="day  
-                                @if($currentMonth == $m['month'] && $currentYear == $m['year'] && $currentDay == $d['day']) day-active @endif 
+                                @if($currentMonth == $m['month'] && $currentYear == $m['year'] && $currentDay == $d['day']) current @endif 
                                 @if(!$d['status']) day_off @endif " 
                                 style="grid-column-start:{{$d['day_w'] }}">        
                                     <p class="p_day">{{$d['day']}}</p>
@@ -99,18 +104,6 @@
                 @php $i ++ @endphp
             @endforeach
         </div>
-        <button class="carousel-control-prev" style="width: 7% !important;" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
-            <div class="lez-c prev">
-                <div class="line"></div>
-                <div class="line l2"></div>
-            </div>
-        </button>
-        <button class="carousel-control-next" style="width: 7% !important;" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
-            <div class="lez-c ">
-                <div class="line"></div>
-                <div class="line l2"></div>
-            </div>
-        </button>
     </div>
 
     
@@ -212,6 +205,18 @@
                                     @php $i ++ @endphp
                                 @endforeach
                             </div>
+                            <div class="top_line">
+                                <button class="prev_btn" type="button" data-bs-target="#c2" data-bs-slide="prev">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-left-fill" viewBox="0 0 16 16">
+                                    <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
+                                    </svg>
+                                </button>
+                                <button class="post_btn" type="button" data-bs-target="#c2" data-bs-slide="next">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16">
+                                    <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
+                                    </svg>
+                                </button>
+                            </div>
                             <div id="calendar" class="carousel-inner">
                                 @php $i = 0; @endphp
                                 @foreach ($year as $m)
@@ -221,7 +226,7 @@
                                     @endif
                                     ">
                                         <h2 class="my">{{['', 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'][$m['month']]}} - {{$m['year']}}</h2>
-                                        <div class="calendar-c">
+                                        <div class="calendar">
                                         
                                             <div class="c-name">
                                                 @php
@@ -231,7 +236,7 @@
                                                     <h4>{{$item}}</h4>
                                                 @endforeach
                                             </div>
-                                            <div class="calendar">
+                                            <div class="calendar_page">
 
                                                 @foreach ($m['days'] as $d)
 
@@ -260,20 +265,9 @@
                                     @php $i ++ @endphp
                                 @endforeach
                             </div>
-                            <button class="carousel-control-prev" style="width: 7% !important;" type="button" data-bs-target="#c2" data-bs-slide="prev">
-                                <div class="lez-c prev">
-                                    <div class="line"></div>
-                                    <div class="line l2"></div>
-                                </div>
-                            </button>
-                            <button class="carousel-control-next" style="width: 7% !important;" type="button" data-bs-target="#c2" data-bs-slide="next">
-                                <div class="lez-c ">
-                                    <div class="line"></div>
-                                    <div class="line l2"></div>
-                                </div>
-                            </button>
+
                         </div>
-                        <div class="actions w-100">
+                        <div class="actions w-100 mt-3">
                             <button class="my_btn_2 btn_delete" type="button" data-bs-dismiss="modal" >Annulla</button>
                             <button class="my_btn_3" type="submit">Conferma</button>
                         </div>
