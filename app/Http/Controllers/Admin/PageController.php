@@ -75,7 +75,7 @@ class PageController extends Controller
         $days = [];
         
         $first_day = $now;
-
+ 
         $hour_arr = [];
         $hour_arr_1 = [];
         $hour_test = Carbon::createFromTime(9, 0);
@@ -114,7 +114,7 @@ class PageController extends Controller
             }
             $end_1 = Carbon::createFromTime(23, 0); // 08:00
             $end_2 = Carbon::createFromTime(23, 0)->addMinutes(30); // 12:00
-            
+
             $hour_1   = Carbon::createFromTime(9, 0);
             $hour_2   = Carbon::createFromTime(9, 0)->addMinutes(30);
             $hour_3   = Carbon::createFromTime(9, 0);
