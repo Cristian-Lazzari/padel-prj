@@ -23,7 +23,8 @@ class PlayersTableSeeder extends Seeder
                 'surname'   => 'Giorgi',
                 'phone'     => '3385314356',
                 'mail'      => 'info@future-plus.it',
-                'sex'       => 'm'
+                'sex'       => 'm',
+                'birth_date'=> '1999-01-01'
             ],
             [
                 'role'      => 'trainer',
@@ -32,7 +33,8 @@ class PlayersTableSeeder extends Seeder
                 'surname'   => 'Martín',
                 'phone'     => '3394773897',
                 'mail'      => 'rdanielmartin10@gmail.com',
-                'sex'       => 'm'
+                'sex'       => 'm',
+                'birth_date'=> '1999-01-01'
             ],
             [
                 'role'      => 'player',
@@ -41,7 +43,8 @@ class PlayersTableSeeder extends Seeder
                 'surname'   => 'Lazzari',
                 'phone'     => '3271622244',
                 'mail'      => 'info@future-plus.it',
-                'sex'       => 'm'
+                'sex'       => 'm',
+                'birth_date'=> '1999-01-01'
             ],
             
             

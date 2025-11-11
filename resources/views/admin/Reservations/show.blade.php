@@ -113,9 +113,11 @@
                 </svg>
                 Modifica
             </a>
-            <button class="my_btn_6 btn_delete" type="button" data-bs-toggle="modal" data-bs-target="#exampleModaldelete">
-                Annulla
-            </button>
+            @if ($reservation->status !== '0')     
+                <button class="my_btn_6 btn_delete" type="button" data-bs-toggle="modal" data-bs-target="#exampleModaldelete">
+                    Annulla Match
+                </button>
+            @endif
 
                 
         </div>

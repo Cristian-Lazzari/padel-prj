@@ -90,10 +90,8 @@
                                     <p class="p_day">{{$d['day']}}</p>
                                     @if ($d['reserved'] > 0)
                                         <span class="bookings">{{$d['reserved']}} 
-                                            <svg xmlns="http://www.w3.org/2000/svg"  fill="currentColor" class="bi bi-dice-4" viewBox="0 0 16 16">
-                                                <path d="M13 1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2zM3 0a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V3a3 3 0 0 0-3-3z"/>
-                                                <path d="M5.5 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m8 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m-8 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
-                                            </svg>
+                                            <!--!Font Awesome Free v7.1.0 by fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M161 191L228.4 123.6C266.6 85.4 318.4 64 372.4 64C484.9 64 576.1 155.2 576.1 267.6C576.1 314 560.3 358.7 531.6 394.6C508 377.8 479.2 367.9 448.1 367.9C417 367.9 388.2 377.8 364.7 394.5L161 191zM304 512C304 521.7 305 531.1 306.8 540.2C287 535 268.8 524.7 254.1 510C241.9 497.8 222.2 497.8 210 510L160.6 559.4C150 570 135.6 576 120.6 576C89.4 576 64 550.7 64 519.4C64 504.4 70 490 80.6 479.4L130 430C142.2 417.8 142.2 398.1 130 385.9C108.3 364.2 96.1 334.7 96.1 304C96.1 274.6 107.2 246.4 127.2 225L330.6 428.6C313.9 452.1 304 480.9 304 512zM448 416C501 416 544 459 544 512C544 565 501 608 448 608C395 608 352 565 352 512C352 459 395 416 448 416z"/></svg>
                                         </span>
                                     @endif
                                 </button>
@@ -286,11 +284,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     const buttons = document.querySelectorAll("#calendar button");
     const slotsContainer = document.getElementById("slots");
-    const fieldname = {
-        field_1 : 'Campo 1',
-        field_2 : 'Campo 2',
-        field_3 : 'Campo 3',
-    };
+
+
 
 
     buttons.forEach(btn => {
@@ -317,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // titolo della sezione
                 const title = document.createElement("h4");
                 title.classList.add("font-bold", "mb-2");
-                title.textContent = fieldname[fieldName] || fieldName;
+                title.textContent = fieldName;
                 fieldsContainer.appendChild(title);
 
                 // contenitore del field
@@ -383,8 +378,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     // nessuna fascia oraria
                     const p = document.createElement("p");
-                    p.classList.add("text-gray-500");
-                    p.textContent = "Nessuna fascia oraria";
+                    p.classList.add("null_p");
+                    p.textContent = "Campo non disponibile";
                     fieldDiv.appendChild(p);
                 }
 

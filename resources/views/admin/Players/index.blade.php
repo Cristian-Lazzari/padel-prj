@@ -28,8 +28,6 @@
 
     <div class="floating">
         <div class="int">
-
-
             <a class="my_btn_3 gap-2" href="{{route('admin.players.create')}}"> 
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
@@ -38,40 +36,52 @@
         </div>
     </div>
 
-    <div class="floating bottom_1">
-        <div class="int">
-            <input type="text" id="searchInput" class="my_btn_7 w-75 m-auto " placeholder="Cerca giocatore...">
-        </div>
-    </div>
-   
+    <div class="filters">
+        <div class="bar"> 
+            <input type="checkbox" class="check" id="f"> 
+            <div class="box"> 
+                <input type="text" id="searchInput" class="search" placeholder="Cerca cliente..." > 
+                <button id="levelToggle" class="filter-btn type">Livello: Tutti</button>
+                <button id="sexToggle" class="filter-btn type sex-btn" title="Filtro sesso">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                    </svg>
+                </button>
+            </div> 
 
-        
+            <label for="f"> 
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel-fill" viewBox="0 0 16 16"> 
+                    <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5z"/> 
+                </svg> 
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16"> 
+                    <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/> 
+                </svg> 
+            </label> 
+        </div> 
+    </div>
 
     <div id="playersList" class="newtable">
         @foreach ($players as $r)
-            <div class="res_item">
+            <div class="res_item" data-level="{{ $r->level }}" data-sex="{{ $r->sex }}">
                 <div class="left">
                     <div class="time_slot">#{{$r->nickname}}</div>
                     <div class="date">{{$r->name}} {{$r->surname}}</div>
                 </div>
                 <div class="center player_center">
                     <div class="line">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
-                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-                        </svg>
-                        <p>{{$r->level}} / 5</p>
+                        <div class="donut-wrapper" style="--percent: {{ $r->level / 5 * 100}}">
+                            <p>
+                                {{ $r->level }}
+                            </p>
+                        </div>
                     </div>
                     <div class="line">
                         @if ($r->sex == 'm')
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing man" viewBox="0 0 16 16">
-                            <path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M6 6.75v8.5a.75.75 0 0 0 1.5 0V10.5a.5.5 0 0 1 1 0v4.75a.75.75 0 0 0 1.5 0v-8.5a.25.25 0 1 1 .5 0v2.5a.75.75 0 0 0 1.5 0V6.5a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2.75a.75.75 0 0 0 1.5 0v-2.5a.25.25 0 0 1 .5 0"/>
-                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing man" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M6 6.75v8.5a.75.75 0 0 0 1.5 0V10.5a.5.5 0 0 1 1 0v4.75a.75.75 0 0 0 1.5 0v-8.5a.25.25 0 1 1 .5 0v2.5a.75.75 0 0 0 1.5 0V6.5a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2.75a.75.75 0 0 0 1.5 0v-2.5a.25.25 0 0 1 .5 0"/></svg>
                         @else
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing-dres girl" viewBox="0 0 16 16">
-                            <path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m-.5 12.25V12h1v3.25a.75.75 0 0 0 1.5 0V12h1l-1-5v-.215a.285.285 0 0 1 .56-.078l.793 2.777a.711.711 0 1 0 1.364-.405l-1.065-3.461A3 3 0 0 0 8.784 3.5H7.216a3 3 0 0 0-2.868 2.118L3.283 9.079a.711.711 0 1 0 1.365.405l.793-2.777a.285.285 0 0 1 .56.078V7l-1 5h1v3.25a.75.75 0 0 0 1.5 0Z"/>
-                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing-dres girl" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m-.5 12.25V12h1v3.25a.75.75 0 0 0 1.5 0V12h1l-1-5v-.215a.285.285 0 0 1 .56-.078l.793 2.777a.711.711 0 1 0 1.364-.405l-1.065-3.461A3 3 0 0 0 8.784 3.5H7.216a3 3 0 0 0-2.868 2.118L3.283 9.079a.711.711 0 1 0 1.365.405l.793-2.777a.285.285 0 0 1 .56.078V7l-1 5h1v3.25a.75.75 0 0 0 1.5 0Z"/></svg>
                         @endif
-                        <p>{{$r->sex == 'm' ? 'UOMO': 'DONNA'}}</p>
+                        {{-- <p>{{$r->sex == 'm' ? 'UOMO': 'DONNA'}}</p> --}}
                     </div>
                 </div>
                 <div class="actions">
@@ -104,15 +114,60 @@
 
 
 <script>
-    document.getElementById('searchInput').addEventListener('keyup', function () {
-        let filter = this.value.toLowerCase();
-        let items = document.querySelectorAll('#playersList .res_item');
+document.addEventListener('DOMContentLoaded', () => {
+    const players = document.querySelectorAll('#playersList .res_item');
+    const levelButton = document.getElementById('levelToggle');
+    const sexButton = document.getElementById('sexToggle');
+    const searchInput = document.getElementById('searchInput');
 
-        items.forEach(item => {
-            let text = item.textContent.toLowerCase();
-            item.style.display = text.includes(filter) ? '' : 'none';
-        });
+    let level = 'Tutti';
+    let sex = 'Tutti';
+    const levels = ['Tutti', 5, 4, 3, 2, 1];
+    const sexes = ['Tutti', 'm', 'f'];
+
+    // 🔹 Cambio livello
+    levelButton.addEventListener('click', () => {
+        let currentIndex = levels.indexOf(level);
+        level = levels[(currentIndex + 1) % levels.length];
+        levelButton.textContent = `Livello: ${level}`;
+        filterPlayers();
     });
+
+        // Cambio sesso con icone
+    sexButton.addEventListener('click', () => {
+        let currentIndex = sexes.indexOf(sex);
+        sex = sexes[(currentIndex + 1) % sexes.length];
+        updateSexIcon();
+        filterPlayers();
+    });
+
+    function updateSexIcon() {
+        sexButton.innerHTML = '';
+        if (sex === 'Tutti') {
+            sexButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/></svg>`;
+        } else if (sex === 'm') {
+            sexButton.innerHTML = ` <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing man" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M6 6.75v8.5a.75.75 0 0 0 1.5 0V10.5a.5.5 0 0 1 1 0v4.75a.75.75 0 0 0 1.5 0v-8.5a.25.25 0 1 1 .5 0v2.5a.75.75 0 0 0 1.5 0V6.5a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2.75a.75.75 0 0 0 1.5 0v-2.5a.25.25 0 0 1 .5 0"/></svg>`;
+        } else {
+            sexButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing-dres girl" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m-.5 12.25V12h1v3.25a.75.75 0 0 0 1.5 0V12h1l-1-5v-.215a.285.285 0 0 1 .56-.078l.793 2.777a.711.711 0 1 0 1.364-.405l-1.065-3.461A3 3 0 0 0 8.784 3.5H7.216a3 3 0 0 0-2.868 2.118L3.283 9.079a.711.711 0 1 0 1.365.405l.793-2.777a.285.285 0 0 1 .56.078V7l-1 5h1v3.25a.75.75 0 0 0 1.5 0Z"/></svg>`;
+        }
+    }
+
+    // 🔹 Filtro ricerca
+    searchInput.addEventListener('input', filterPlayers);
+
+    function filterPlayers() {
+        const term = searchInput.value.toLowerCase();
+        players.forEach(p => {
+            const name = p.querySelector('.date').textContent.toLowerCase();
+            const pLevel = p.dataset.level;
+            const pSex = p.dataset.sex;
+            const matchesSearch = name.includes(term);
+            const matchesLevel = level === 'Tutti' || pLevel == level;
+            const matchesSex = sex === 'Tutti' || pSex == sex;
+            p.style.display = (matchesSearch && matchesLevel && matchesSex) ? '' : 'none';
+        });
+    }
+});
 </script>
 @endsection
 

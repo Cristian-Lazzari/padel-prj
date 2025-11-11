@@ -16,8 +16,9 @@ class ReservationsTableSeeder extends Seeder
      */
     public function run()
     {
-        $fields   = [1, 2, 3];
+        $fields   = ['Campo 1', 'Campo 2', 'Campo 3'];
         $statuses = [1, 2, 3];
+        $sport = ['Padel', 'Calcio'];
         $status   = [true, false];
 
         for ($i = 0; $i < 5; $i++) { // più prenotazioni
@@ -34,6 +35,7 @@ class ReservationsTableSeeder extends Seeder
                 'date_slot' => $dateSlot->format('Y-m-d H:i'),
                 'field'     => $fields[array_rand($fields)],
                 'status'    => $statuses[array_rand($statuses)],
+                'type'      => $sport[array_rand($sport)],
                 'message'   => rand(0, 1) ? Str::random(20) : null,
                 'dinner'    => json_encode([
                     'status' => array_rand($status),

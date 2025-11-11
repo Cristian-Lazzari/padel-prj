@@ -29,18 +29,22 @@ class SettingsTableSeeder extends Seeder
                     ]
                 ],
                 [
-                    'name' => 'Orari di attività',
-                    'property' => []
-                ],
-                [
                     'name' => 'Contatti',
-                    'property' => []
+                    'property' => [
+                        'phone' => '3271622244',
+                        'email' => '',
+                        'whatsapp' => '',
+                        'youtube' => '',
+                        'instagram' => '',
+                        'tiktok' => '',
+                    ]
                 ],
                 [
                     'name' => 'advanced',
                     'property' => [
                         'max_delay_default' => 24,
                         'day_off' => [],
+                        'field_set'=> [],
                     ]
                 ],
                 

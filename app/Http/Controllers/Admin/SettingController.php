@@ -33,17 +33,6 @@ class SettingController extends Controller
         $setting['Periodo di Ferie']->property = json_encode($propertyArray);
         $setting['Periodo di Ferie']->save();
 
-        $giorni_attivita = [
-            'lunedì'    => [ 'from' => $data['lunedì_from'], 'to' => $data['lunedì_to']],
-            'martedì'   => [ 'from' => $data['martedì_from'], 'to' => $data['martedì_to']],
-            'mercoledì' => [ 'from' => $data['mercoledì_from'], 'to' => $data['mercoledì_to']],
-            'giovedì'   => [ 'from' => $data['giovedì_from'], 'to' => $data['giovedì_to']],
-            'venerdì'   => [ 'from' => $data['venerdì_from'], 'to' => $data['venerdì_to']],
-            'sabato'    => [ 'from' => $data['sabato_from'], 'to' => $data['sabato_to']],
-            'domenica'  => [ 'from' => $data['domenica_from'], 'to' => $data['domenica_to']],
-        ];
-        $setting['Orari di attività']->property = json_encode($giorni_attivita);
-        $setting['Orari di attività']->save();
 
         $contatti = [
             'phone'  => $request->phone,
@@ -58,16 +47,32 @@ class SettingController extends Controller
         $setting['Contatti']->save();      
         
         $day_off = json_decode($setting['advanced']->property, 1)['day_off'];
-        $setting['advanced']->property = json_encode([
+        $field_set = json_decode($setting['advanced']->property, 1)['field_set'];
+                
 
-            'day_off' => $day_off,
-            'max_delay_default' => $data['max_delay_defalt'],
-        ]);
-        $setting['advanced']->save();
         
+        $field_set = [];
+        foreach ($data['field_set'] as $k => $f) {
+            $field_set[$f['name_field']] = [
+                'h_start'           => $f['h_start'],
+                'n_slot'            => $f['n_slot'],
+                'm_during'          => $f['m_during'],
+                'm_during_client'   => $f['m_during_client'],        
+                'type'              => $f['type'],        
+                'closed_days'       => isset($f['closed_days']) ? $f['closed_days'] : [],        
+            ];
+        }
+        
+       // dd($field_set);
+        $setting['advanced']->property = json_encode([
+            'day_off'           => $day_off,
+            'max_delay_default' => $data['max_delay_defalt'],
+            'field_set'        => $field_set,
+        ]);
 
 
 
+        $setting['advanced']->save();
         
         $m = 'Le impostazioni sono state ggiornate correttamente';
 

@@ -31,10 +31,13 @@ class ReservationController extends Controller
         $date_slot = $data['date_slot'];
         $time = Carbon::parse($date_slot)->format('H:i');
         $date = Carbon::parse($date_slot)->format('Y-m-d');
-
-
+        
         $now = Carbon::now('Europe/Rome');
-        $reserved = $this->get_res($now->addMinutes(30));
+        
+        $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
+        $field_set = $adv['field_set'];
+        
+        $reserved = $this->get_res($now->addMinutes(30), $field_set, $data['type']);
         
         if (isset($reserved[$date])) {
             if (in_array($time, $reserved[$date][$field])) {
@@ -52,6 +55,7 @@ class ReservationController extends Controller
         $match->field = $field; // 1, 2, 3 
         $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
         $match->duration = 3; 
+        $match->type = $data['type']; //padel, basket , calcio ...
         $match->dinner = json_encode($data['dinner']); //[ status, guests, time] 
         $match->message = $data['message'] ?? null;
         $match->booking_subject = $booking_subject->id;
@@ -68,7 +72,6 @@ class ReservationController extends Controller
             $match->players()->sync($team ?? []);
         }
         $contact = json_decode(Setting::where('name', 'Contatti')->first()->property, 1);
-        $advanced = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
         $bodymail = [
             'to' => 'admin',
             'res_id' => $match->id,
@@ -89,8 +92,8 @@ class ReservationController extends Controller
             'field' => $match->field,
             'phone' => $booking_subject->phone,
             'admin_phone' => $contact['phone'] ?? null,
+            'max_delay_default' => $adv['max_delay_default'],
 
-            'max_delay_default' => $advanced['max_delay_default'],
         
         ];
         $mailAdmin = new confermaOrdineAdmin($bodymail);
@@ -107,14 +110,13 @@ class ReservationController extends Controller
             'message' => 'ok',
             'data' => $data
         ]);
-
-
-
     }
 
-    private function get_res($now){
+    private function get_res($now, $field_set, $type){
+        
         $rows = DB::table('reservations')
             ->select(
+                'type',
                 'field',
                 'duration',
                 DB::raw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS day"),
@@ -122,6 +124,7 @@ class ReservationController extends Controller
             )
             ->whereRaw("STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i') >= ?", [$now])
             ->where('status', '!=', 0) // 👈 controllo aggiunto
+            ->where('type',  $type) // 👈 controllo aggiunto
             ->orderByRaw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i')) ASC")
             ->orderByRaw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i')) ASC")
             ->get();
@@ -130,131 +133,99 @@ class ReservationController extends Controller
 
         foreach ($rows as $r) {
             $day = $r->day;
-            $field = (int) $r->field;
+            $field = $r->field;
 
             if (!isset($reserved[$day])) {
-                $reserved[$day] = [
-                    1 => [],
-                    2 => [],
-                    3 => [],
-                ];
+                foreach ($field_set as $k => $f) {
+                    $reserved[$day][$k] = [];
+                }
             }
             $reserved[$day][$field][substr($r->t, 0, 5)] = $r->duration;
         }
         ksort($reserved);
-        //dd($reserved);
+
 
         return $reserved;
     }
-    public function get_date(){
-   
+    public function get_date(Request $request){
+        $data = $request->all();
         $now = Carbon::now('Europe/Rome');
-        $reserved = $this->get_res($now->addMinutes(30));
+        $dalay_from_res = 30;
+
+        $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
+        $field_set = $adv['field_set'];
+        $reserved = $this->get_res($now->addMinutes($dalay_from_res), $field_set, $data['type']);
+        //return $reserved;
 
         $days = [];
         
-        $limite = $now->setTime(20, 0); 
+        $limite = $now->setTime(20, 0); // massimo orario per prenotare in giornata 20:00
         $first_day = $now;
         if($now->greaterThan($limite)){
             $first_day = Carbon::tomorrow();
         }
-
-        $hour_arr = [];
-        $hour_arr_1 = [];
-        $hour_test = Carbon::createFromTime(9, 0);
-        $hour_test_1 = Carbon::createFromTime(9, 0)->addMinutes(30);
         
-        $slot_on_day = 11;
-        $minutes_on_slot = 90;
-
-        for ($t = 1 ; $t < $slot_on_day; $t++) {
-            $hour_arr[] = $hour_test->copy()->format('H:i');
-            $hour_arr_1[] = $hour_test_1->copy()->format('H:i');
-            $hour_test->addMinutes($minutes_on_slot);
-            $hour_test_1->addMinutes($minutes_on_slot);
+        $field_arr = [];
+        foreach ($field_set as $k => $f) {
+            if($f['type'] == $data['type']){
+                $field_arr[$k] = [];
+            }
         }
         
-        //---
         $day_in_calendar = 7;
         $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
+
         for ($i = 0 ; $i < $day_in_calendar; $i++) { 
             $day = [
                 'date' => $first_day->format('Y-m-d'),
                 'day' => $first_day->format('j'), // 1 - 31
                 'dayOfWeek' => $first_day->format('N'), // 1 = lunedì, 7 = domenica
-                'fields' => [
-                    'field_1' => [],
-                    'field_2' => [],
-                    'field_3' => [],
-                ],
+                'fields' => $field_arr,
                 'status' => true // libero, pieno, parziale
             ];
-            if(!in_array($first_day->copy()->format('Y-m-d'), $adv['day_off'])){
-                $end_1 = Carbon::createFromTime(23, 0); // 08:00
-                $end_2 = Carbon::createFromTime(23, 0)->addMinutes(30); // 12:00
-                $hour_1   = Carbon::createFromTime(9, 0);
-                $hour_2   = Carbon::createFromTime(9, 0)->addMinutes(30);
-                $hour_3   = Carbon::createFromTime(9, 0);
-                do {
-                    $hour_f =  $hour_1->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
-    
-                    if(isset($reserved[$day['date']])) {
-                        if(!isset($reserved[$day['date']][1][$hour_f]) &&
-                        !isset($reserved[$day['date']][1][$hour_1->copy()->addMinutes(30)->format('H:i')]) &&
-                        !isset($reserved[$day['date']][1][$hour_1->copy()->addMinutes(60)->format('H:i')]) &&
-                        !isset($reserved[$day['date']][1][$hour_1->copy()->subMinutes(30)->format('H:i')]) && 
-                        !(isset($reserved[$day['date']][1][$hour_1->copy()->subMinutes(60)->format('H:i')]) && $reserved[$day['date']][1][$hour_1->copy()->subMinutes(60)->format('H:i')] == 3)
-                        ) {
-                        //if(!isset($reserved[$day['date']][1][$hour_f])) {
-                            $day['fields']['field_1'][] = $hour_f;
+            if(!in_array($first_day->copy()->format('Y-m-d'), $adv['day_off'])){       
+                foreach ($field_set as $k => $f) {
+                    if($f['type'] == $data['type'] && !in_array($day['dayOfWeek'], $f['closed_days'])){
+                        $start_time = Carbon::createFromTimeString($f['h_start']);
+                        $end_time   = $start_time->copy()->addMinutes(($f['m_during_client'] * $f['n_slot']));
+                        
+                        $hour_test = Carbon::createFromTimeString($f['h_start']);
+                        $hour_array_control = [];
+                        for ($t = 0 ; $t < $f['n_slot']; $t++) {
+                            $hour_array_control[] = $hour_test->copy()->format('H:i');
+                            $hour_test->addMinutes($f['m_during_client']);
                         }
-                    }else{
-                        $day['fields']['field_1'][] = $hour_f;
-                    }
-                    $hour_1->addMinutes(90);
-                } while ($hour_1->lessThan($end_1));
-                do {
-                    $hour_f =  $hour_2->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
+                        do {
+                            $hour_f = $start_time->copy()->format('H:i');
+                            if(in_array($hour_f, $hour_array_control)){
+                                if(isset($reserved[$day['date']])) {
+        
+                                    if(!isset($reserved[$day['date']][$k][$hour_f])) {
+                                        if( !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes(30)->format('H:i')]) &&
+                                            !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes(60)->format('H:i')]) &&
+                                            !isset($reserved[$day['date']][$k][$start_time->copy()->subMinutes(30)->format('H:i')]) && 
+                                            !(isset($reserved[$day['date']][$k][$start_time->copy()->subMinutes(60)->format('H:i')]) 
+                                                &&  $reserved[$day['date']][$k][$start_time->copy()->subMinutes(60)->format('H:i')] == 3) ){
     
-                    if(isset($reserved[$day['date']])) {
-                        if(!isset($reserved[$day['date']][2][$hour_f]) &&
-                        !isset($reserved[$day['date']][2][$hour_2->copy()->addMinutes(30)->format('H:i')]) &&
-                        !isset($reserved[$day['date']][2][$hour_2->copy()->addMinutes(60)->format('H:i')]) &&
-                        !isset($reserved[$day['date']][2][$hour_2->copy()->subMinutes(30)->format('H:i')]) &&
-                        !(isset($reserved[$day['date']][2][$hour_2->copy()->subMinutes(60)->format('H:i')]) && $reserved[$day['date']][2][$hour_2->copy()->subMinutes(60)->format('H:i')] == 3)
-                        ) {
-                        //if(!isset($reserved[$day['date']][1][$hour_f])) {
-                            $day['fields']['field_2'][] = $hour_f;
-                        }
-                    }else{
-                        $day['fields']['field_2'][] = $hour_f;
+                                            $day['fields'][$k][] = $hour_f;
+                                        }
+                                    }
+                                }else{
+                                    $day['fields'][$k][] = $hour_f;
+                                }
+                            }
+                            $start_time->addMinutes($f['m_during']);
+                        } while ($start_time->lessThan($end_time));
                     }
-                    $hour_2->addMinutes(90);
-                } while ($hour_2->lessThan($end_2));
-                do {
-                    $hour_f =  $hour_3->copy()->format('H:i'); //in_array($hour_f, $hour_arr_1) ? 1 : 0
-    
-                    if(isset($reserved[$day['date']])) {
-                        if(!isset($reserved[$day['date']][3][$hour_f]) &&
-                        !isset($reserved[$day['date']][3][$hour_3->copy()->addMinutes(30)->format('H:i')]) &&
-                        !isset($reserved[$day['date']][3][$hour_3->copy()->addMinutes(60)->format('H:i')]) &&
-                        !isset($reserved[$day['date']][3][$hour_3->copy()->subMinutes(30)->format('H:i')]) &&
-                        !(isset($reserved[$day['date']][3][$hour_3->copy()->subMinutes(60)->format('H:i')]) && $reserved[$day['date']][3][$hour_3->copy()->subMinutes(60)->format('H:i')] == 3)
-                        ) {
-                        //if(!isset($reserved[$day['date']][1][$hour_f])) {
-                            $day['fields']['field_3'][] = $hour_f;
-                        }
-                    }else{
-                        $day['fields']['field_3'][] = $hour_f;
-                    }
-                    $hour_3->addMinutes(90);
-                } while ($hour_3->lessThan($end_1));
-                $days[] = $day;
+               
+                }
+                $days[] = $day;    
             }
 
             
             $first_day->addDay();
         }
+
         // dd($days);
         return response()->json([
             'success' => true,
