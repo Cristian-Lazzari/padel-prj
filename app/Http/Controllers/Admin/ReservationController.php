@@ -60,9 +60,20 @@ class ReservationController extends Controller
         $times = $data['times'];
         $arr_times = [];
         sort($times);
+        $type = '-';
+        $slot = 0;
         $field = explode('/', $times[0])[2];
         $time = explode('/', $times[0])[1];
         $date = explode('/', $times[0])[0];
+        $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
+        foreach ($adv['field_set'] as $key => $value) {
+            if($key == $field){
+                $type = $value['type'];
+                $slot = $value['m_during'];
+                break;
+            }
+        }
+        $field_set = $adv['field_set'];
         foreach ($times as $t) {
             $tm = explode('/', $t)[1];
             if($field !== explode('/', $t)[2]){
@@ -70,7 +81,7 @@ class ReservationController extends Controller
             }
             $arr_times[] = $tm;
         }
-        if(!$this->checkHalfHourIntervals($arr_times)){
+        if(!$this->checkTimeIntervals($arr_times, $slot)){
             return redirect()->route('admin.dashboard')->with('error', 'Errore: gli orari devono essere distanziati da mezzora !');
         }
         $date_slot = $date . ' ' . $time;
@@ -78,7 +89,8 @@ class ReservationController extends Controller
         $match = new Reservation();
         $match->date_slot = $date_slot;
         $match->duration = count($arr_times);
-        $match->field = explode('_', $field)[1]; // 1, 2, 3 
+        $match->type = $type; // 1, 2, 3 
+        $match->field = $field; // 1, 2, 3 
         $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
         $match->dinner = json_encode([
             'status' => false,
@@ -97,19 +109,40 @@ class ReservationController extends Controller
 
         return redirect()->route('admin.dashboard')->with('message', 'Prenotazione modificata con successo');
     }
-    private function checkHalfHourIntervals(array $times): bool
+    private function checkTimeIntervals(array $times, int $slot): bool
     {
-        // Ordino l'array per sicurezza
+        // Filtra eventuali valori vuoti o non validi
+        $times = array_filter($times, fn($t) => !empty($t));
+
+        // Se c'è meno di 2 orari, non ha senso controllare
+        if (count($times) < 2) {
+            return true;
+        }
+
+        // Ordina gli orari (per sicurezza)
         sort($times);
+
         for ($i = 0; $i < count($times) - 1; $i++) {
-            $current = Carbon::createFromFormat('H:i', $times[$i]);
-            $next = Carbon::createFromFormat('H:i', $times[$i + 1]);
-            if ($current->diffInMinutes($next) !== 30) {
+            try {
+                $current = Carbon::createFromFormat('H:i', trim($times[$i]));
+                $next = Carbon::createFromFormat('H:i', trim($times[$i + 1]));
+            } catch (\Exception $e) {
+                // Formato orario non valido
+                return false;
+            }
+
+            // Differenza in minuti tra orari consecutivi
+            $diff = $current->diffInMinutes($next, false);
+
+            // Se non è esattamente uguale allo slot, fallisce
+            if ($diff !== $slot) {
                 return false;
             }
         }
+
         return true;
     }
+
 
 
     public function index()
