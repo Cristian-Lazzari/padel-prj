@@ -221,10 +221,13 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
+
             </div>
-
-
+            <a  href="{{route('admin.players.trainer_register')}}" class="ml-auto my_btn_4 mb-4  mt-4">
+                Registra un allenatore
+            </a>
             <button type="submit" class="my_btn_1  w-75 m-auto">Aggiorna</button> 
 
         </form>

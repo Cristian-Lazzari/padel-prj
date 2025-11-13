@@ -51,7 +51,9 @@ Route::middleware(['auth', 'verified'])
 
         Route::post('reservations/createFromD',    [ReservationController::class, 'createFromD'])->name('reservations.createFromD');
         Route::post('settings/cancelDates',        [SettingController::class, 'cancelDates'])->name('settings.cancelDates');
-
+        
+        Route::get('players/trainer_register',    [PlayerController::class, 'trainer_register'])->name('players.trainer_register');
+        Route::post('players/create_register',    [PlayerController::class, 'create_register'])->name('players.create_register');
 
         Route::resource('reservations',  ReservationController::class);
         Route::resource('players',  PlayerController::class);

@@ -152,6 +152,7 @@ class ReservationController extends Controller
             $player = Player::find($r->booking_subject);
             $r->booking_subject_name = $player->name ?? '';
             $r->booking_subject_surname = $player->surname ?? '';
+            $r->m_during = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'][$r->field]['m_during'];
         }
         return view('admin.Reservations.index', compact('reservations'));
     }

@@ -2,14 +2,29 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\User;
 use App\Models\Player;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Password;
 
 class PlayerController extends Controller
 {
+
+    private $validations_trainer = [
+        'password'   => 'required|confirmed|min:8',
+        'nickname'   => 'required|string|min:2|unique:players,nickname',
+        'mail'       => 'required|string|min:5|unique:players,mail',
+        'phone'      => 'required|min:9',
+        'name'       => 'required|string',
+        'surname'    => 'required|string',
+        'level'      => 'required|numeric|min:1|max:5',
+        'sex'        => 'required',
+        'certificate'=> 'nullable|file|mimes:pdf,jpg,jpeg,png,gif,webp,svg,bmp,tiff|max:1024',
+    ];
     private $validations = [
         'nickname'   => 'required|string|min:2|unique:players,nickname',
         'mail'       => 'required|string|min:5|unique:players,mail',
@@ -20,7 +35,6 @@ class PlayerController extends Controller
         'sex'        => 'required',
         'certificate'=> 'nullable|file|mimes:pdf,jpg,jpeg,png,gif,webp,svg,bmp,tiff|max:1024',
     ];
-    
     private $validations_1 = [
         'nickname'   => 'required|string|min:2',
         'mail'       => 'required|string|min:2',
@@ -45,6 +59,35 @@ class PlayerController extends Controller
     }
     
     
+    public function create_register(Request $request){ // store del trainer
+        $data = $request->all();
+        $request->validate($this->validations_trainer);
+
+        $player = new Player();
+        $player->nickname = $data['nickname'];
+        $player->surname = $data['surname'];
+        $player->name = $data['name'];
+        $player->phone = $data['phone'];
+        $player->mail = $data['mail'];
+
+        $player->level = $data['level'];
+        $player->sex = $data['sex'];
+        $player->save();
+        $u = new User();
+        $u->name = $data['name'];
+        $u->surname = $data['surname'];
+        $u->password = Hash::make($data['password']);
+        $u->phone = $data['phone'];
+        $u->email = $data['mail'];
+        
+        $u->playerId = $player->id;
+        $u->save();
+        return to_route('admin.settings');
+
+    }
+    public function trainer_register(){
+        return view('admin.Players.trainer_registration');
+    }
     public function store(Request $request)
     {
         $data = $request->all();

@@ -59,7 +59,11 @@
                     <button type="submit" class="my_btn_4">Modifica</button>
 
                         @if (session('status') === 'profile-updated')
-                            <p class="my_btn_6 mt-3 mb-5 w-100 m-auto">Modifica avventa riuscita con successo</p>
+
+                            <div class="alert alert-dismissible fade show alert-primary m-auto" role="alert">
+                                Modifica avventa riuscita con successo
+                            </div>
+
                         @endif
 
                 </form>
@@ -84,8 +88,8 @@
                         </div>
                         @error('password') <p class="error w-100">{{ $message }}</p> @enderror
                         <div class="input_form">
-                            <label for="password"  :value="__('Confirm Password')"> Ripeti nuova password </label>
-                            <input id="password" name="password" type="text" required  autocomplete="password" />
+                            <label for="password_confirmation"  :value="__('Confirm Password')"> Ripeti nuova password </label>
+                            <input id="password_confirmation" name="password_confirmation" type="text" required  autocomplete="password_confirmation" />
                         </div>
                         @error('password_confirmation') <p class="error w-100">{{ $message }}</p> @enderror
 
@@ -95,7 +99,11 @@
                         <button type="submit" class="my_btn_4">Modifica</button>
 
                         @if (session('status') === 'password-updated')
-                            <p class="my_btn_6 mt-3 mb-5 w-100 m-auto">Modifica avventa riuscita con successo</p>
+
+                            <div class="alert alert-dismissible fade show alert-primary m-auto" role="alert">
+                                Modifica avventa riuscita con successo
+                            </div>
+
                         @endif
 
                 </form>

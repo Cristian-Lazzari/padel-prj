@@ -172,7 +172,7 @@
                                     </svg>
                                     Note 
                                 </label>
-                                <textarea name="note" id="note" cols="30" rows="10" ></textarea>
+                                <textarea name="message" id="note" cols="30" rows="10" ></textarea>
                             </p>
                         </div>
                         <div class="actions w-100">
