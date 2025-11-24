@@ -52,7 +52,6 @@ class SettingController extends Controller
                 
 
         
-        $field_set = [];
         foreach ($data['field_set'] as $k => $f) {
             $field_set[$f['name_field']] = [
                 'h_start'           => $f['h_start'],
@@ -63,10 +62,8 @@ class SettingController extends Controller
                 'closed_days'       => isset($f['closed_days']) ? $f['closed_days'] : [],        
             ];
         }
-        
-       // dd($field_set);
        
-       if (auth()->user()->role == 'trainer') {
+        if (auth()->user()->role == 'trainer') {
             $validated = $request->validate([
                 'set_trainer.h_start' => ['required', 'date_format:H:i'],
                 'set_trainer.h_end'   => ['required', 'date_format:H:i', 'after:set_trainer.h_start'],
