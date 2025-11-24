@@ -235,7 +235,8 @@ class ReservationController extends Controller
                                                 $day['fields'][$k][] = $hour_f;
                                             }
                                         }else{
-                                            // campo occupato
+                                            // campo occupato\
+                                            dd('sd');
                                             $start_time->addMinutes($f['m_during'] * ($reserved[$day['date']][$k][$hour_f]- 1) );
                                         }
                                     }else{
