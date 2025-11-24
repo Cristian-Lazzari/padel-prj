@@ -201,7 +201,9 @@ class ReservationController extends Controller
                         do {
                             $status = 0;
                             $hour_f = $start_time->copy()->format('H:i');
-                            $ddd[] = $hour_f;
+                            if($k == 'Campo 1'){
+                                $ddd[] = $hour_f . ' ' . $first_day->format('j');
+                            }
 
                             if ($trainer_set !== null) {
                                 foreach ($trainer_set as $key => $value) {
