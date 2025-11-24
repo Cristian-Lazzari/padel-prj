@@ -122,7 +122,7 @@ class ReservationController extends Controller
                 DB::raw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS day"),
                 DB::raw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS t")
             )
-            ->whereRaw("STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i') >= ?", [$now])
+            ->whereRaw("STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i') >= ?", [$now->subMinutes(180)])
             ->where('status', '!=', 0) // 👈 controllo aggiunto
             ->where('type',  $type) // 👈 controllo aggiunto
             ->orderByRaw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i')) ASC")
@@ -226,7 +226,7 @@ class ReservationController extends Controller
                             }
 
                             if($status == 0){
-                                
+
                                 if($k == 'Campo 1'){  $ddd[] = $hour_f . ' ' . $first_day->format('j');  }
 
                                 if(in_array($hour_f, $hour_array_control)){
