@@ -201,9 +201,7 @@ class ReservationController extends Controller
                         do {
                             $status = 0;
                             $hour_f = $start_time->copy()->format('H:i');
-                            if($k == 'Campo 1'){
-                                $ddd[] = $hour_f . ' ' . $first_day->format('j');
-                            }
+                            
 
                             if ($trainer_set !== null) {
                                 foreach ($trainer_set as $key => $value) {
@@ -239,6 +237,9 @@ class ReservationController extends Controller
                                             }
                                         }else{
                                             // campo occupato\
+                                            if($k == 'Campo 1'){
+                                                $ddd[] = $hour_f . ' ' . $first_day->format('j');
+                                            }
                                             $start_time->addMinutes($f['m_during'] * ($reserved[$day['date']][$k][$hour_f]- 1) );
                                         }
                                     }else{
