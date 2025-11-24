@@ -228,15 +228,15 @@ class ReservationController extends Controller
                                 if(in_array($hour_f, $hour_array_control)){
                                     if(isset($reserved[$day['date']])) {
                                         if(!isset($reserved[$day['date']][$k][$hour_f])) {
-                                            if( !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes(30)->format('H:i')]) &&
-                                                !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes(60)->format('H:i')]) &&
-                                                !isset($reserved[$day['date']][$k][$start_time->copy()->subMinutes(30)->format('H:i')]) && 
-                                                !(isset($reserved[$day['date']][$k][$start_time->copy()->subMinutes(60)->format('H:i')]) 
-                                                &&  $reserved[$day['date']][$k][$start_time->copy()->subMinutes(60)->format('H:i')] == 3))
+                                            if( !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes($f['m_during'])->format('H:i')]) &&
+                                                !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes($f['m_during'] * 2)->format('H:i')]))
                                             {
         
                                                 $day['fields'][$k][] = $hour_f;
                                             }
+                                        }else{
+                                            // campo occupato
+                                            $start_time->addMinutes($f['m_during'] * $reserved[$day['date']][$k][$hour_f]);
                                         }
                                     }else{
                                         $day['fields'][$k][] = $hour_f;
