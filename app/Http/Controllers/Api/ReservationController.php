@@ -226,9 +226,9 @@ class ReservationController extends Controller
                             }
 
                             if($status == 0){
-                                if($k == 'Campo 1'){
-                                                $ddd[] = $hour_f . ' ' . $first_day->format('j');
-                                            }
+                                
+                                if($k == 'Campo 1'){  $ddd[] = $hour_f . ' ' . $first_day->format('j');  }
+
                                 if(in_array($hour_f, $hour_array_control)){
                                     if(isset($reserved[$day['date']])) {
                                         if(!isset($reserved[$day['date']][$k][$hour_f])) {
