@@ -177,7 +177,7 @@ class ReservationController extends Controller
         
         $day_in_calendar = 7;
         $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
-
+        $ddd = [];
         for ($i = 0 ; $i < $day_in_calendar; $i++) { 
             $day = [
                 'date' => $first_day->format('Y-m-d'),
@@ -201,6 +201,7 @@ class ReservationController extends Controller
                         do {
                             $status = 0;
                             $hour_f = $start_time->copy()->format('H:i');
+                            $ddd[] = $hour_f;
 
                             if ($trainer_set !== null) {
                                 foreach ($trainer_set as $key => $value) {
@@ -258,7 +259,8 @@ class ReservationController extends Controller
         // dd($days);
         return response()->json([
             'success' => true,
-            'data' => $days
+            'data' => $days,
+            'dd' => $ddd
         ]);
     }
 
