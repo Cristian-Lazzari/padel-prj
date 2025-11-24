@@ -264,7 +264,8 @@ class ReservationController extends Controller
         return response()->json([
             'success' => true,
             'data' => $days,
-            'dd' => $ddd
+            'dd' => $ddd,
+            'reserved' => $reserved
         ]);
     }
 
