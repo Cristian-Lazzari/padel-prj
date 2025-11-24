@@ -65,14 +65,14 @@ class SettingController extends Controller
         }
         
        // dd($field_set);
-        $validated = $request->validate([
-            'set_trainer.h_start' => ['required', 'date_format:H:i'],
-            'set_trainer.h_end'   => ['required', 'date_format:H:i', 'after:set_trainer.h_start'],
-        ], [
-            'set_trainer.h_end.after' => 'L\'ora di fine deve essere successiva all\'ora di inizio.',
-        ]);
-
-        if (auth()->user()->role == 'trainer') {
+       
+       if (auth()->user()->role == 'trainer') {
+            $validated = $request->validate([
+                'set_trainer.h_start' => ['required', 'date_format:H:i'],
+                'set_trainer.h_end'   => ['required', 'date_format:H:i', 'after:set_trainer.h_start'],
+            ], [
+                'set_trainer.h_end.after' => 'L\'ora di fine deve essere successiva all\'ora di inizio.',
+            ]);
         
             $trainer_set[auth()->user()->id] = [
                 'field' => $data['set_trainer']['field'],
