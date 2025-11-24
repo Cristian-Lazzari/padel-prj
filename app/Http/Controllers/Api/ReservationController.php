@@ -229,22 +229,27 @@ class ReservationController extends Controller
 
                                
 
-                                if(in_array($hour_f, $hour_array_control)){
-                                    if(isset($reserved[$day['date']])) {
-                                        if(!isset($reserved[$day['date']][$k][$hour_f])) {
+                                if(isset($reserved[$day['date']])) {
+                                    if(!isset($reserved[$day['date']][$k][$hour_f])) {
+                                        if(in_array($hour_f, $hour_array_control)){
                                             if( !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes($f['m_during'])->format('H:i')]) &&
                                                 !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes($f['m_during'] * 2)->format('H:i')]))
                                             {
                                                 
                                                 $day['fields'][$k][] = $hour_f;
                                             }
-                                        }else{
-                                            // campo occupato\
-                                             if($k == 'Campo 1'){  $ddd[] = $hour_f . ' ' . $first_day->format('j');  }
-                                            $start_time->addMinutes($f['m_during'] * ($reserved[$day['date']][$k][$hour_f]- 1) );
                                         }
                                     }else{
-                                        $day['fields'][$k][] = $hour_f;
+
+                                        $start_time->addMinutes($f['m_during'] * ($reserved[$day['date']][$k][$hour_f]- 1) );
+                                    }
+                                }else {
+                                    if( in_array($hour_f, $hour_array_control)){
+                                        if( !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes($f['m_during'])->format('H:i')]) &&
+                                            !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes($f['m_during'] * 2)->format('H:i')]))
+                                        {
+                                            $day['fields'][$k][] = $hour_f;
+                                        }
                                     }
                                 }
                             }
