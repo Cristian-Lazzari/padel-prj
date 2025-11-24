@@ -154,6 +154,9 @@ class ReservationController extends Controller
 
         $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
         $field_set = $adv['field_set'];
+        $trainer_set = $adv['trainer_set'];
+        $delay_trainer = $adv['delay_trainer'];
+        
         $reserved = $this->get_res($now->addMinutes($dalay_from_res), $field_set, $data['type']);
         //return $reserved;
 
@@ -196,22 +199,48 @@ class ReservationController extends Controller
                             $hour_test->addMinutes($f['m_during_client']);
                         }
                         do {
+                            $status = 0;
                             $hour_f = $start_time->copy()->format('H:i');
-                            if(in_array($hour_f, $hour_array_control)){
-                                if(isset($reserved[$day['date']])) {
-        
-                                    if(!isset($reserved[$day['date']][$k][$hour_f])) {
-                                        if( !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes(30)->format('H:i')]) &&
-                                            !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes(60)->format('H:i')]) &&
-                                            !isset($reserved[$day['date']][$k][$start_time->copy()->subMinutes(30)->format('H:i')]) && 
-                                            !(isset($reserved[$day['date']][$k][$start_time->copy()->subMinutes(60)->format('H:i')]) 
-                                                &&  $reserved[$day['date']][$k][$start_time->copy()->subMinutes(60)->format('H:i')] == 3) ){
-    
-                                            $day['fields'][$k][] = $hour_f;
+
+                            if ($trainer_set !== null) {
+                                foreach ($trainer_set as $key => $value) {
+                                    if(in_array($first_day->format('N'), $value['day_w']) && $k == $value['field'] ){
+                                        if($this->isTimeInRange($hour_f, $value['h_start'], $value['h_end'])){
+                                            $anno  = $first_day->year;
+                                            $mese  = $first_day->month;
+                                            $giorno = $first_day->day;
+
+                                            // 2. Estraggo ora e minuti dall'orario corretto
+                                            $ora   = $start_time->hour;
+                                            $minuti = $start_time->minute;
+
+                                            // 3. Creo la data corretta
+                                            $dataCorretta = Carbon::create($anno, $mese, $giorno, $ora, $minuti);
+                                            if($dataCorretta->diffInHours(Carbon::now(), false) > $delay_trainer){
+                                                $status = 1;
+                                            }
                                         }
                                     }
-                                }else{
-                                    $day['fields'][$k][] = $hour_f;
+                                }
+                            }
+
+                            if($status == 0){
+                                if(in_array($hour_f, $hour_array_control)){
+                                    if(isset($reserved[$day['date']])) {
+                                        if(!isset($reserved[$day['date']][$k][$hour_f])) {
+                                            if( !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes(30)->format('H:i')]) &&
+                                                !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes(60)->format('H:i')]) &&
+                                                !isset($reserved[$day['date']][$k][$start_time->copy()->subMinutes(30)->format('H:i')]) && 
+                                                !(isset($reserved[$day['date']][$k][$start_time->copy()->subMinutes(60)->format('H:i')]) 
+                                                &&  $reserved[$day['date']][$k][$start_time->copy()->subMinutes(60)->format('H:i')] == 3))
+                                            {
+        
+                                                $day['fields'][$k][] = $hour_f;
+                                            }
+                                        }
+                                    }else{
+                                        $day['fields'][$k][] = $hour_f;
+                                    }
                                 }
                             }
                             $start_time->addMinutes($f['m_during']);
@@ -231,6 +260,15 @@ class ReservationController extends Controller
             'success' => true,
             'data' => $days
         ]);
+    }
+
+    private function isTimeInRange(string $time, string $hStart, string $hEnd): bool
+    {
+        $t  = strtotime($time);
+        $s  = strtotime($hStart);
+        $e  = strtotime($hEnd);
+
+        return $t >= $s && $t < $e; // h_end escluso
     }
 
 }

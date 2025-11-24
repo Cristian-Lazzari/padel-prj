@@ -48,6 +48,7 @@ class SettingController extends Controller
         
         $day_off = json_decode($setting['advanced']->property, 1)['day_off'];
         $field_set = json_decode($setting['advanced']->property, 1)['field_set'];
+        $trainer_set = json_decode($setting['advanced']->property, 1)['trainer_set']?? [];
                 
 
         
@@ -64,13 +65,30 @@ class SettingController extends Controller
         }
         
        // dd($field_set);
-        $setting['advanced']->property = json_encode([
-            'day_off'           => $day_off,
-            'max_delay_default' => $data['max_delay_defalt'],
-            'field_set'        => $field_set,
+        $validated = $request->validate([
+            'set_trainer.h_start' => ['required', 'date_format:H:i'],
+            'set_trainer.h_end'   => ['required', 'date_format:H:i', 'after:set_trainer.h_start'],
+        ], [
+            'set_trainer.h_end.after' => 'L\'ora di fine deve essere successiva all\'ora di inizio.',
         ]);
 
-
+        if (auth()->user()->role == 'trainer') {
+        
+            $trainer_set[auth()->user()->id] = [
+                'field' => $data['set_trainer']['field'],
+                'h_start' => $data['set_trainer']['h_start'],
+                'h_end' => $data['set_trainer']['h_end'],
+                'day_w' => $data['set_trainer']['day_w'],
+            ];
+            
+        }
+        $setting['advanced']->property = json_encode([
+            'day_off'           => $day_off,
+            'max_delay_default' => $data['max_delay_default'],
+            'delay_trainer'     => $data['delay_trainer'],
+            'field_set'         => $field_set,  
+            'trainer_set'       => $trainer_set,
+        ]);
 
         $setting['advanced']->save();
         

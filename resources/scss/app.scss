@@ -3518,6 +3518,20 @@ section{
         border-bottom: 1px solid $c2 !important;
     }
 }
+.trainer_slot{
+    opacity: 1;
+    &::after{
+        border-top-color: $c2 !important;
+        border-bottom-color: $c2 !important;
+        background: repeating-linear-gradient(
+        $c2,
+        $c2 12px,
+        var(--c3) 12px,
+        var(--c3) 22px
+        );
+    }
+    
+}
 .bk_2{
     margin-right: calc(10vw + 10px);
     &::after{
@@ -3541,10 +3555,23 @@ section{
     padding: .3rem;
     margin: 3rem 0 10svh;
     h4{
-        text-align: center;
+        width: 100%;
         font-size: $fs_sm_3;
         margin: 1rem auto 0rem;
         text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        span{
+            font-size: $fs_sm_2;
+            font-weight: 400;
+            opacity: .7;
+            color: $c2;
+            svg{
+                height: $fs_sm_2;
+                width: $fs_sm_2;
+                fill: $c2;
+            }
+        }
     }
     .null_p{
         width: 100%;
@@ -3575,8 +3602,8 @@ section{
                 margin: 0;
                 background-color: $c3;
                 color: $c1;
-                padding: 0.3rem .5rem;
-                border-radius: 4px;
+                padding: 0.3rem .6rem;
+                border-radius: 34px;
                 font-size: $fs_sm_1;
                 position: relative;
                 z-index: 2;
@@ -3592,15 +3619,17 @@ section{
                 background-color:$c3 ;
                 border-color: $c3;
                 color: $c1;
-                padding: 0.1rem .5rem;
+                padding: 0.3rem .5rem;
                 height: fit-content !important;
-
             }
             input[type="checkbox"]:checked + label{
-                background: var(--c1);
+                background: var(--c2);
                 border: 2px solid var(--c2);
-                color: var(--c3);
+                color: var(--c1);
+                font-weight: 900;
             }
+            
+            
             
             input[type="checkbox"]{
                 width: 0;
@@ -3608,25 +3637,32 @@ section{
                 position: absolute;
                 opacity: 0;
             }
-            &::after{
-                content: "";
-                border: solid $c1 1px;
-                border-bottom: solid $c3 1px;
-                border-top: solid $c3 1px;
-                width: 100%;
-                height: 100%;
-                position: absolute;
-                top: 0;
-                left:$fs_xlg;
-                z-index: 1;
-                transition: all .2s ease-in-out .1s;
-            }
-           
+            
         }
-        input[type="checkbox"]:checked + .time::after{
+        .time::after{
+            content: "";
+            border: solid $c1 1px;
+            border-bottom: solid $c3 1px;
+            border-top: solid $c3 1px;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left:30px;
+            z-index: 1;
+            transition: all .2s ease-in-out .1s;
+        }
+        
+        .time:has(input[type="checkbox"]:checked)::after {
             background-color: var(--c2);
-            color: var(--c1);
         }
+        .trainer_slot:has(input[type="checkbox"]:checked)::after {
+            background: var(--c2) !important;
+        }
+
+        
+
+
         @media (min-width: 800px) {
             .time:hover p{
                 background-color: $c3 ;

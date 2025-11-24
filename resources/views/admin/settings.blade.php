@@ -34,8 +34,12 @@
                             $property_adv = json_decode($settings['advanced']['property'], true);
                         @endphp
                         <div class="input-group my-3">
-                            <label class="input-group-text" id="max_delay_defalt">Min. H per cancellazione</label>
-                            <input type="number" class="form-control"  name="max_delay_defalt" value="{{$property_adv['max_delay_default']}}">
+                            <label class="input-group-text" id="max_delay_default">Min. H per cancellazione</label>
+                            <input type="number" class="form-control"  name="max_delay_default" value="{{$property_adv['max_delay_default']}}">
+                        </div>
+                        <div class="input-group my-3">
+                            <label class="input-group-text" id="delay_trainer">H. per liberare il campo</label>
+                            <input type="number" class="form-control"  name="delay_trainer" value="{{$property_adv['delay_trainer'] ?? ''}}">
                         </div>
                     </div>
 
@@ -75,6 +79,11 @@
                 @php 
                     $property_contatti = json_decode($settings['Contatti']['property'], true);
                     $field_set = json_decode($settings['advanced']['property'], true)['field_set'];
+                    $trainer_set = json_decode($settings['advanced']['property'], true)['trainer_set'] ?? [];
+                    $this_trainer = $trainer_set[auth()->user()->id] ?? [];
+                    $this_trainer_field = $this_trainer['field'] ?? 0;
+                    $this_trainer_field_set = $field_set[$this_trainer_field] ?? [];
+
                 @endphp
                 <div class="accordion accordion-flush" id="accordionFlushExample">
                     <div class="accordion-item"> 
@@ -221,8 +230,80 @@
                             </div>
                         </div>
                     </div>
+                    @if (auth()->user()->role == 'trainer')            
+                        <div class="accordion-item"> 
+                            <h4 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseset" aria-expanded="false" aria-controls="flush-collapseset">
+                                    Orari allenatori
+                                </button>
+                            </h4>
+                            <div id="flush-collapseset" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                                <div class="accordion-body cont_field">
+                                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                                        @foreach ($field_set as $k => $f) 
+                                            <input type="radio" class="btn-check"
+                                                name="set_trainer[field]" id="check{{$k}}"
+                                                value="{{$k}}"
+                                                autocomplete="off" 
+                                                @if($this_trainer !== [] && $this_trainer['field'] == $k) checked @endif
+                                                data-h_start="{{ $f['h_start'] }}"
+                                                data-n_slot="{{ $f['n_slot'] }}"
+                                                data-m_during_client="{{ $f['m_during_client'] }}"
+                                            >
+                                            <label class="btn btn-outline-dark" for="check{{$k}}">{{$k}}</label>
+                                        @endforeach
+                                    </div>
+                                    <div class="cont">
+                                        <section>
+                                            <div class="my_input_group">
+                                                <label for="h_start_trainer" class="input-group-text">Inizio</label>
+                                                <select id="h_start_trainer" class="form-control" name="set_trainer[h_start]" >
+                                                    @if ($this_trainer !== [])
+                                                        @php $hour_option_1 = Carbon\Carbon::createFromFormat('H:i', $this_trainer_field_set['h_start']); @endphp
+                                                        @for ($i = 0; $i < $this_trainer_field_set['n_slot']; $i++)
+                                                            <option value="{{ $hour_option_1->copy()->format('H:i') }}" @if($this_trainer['h_start'] == $hour_option_1->copy()->format('H:i')) selected @endif>{{ $hour_option_1->copy()->format('H:i') }}</option>
+                                                            @php $hour_option_1->addMinutes($this_trainer_field_set['m_during_client']); @endphp
+                                                        @endfor
+                                                    @endif
+                                                </select>
+                                            </div>
+                                            <div class="my_input_group">
+                                                <label for="h_end_trainer" class="input-group-text">Fine</label>
+                                                <select id="h_end_trainer" class="form-control" name="set_trainer[h_end]" >
+                                                    @if ($this_trainer !== [])
+                                                        @php $hour_option_2 = Carbon\Carbon::createFromFormat('H:i', $this_trainer_field_set['h_start'])->addMinutes($this_trainer_field_set['m_during_client']); @endphp
+                                                        @for ($i = 0; $i < ($this_trainer_field_set['n_slot']- 1); $i++)
+                                                            <option value="{{ $hour_option_2->copy()->format('H:i') }}" @if($this_trainer['h_end'] == $hour_option_2->copy()->format('H:i')) selected @endif>{{ $hour_option_2->copy()->format('H:i') }}</option>
+                                                            @php $hour_option_2->addMinutes($this_trainer_field_set['m_during_client']); @endphp
+                                                        @endfor
+                                                    @endif
+                                                </select>
+                                            </div>
+                                        </section>
+                                    </div>
+                                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                                        @php
+                                            $week = ['Lunedì' => 1,'Martedì' => 2,'Mercoledì' => 3,'Giovedì' => 4,'Venerdì' => 5,'Sabato' => 6,'Domenica' => 7, ]
+                                        @endphp     
+                                        @foreach ($week as $kw => $v) 
+                                            <input type="checkbox" class="btn-check"
+                                                name="set_trainer[day_w][]" id="check{{$kw}}"
+                                                @if($this_trainer !== [] && in_array($v, $this_trainer['day_w'])) checked @endif
+                                                value="{{$v}}"
+                                                autocomplete="off" 
+                                                >
+                                            <label class="btn btn-outline-dark" for="check{{$kw}}">{{$kw}}</label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                 </div>
+                @error('set_trainer.h_end')
+                    <div class="text-danger">{{ $message }}</div>
+                @enderror
 
             </div>
             <a  href="{{route('admin.players.trainer_register')}}" class="ml-auto my_btn_4 mb-4  mt-4">
@@ -432,6 +513,62 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 section.remove(); // rimuove completamente dal DOM
             }, 400);
+        });
+    });
+
+    const radios = document.querySelectorAll('input[name="set_trainer[field]"]');
+    const startSelect = document.getElementById("h_start_trainer");
+    const endSelect = document.getElementById("h_end_trainer");
+
+    function generateOptions(hStart, nSlot, duration) {
+
+        // Pulizia select
+        startSelect.innerHTML = "";
+        endSelect.innerHTML = "";
+
+        const slots = [];
+        let current = hStart;
+
+        // Generazione slot orari
+        for (let i = 0; i < nSlot; i++) {
+            slots.push(current);
+            current = addMinutes(current, duration);
+        }
+
+        // Popola START
+        slots.forEach(t => {
+            let opt = document.createElement("option");
+            opt.value = t;
+            opt.textContent = t;
+            startSelect.appendChild(opt);
+        });
+
+        // Popola END (lo slot successivo)
+        for (let i = 1; i < slots.length; i++) {
+            let opt = document.createElement("option");
+            opt.value = slots[i];
+            opt.textContent = slots[i];
+            endSelect.appendChild(opt);
+        }
+    }
+
+    function addMinutes(time, minutes) {
+        let [h, m] = time.split(":").map(Number);
+        let date = new Date();
+        date.setHours(h, m + minutes);
+        return date.toTimeString().substring(0, 5);
+    }
+
+    radios.forEach(radio => {
+        radio.addEventListener("change", function () {
+
+            const hStart = this.dataset.h_start;
+            const nSlot = parseInt(this.dataset.n_slot);
+            const duration = parseInt(this.dataset.m_during_client);
+
+            if (!hStart || !nSlot || !duration) return;
+
+            generateOptions(hStart, nSlot, duration);
         });
     });
 
