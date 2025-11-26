@@ -237,7 +237,7 @@
                                     Orari allenatori
                                 </button>
                             </h4>
-                            <div id="flush-collapseset" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                            <div id="flush-collapseset" class="accordion-collapse collapse trainer_set" data-bs-parent="#accordionFlushExample">
                                 <div class="accordion-body cont_field">
                                     <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
                                         @foreach ($field_set as $k => $f) 

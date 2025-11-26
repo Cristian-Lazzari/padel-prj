@@ -1582,6 +1582,12 @@ body{
     }
 }
 
+.trainer_set{
+    .btn-group{
+        flex-wrap: wrap !important;
+    }
+}
+
 .post-container{
     display: grid !important;
     grid-template-columns: 1fr 1fr;
