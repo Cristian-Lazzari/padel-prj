@@ -72,7 +72,7 @@ class SettingController extends Controller
             ]);
         
             $trainer_set[auth()->user()->id] = [
-                'field' => $data['set_trainer']['field'],
+                'field' => $data['set_trainer']['field'] ?? 0,
                 'h_start' => $data['set_trainer']['h_start'],
                 'h_end' => $data['set_trainer']['h_end'],
                 'day_w' => $data['set_trainer']['day_w'] ?? [],
