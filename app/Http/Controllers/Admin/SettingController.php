@@ -75,7 +75,7 @@ class SettingController extends Controller
                 'field' => $data['set_trainer']['field'],
                 'h_start' => $data['set_trainer']['h_start'],
                 'h_end' => $data['set_trainer']['h_end'],
-                'day_w' => $data['set_trainer']['day_w'],
+                'day_w' => $data['set_trainer']['day_w'] ?? [],
             ];
             
         }
