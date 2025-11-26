@@ -21,10 +21,7 @@ class PageController extends Controller
 
     public function admin() { //calendar
 
-        $players = Player::where("role", "player")->get();
-        $reservations   = Reservation::all();
-        $calendar = [];
-        
+        $players = Player::where("role", "player")->get();        
         $oldestDate = Reservation::orderBy('date_slot', 'asc')->value('date_slot');
 
         
