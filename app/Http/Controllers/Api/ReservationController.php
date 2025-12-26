@@ -228,7 +228,7 @@ class ReservationController extends Controller
                             if($status == 0){
 
                                
-
+                                //da fixare dimanica per ogni durata minima di ogni campo
                                 if(isset($reserved[$day['date']])) {
                                     if(!isset($reserved[$day['date']][$k][$hour_f])) {
                                         if(in_array($hour_f, $hour_array_control)){

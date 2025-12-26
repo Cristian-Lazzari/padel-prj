@@ -61,7 +61,8 @@
                 $datetime = Carbon\Carbon::parse($r->date_slot)->locale('it');
                 $data = $datetime->translatedFormat('D j M');
                 $ora = $datetime->format('H:i');
-                $ora_fine = $datetime->copy()->addMinutes($r->during * $r->m_during)->format('H:i');
+                $m_during = $field_set[$r->field]['m_during'];
+                $ora_fine = $datetime->copy()->addMinutes($r->duration * $m_during)->format('H:i');
             @endphp
 
             <div class="res_item

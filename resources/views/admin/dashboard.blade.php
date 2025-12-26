@@ -410,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const checked = document.querySelectorAll("#fields input[type='checkbox']:checked");
         const extraDiv = document.getElementById("unique-btn");
 
-        if (checked.length > 1 && checked.length < 4) {
+        if (checked.length > 0) {
             extraDiv.style.display = "block"; // mostra
         } else {
             extraDiv.style.display = "none";  // nascondi

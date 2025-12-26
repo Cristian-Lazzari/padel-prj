@@ -148,13 +148,15 @@ class ReservationController extends Controller
     public function index()
     {
         $reservations = Reservation::orderBy('date_slot', 'desc')->get();
+        $field_set = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'];
+        
         foreach ($reservations as $r) {
             $player = Player::find($r->booking_subject);
             $r->booking_subject_name = $player->name ?? '';
             $r->booking_subject_surname = $player->surname ?? '';
             $r->m_during = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'][$r->field]['m_during'];
         }
-        return view('admin.Reservations.index', compact('reservations'));
+        return view('admin.Reservations.index', compact('reservations', 'field_set'));
     }
 
     /**
@@ -187,11 +189,13 @@ class ReservationController extends Controller
     public function show($id)
     {
         $reservation = Reservation::where('id',$id)->with('players')->first();
+        $m_during = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'][$reservation->field]['m_during'];
+        
         
         $player = Player::find($reservation->booking_subject);
         $reservation->booking_subject_name = $player->name ?? '';
         $reservation->booking_subject_surnname = $player->surname ?? '';
-        return view('admin.Reservations.show', compact('reservation'));
+        return view('admin.Reservations.show', compact('reservation' ,'m_during'));
     }
 
     /**
