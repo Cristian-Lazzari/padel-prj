@@ -81,7 +81,7 @@ class PageController extends Controller
         $hour_test = Carbon::createFromTime(9, 0);
         $hour_test_1 = Carbon::createFromTime(9, 0)->addMinutes(30);
         
-        $day_in_calendar = $oldestCarbon->diffInDays(Carbon::now()) + 90; // giorni da mostrare dalla prima a 90 giorni da oggi
+        $day_in_calendar = $oldestCarbon->diffInDays(Carbon::now()) + 180; // giorni da mostrare dalla prima a 90 giorni da oggi
 
         for ($i = 0 ; $i < $day_in_calendar; $i++) { 
             $day = [
@@ -164,20 +164,21 @@ class PageController extends Controller
         $result = [];
 
         foreach ($days as $day) {
-            $monthNumber = $day['month'];
-            $year = $day['year'];
+            $month = (int) $day['month'];
+            $year  = (int) $day['year'];
 
-            // se il mese non esiste ancora, inizializzalo
-            if (!isset($result[$monthNumber])) {
-                $result[$monthNumber] = [
-                    'year' => $year,
-                    'month' => $monthNumber,
-                    'days' => []
+            // chiave tecnica unica (non cambia la struttura finale)
+            $key = $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT);
+
+            if (!isset($result[$key])) {
+                $result[$key] = [
+                    'year'  => $year,
+                    'month' => $month,
+                    'days'  => []
                 ];
             }
 
-            // aggiungi il giorno dentro il mese corrispondente
-            $result[$monthNumber]['days'][] = $day;
+            $result[$key]['days'][] = $day;
         }
         //dd('ciao');
 
