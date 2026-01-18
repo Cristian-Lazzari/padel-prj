@@ -36,7 +36,6 @@ class PageController extends Controller
             ->select(
                 'field',
                 'duration',
-                'status',
                 DB::raw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS day"),
                 DB::raw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS t")
             )
@@ -51,16 +50,15 @@ class PageController extends Controller
         
 
         foreach ($rows as $r) {
-            if($r->status == 1 || $r->status == '1'){ 
-                $day = $r->day;
-                $field = $r->field;
-                if (!isset($reserved[$day])) {
-                    foreach ($field_set as $k => $f) {
-                        $reserved[$day][$k] = [];
-                    }
+            $day = $r->day;
+            $field = $r->field;
+            if (!isset($reserved[$day])) {
+                foreach ($field_set as $k => $f) {
+                    $reserved[$day][$k] = [];
                 }
-                $reserved[$day][$field][substr($r->t, 0, 5)] = $r->duration;
             }
+            $reserved[$day][$field][substr($r->t, 0, 5)] = $r->duration;
+
         }
         ksort($reserved);
 
@@ -138,7 +136,7 @@ class PageController extends Controller
                             if(!isset($reserved[$day['date']][$k][$hour_f])) {
                                 $day['fields'][$k]['times'][] = $hour_null;
                             }else{
-                                $res = Reservation::where('date_slot', $day['date'].' '.$hour_f)->where('field', $k)->first();
+                                $res = Reservation::where('date_slot', $day['date'].' '.$hour_f)->where('field', $k)->where('status', '!=', 0)->first();
                                 $day['fields'][$k]['times'][] = [
                                     'time' => $hour_f,
                                     'status' => 2,
