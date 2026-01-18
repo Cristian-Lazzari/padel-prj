@@ -134,37 +134,35 @@
                                         </div>
                                         <div class="center player_center">
                                             <div class="line">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
-                                                <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-                                                </svg>
-                                                <p>{{$p->level}} / 5</p>
+                                                <a href="{{route('admin.players.show', $p)}}"  class="donut-wrapper" style="--percent: {{ $p->level / 5 * 100}}">
+                                                    <p>
+                                                        {{ $p->level }}
+                                                    </p>
+                                                </a>
                                             </div>
                                             <div class="line">
                                                 @if ($p->sex == 'm')
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing man" viewBox="0 0 16 16">
-                                                    <path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M6 6.75v8.5a.75.75 0 0 0 1.5 0V10.5a.5.5 0 0 1 1 0v4.75a.75.75 0 0 0 1.5 0v-8.5a.25.25 0 1 1 .5 0v2.5a.75.75 0 0 0 1.5 0V6.5a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2.75a.75.75 0 0 0 1.5 0v-2.5a.25.25 0 0 1 .5 0"/>
-                                                    </svg>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing man" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M6 6.75v8.5a.75.75 0 0 0 1.5 0V10.5a.5.5 0 0 1 1 0v4.75a.75.75 0 0 0 1.5 0v-8.5a.25.25 0 1 1 .5 0v2.5a.75.75 0 0 0 1.5 0V6.5a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2.75a.75.75 0 0 0 1.5 0v-2.5a.25.25 0 0 1 .5 0"/></svg>
                                                 @else
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing-dres girl" viewBox="0 0 16 16">
-                                                    <path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m-.5 12.25V12h1v3.25a.75.75 0 0 0 1.5 0V12h1l-1-5v-.215a.285.285 0 0 1 .56-.078l.793 2.777a.711.711 0 1 0 1.364-.405l-1.065-3.461A3 3 0 0 0 8.784 3.5H7.216a3 3 0 0 0-2.868 2.118L3.283 9.079a.711.711 0 1 0 1.365.405l.793-2.777a.285.285 0 0 1 .56.078V7l-1 5h1v3.25a.75.75 0 0 0 1.5 0Z"/>
-                                                    </svg>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing-dres girl" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m-.5 12.25V12h1v3.25a.75.75 0 0 0 1.5 0V12h1l-1-5v-.215a.285.285 0 0 1 .56-.078l.793 2.777a.711.711 0 1 0 1.364-.405l-1.065-3.461A3 3 0 0 0 8.784 3.5H7.216a3 3 0 0 0-2.868 2.118L3.283 9.079a.711.711 0 1 0 1.365.405l.793-2.777a.285.285 0 0 1 .56.078V7l-1 5h1v3.25a.75.75 0 0 0 1.5 0Z"/></svg>
                                                 @endif
-                                                <p>{{$p->sex == 'm' ? 'UOMO': 'DONNA'}}</p>
+                                                {{-- <p>{{$r->sex == 'm' ? 'UOMO': 'DONNA'}}</p> --}}
                                             </div>
                                         </div>
-                                        <div class="actions">
+                                        {{-- <div class="actions">
                                             
-                                            <a href="{{route('admin.players.show', $p)}}" class="show">
+                                            
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
                                                     <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
                                                     <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
                                                 </svg>
                                             </a>
-                                        </div>
+                                        </div> --}}
                                     </label>
                                 @endforeach
                                 
                             </div>
+                            
                             <p class="desc"> 
                                 <label class="label_c" for="note">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
@@ -176,7 +174,7 @@
                             </p>
                         </div>
                         <div class="actions w-100">
-                            <button class="my_btn_3 ml-auto"  type="submit">Conferma</button>
+                            <button class="my_btn_3 ml-auto" name="type_res" value="singola" id="smbt_btn" type="submit">Conferma</button>
                             {{-- <button class="my_btn_1 ml-auto" value="1" name="mail" type="submit">Conferma e Avvisa giocatori</button> --}}
                         </div>
                     </div>
@@ -187,97 +185,327 @@
         <div id="slots" class="my-3"></div>
     </form>
     <form  action="{{ route('admin.settings.cancelDates')}}"   method="POST">
-        @csrf
-        <!-- Modal -->
-         @php $i= 0; @endphp
-        <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModal1Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered mymodal_calendar">
-                <div class="modal-content  mymodal_make_res">
-                    <div class="modal-body box_container">
-                        <div id="c2" class="carousel slide my_carousel" >
-                            <div class="carousel-indicators">
-                                @foreach ($year as $m)
-                                    <button  type="button" data-bs-target="#c2" data-bs-slide-to="{{$i}}"
-                                    @if ($currentMonth == $m['month'] && $currentYear == $m['year']) class="active" aria-current="true"@endif
-                                    aria-label="{{ 'Slide ' . $i }}"></button>
-                                    @php $i ++ @endphp
-                                @endforeach
-                            </div>
-                            <div class="top_line">
-                                <button class="prev_btn" type="button" data-bs-target="#c2" data-bs-slide="prev">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-left-fill" viewBox="0 0 16 16">
-                                    <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
-                                    </svg>
-                                </button>
-                                <button class="post_btn" type="button" data-bs-target="#c2" data-bs-slide="next">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16">
-                                    <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            <div id="calendar" class="carousel-inner">
-                                @php $i = 0; @endphp
-                                @foreach ($year as $m)
-                                    <div class="carousel-item
-                                    @if ($currentMonth == $m['month'] && $currentYear == $m['year'])
-                                        active 
-                                    @endif
-                                    ">
-                                        <h2 class="my">{{['', 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'][$m['month']]}} - {{$m['year']}}</h2>
-                                        <div class="calendar">
-                                        
-                                            <div class="c-name">
-                                                @php
-                                                $day_name = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
-                                                @endphp
-                                                @foreach ($day_name as $item)
-                                                    <h4>{{$item}}</h4>
-                                                @endforeach
-                                            </div>
-                                            <div class="calendar_page">
+    @csrf
+    <!-- Modal -->
+        @php $i= 0; @endphp
+    <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModal1Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mymodal_calendar">
+            <div class="modal-content  mymodal_make_res">
+                <div class="modal-body box_container">
+                    <div id="c2" class="carousel slide my_carousel" >
+                        <div class="carousel-indicators">
+                            @foreach ($year as $m)
+                                <button  type="button" data-bs-target="#c2" data-bs-slide-to="{{$i}}"
+                                @if ($currentMonth == $m['month'] && $currentYear == $m['year']) class="active" aria-current="true"@endif
+                                aria-label="{{ 'Slide ' . $i }}"></button>
+                                @php $i ++ @endphp
+                            @endforeach
+                        </div>
+                        <div class="top_line">
+                            <button class="prev_btn" type="button" data-bs-target="#c2" data-bs-slide="prev">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-left-fill" viewBox="0 0 16 16">
+                                <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
+                                </svg>
+                            </button>
+                            <button class="post_btn" type="button" data-bs-target="#c2" data-bs-slide="next">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16">
+                                <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="calendar" class="carousel-inner">
+                            @php $i = 0; @endphp
+                            @foreach ($year as $m)
+                                <div class="carousel-item
+                                @if ($currentMonth == $m['month'] && $currentYear == $m['year'])
+                                    active 
+                                @endif
+                                ">
+                                    <h2 class="my">{{['', 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'][$m['month']]}} - {{$m['year']}}</h2>
+                                    <div class="calendar">
+                                    
+                                        <div class="c-name">
+                                            @php
+                                            $day_name = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
+                                            @endphp
+                                            @foreach ($day_name as $item)
+                                                <h4>{{$item}}</h4>
+                                            @endforeach
+                                        </div>
+                                        <div class="calendar_page">
 
-                                                @foreach ($m['days'] as $d)
+                                            @foreach ($m['days'] as $d)
 
-                                                    <input type="checkbox" name="day_off[]" id="{{$d['date']}}" value="{{$d['date']}}"
-                                                    @if (!$d['status']) checked @endif
-                                                    >
-                                                    <label for="{{$d['date']}}"
-                                                        class="day  
-                                                        @if($currentMonth == $m['month'] && $currentYear == $m['year'] && $currentDay == $d['day']) day-active @endif " 
-                                                        style="grid-column-start:{{$d['day_w'] }}"
-                                                    >        
-                                                        <p class="p_day">{{$d['day']}}</p>
-                                                        @if ($d['reserved'] > 0)
-                                                            <span class="bookings">{{$d['reserved']}} 
-                                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M161 191L228.4 123.6C266.6 85.4 318.4 64 372.4 64C484.9 64 576.1 155.2 576.1 267.6C576.1 314 560.3 358.7 531.6 394.6C508 377.8 479.2 367.9 448.1 367.9C417 367.9 388.2 377.8 364.7 394.5L161 191zM304 512C304 521.7 305 531.1 306.8 540.2C287 535 268.8 524.7 254.1 510C241.9 497.8 222.2 497.8 210 510L160.6 559.4C150 570 135.6 576 120.6 576C89.4 576 64 550.7 64 519.4C64 504.4 70 490 80.6 479.4L130 430C142.2 417.8 142.2 398.1 130 385.9C108.3 364.2 96.1 334.7 96.1 304C96.1 274.6 107.2 246.4 127.2 225L330.6 428.6C313.9 452.1 304 480.9 304 512zM448 416C501 416 544 459 544 512C544 565 501 608 448 608C395 608 352 565 352 512C352 459 395 416 448 416z"/></svg>
-                                                            </span>
-                                                        @endif
-                                                    </label>
-                                                @endforeach
-                                            </div>
+                                                <input type="checkbox" name="day_off[]" id="{{$d['date']}}" value="{{$d['date']}}"
+                                                @if (!$d['status']) checked @endif
+                                                >
+                                                <label for="{{$d['date']}}"
+                                                    class="day  
+                                                    @if($currentMonth == $m['month'] && $currentYear == $m['year'] && $currentDay == $d['day']) day-active @endif " 
+                                                    style="grid-column-start:{{$d['day_w'] }}"
+                                                >        
+                                                    <p class="p_day">{{$d['day']}}</p>
+                                                    @if ($d['reserved'] > 0)
+                                                        <span class="bookings">{{$d['reserved']}} 
+                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M161 191L228.4 123.6C266.6 85.4 318.4 64 372.4 64C484.9 64 576.1 155.2 576.1 267.6C576.1 314 560.3 358.7 531.6 394.6C508 377.8 479.2 367.9 448.1 367.9C417 367.9 388.2 377.8 364.7 394.5L161 191zM304 512C304 521.7 305 531.1 306.8 540.2C287 535 268.8 524.7 254.1 510C241.9 497.8 222.2 497.8 210 510L160.6 559.4C150 570 135.6 576 120.6 576C89.4 576 64 550.7 64 519.4C64 504.4 70 490 80.6 479.4L130 430C142.2 417.8 142.2 398.1 130 385.9C108.3 364.2 96.1 334.7 96.1 304C96.1 274.6 107.2 246.4 127.2 225L330.6 428.6C313.9 452.1 304 480.9 304 512zM448 416C501 416 544 459 544 512C544 565 501 608 448 608C395 608 352 565 352 512C352 459 395 416 448 416z"/></svg>
+                                                        </span>
+                                                    @endif
+                                                </label>
+                                            @endforeach
                                         </div>
                                     </div>
-                                    @php $i ++ @endphp
-                                @endforeach
-                            </div>
+                                </div>
+                                @php $i ++ @endphp
+                            @endforeach
+                        </div>
 
-                        </div>
-                        <div class="actions w-100 mt-3">
-                            <button class="my_btn_2 btn_delete" type="button" data-bs-dismiss="modal" >Annulla</button>
-                            <button class="my_btn_3" type="submit">Conferma</button>
-                        </div>
+                    </div>
+                    <div class="actions w-100 mt-3">
+                        <button class="my_btn_2 btn_delete" type="button" data-bs-dismiss="modal" >Annulla</button>
+                        <button class="my_btn_3" type="submit">Conferma</button>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Qui appariranno le fasce orarie -->
-        <div id="slots" class="my-3"></div>
+    </div>
+    <!-- Qui appariranno le fasce orarie -->
+    <div id="slots" class="my-3"></div>
     </form>
 
 
 </div>
-
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    // === SVG variabili (mettile come vuoi) ===
+    const bookedSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M161 191L228.4 123.6C266.6 85.4 318.4 64 372.4 64C484.9 64 576.1 155.2 576.1 267.6C576.1 314 560.3 358.7 531.6 394.6C508 377.8 479.2 367.9 448.1 367.9C417 367.9 388.2 377.8 364.7 394.5L161 191zM304 512C304 521.7 305 531.1 306.8 540.2C287 535 268.8 524.7 254.1 510C241.9 497.8 222.2 497.8 210 510L160.6 559.4C150 570 135.6 576 120.6 576C89.4 576 64 550.7 64 519.4C64 504.4 70 490 80.6 479.4L130 430C142.2 417.8 142.2 398.1 130 385.9C108.3 364.2 96.1 334.7 96.1 304C96.1 274.6 107.2 246.4 127.2 225L330.6 428.6C313.9 452.1 304 480.9 304 512zM448 416C501 416 544 459 544 512C544 565 501 608 448 608C395 608 352 565 352 512C352 459 395 416 448 416z"/></svg>';
+
+    // === Stato globale delle selezioni ===
+    const selectedSlots = {};
+
+    const buttons = document.querySelectorAll("#calendar button");
+    const slotsContainer = document.getElementById("slots");
+
+    buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+
+            // Salva le selezioni del giorno corrente prima di cambiare
+            saveCurrentDaySelections();
+
+            // rimuovo la classe selected da tutte e imposto quella corrente
+            buttons.forEach(e => e.classList.remove('selected'));
+            const day = JSON.parse(btn.dataset.day);
+            btn.classList.add('selected');
+
+            // Pulisco il contenitore e inserisco il bottone
+            slotsContainer.innerHTML = `
+                <div class="fields" id="fields"></div>
+                <div class="mt-4">
+                    <button id="unique-btn" type="button" class="m-auto my_btn_7 mt-4" style='display:none;' data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        Prenota
+                    </button>
+                </div>
+            `;
+
+            const fieldsContainer = document.getElementById("fields");
+
+            // Ciclo i campi
+            Object.entries(day.fields).forEach(([fieldName, fieldData]) => {
+                const { times, match } = fieldData;
+
+                // titolo del field
+                const title = document.createElement("h4");
+                title.classList.add("font-bold", "mb-2");
+                title.textContent = fieldName;
+                if(match !== undefined){
+                    const spanm = document.createElement("span");
+                    spanm.innerHTML = `${match} ${bookedSvg}`;
+                    title.appendChild(spanm);
+                }
+                fieldsContainer.appendChild(title);
+
+                const fieldDiv = document.createElement("div");
+                fieldDiv.classList.add("field");
+
+                if (times.length > 0) {
+                    times.forEach(slot => {
+                        const safeTime = String(slot.time).replace(/[^a-z0-9]/gi, '_');
+                        const inputId = `i_${safeTime}_${fieldName}`;
+                        const timeDiv = document.createElement("div");
+                        timeDiv.classList.add("time");
+
+                        if (slot.status == 1) {
+                            timeDiv.classList.add("trainer_slot");
+                        }
+
+                        let role = '{{ auth()->user()->role }}';
+                        let userId = {{ auth()->user()->id }};
+
+                        if (slot.status == 2) {
+                            timeDiv.classList.add("booked", `bk_${slot.d}`);
+                            const link = document.createElement("a");
+                            link.href = `/admin/reservations/${slot.id}`;
+
+                            const spanTime = document.createElement("span");
+                            spanTime.classList.add("time_b");
+                            spanTime.textContent = slot.time;
+
+                            const spanSubj = document.createElement("span");
+                            spanSubj.classList.add("booking_subject");
+                            spanSubj.textContent = `#${slot.booking_subject}`;
+
+                            link.appendChild(spanTime);
+                            link.appendChild(spanSubj);
+                            timeDiv.appendChild(link);
+
+                        } else if((role == 'admin' || slot.trainer_id.includes(userId) && slot.status == 1) || slot.status == 0) {
+                            const input = document.createElement("input");
+                            input.type = "checkbox";
+                            input.classList.add("slot-checkbox");
+                            input.value = `${day.date}/${slot.time}/${fieldName}`;
+                            input.id = inputId;
+
+                            const label = document.createElement("label");
+                            label.htmlFor = inputId;
+                            if(!slot.s) label.classList.add("middle");
+                            label.textContent = slot.time;
+
+                            timeDiv.appendChild(input);
+                            timeDiv.appendChild(label);
+
+                            // ==== Aggiorna selezioni subito quando si clicca ====
+                            input.addEventListener("change", () => {
+                                const currentDayBtn = document.querySelector("#calendar button.selected");
+                                if (!currentDayBtn) return;
+                                const currentDate = JSON.parse(currentDayBtn.dataset.day).date;
+
+                                if (!selectedSlots[currentDate]) selectedSlots[currentDate] = {};
+                                if (!selectedSlots[currentDate][fieldName]) selectedSlots[currentDate][fieldName] = [];
+
+                                const arr = selectedSlots[currentDate][fieldName];
+
+                                if (input.checked) {
+                                    if (!arr.includes(slot.time)) arr.push(slot.time);
+                                } else {
+                                    const index = arr.indexOf(slot.time);
+                                    if (index > -1) arr.splice(index, 1);
+                                    if (arr.length === 0) delete selectedSlots[currentDate][fieldName];
+                                    if (Object.keys(selectedSlots[currentDate]).length === 0) delete selectedSlots[currentDate];
+                                }
+
+                                checkCheckboxes();
+                            });
+
+                        } else {
+                            const label = document.createElement("label");
+                            label.htmlFor = inputId;
+                            if(!slot.s) label.classList.add("middle");
+                            label.textContent = slot.time;
+                            timeDiv.appendChild(label);
+                        }
+
+                        fieldDiv.appendChild(timeDiv);
+                    });
+                } else {
+                    const p = document.createElement("p");
+                    p.classList.add("null_p");
+                    p.textContent = "Campo non disponibile";
+                    fieldDiv.appendChild(p);
+                }
+
+                fieldsContainer.appendChild(fieldDiv);
+            });
+
+            // Ripristina eventuali selezioni salvate
+            restoreSelections(day.date);
+            checkCheckboxes();
+        });
+    });
+
+    // ==== Funzioni ausiliarie ====
+    function saveCurrentDaySelections() {
+        const activeBtn = document.querySelector("#calendar button.selected");
+        if (!activeBtn) return;
+
+        const day = JSON.parse(activeBtn.dataset.day);
+        const date = day.date;
+
+        if (!selectedSlots[date]) selectedSlots[date] = {};
+
+        document.querySelectorAll("#fields .field").forEach(fieldDiv => {
+            const fieldName = fieldDiv.previousSibling.textContent.trim();
+            const checked = fieldDiv.querySelectorAll(".slot-checkbox:checked");
+
+            selectedSlots[date][fieldName] = [];
+            checked.forEach(cb => {
+                const time = cb.value.split("/")[1];
+                selectedSlots[date][fieldName].push(time);
+            });
+
+            if (selectedSlots[date][fieldName].length === 0) delete selectedSlots[date][fieldName];
+        });
+
+        if (Object.keys(selectedSlots[date]).length === 0) delete selectedSlots[date];
+    }
+
+    function restoreSelections(date) {
+        if (!selectedSlots[date]) return;
+
+        document.querySelectorAll(".slot-checkbox").forEach(cb => {
+            const [, time, fieldName] = cb.value.split("/");
+            if (selectedSlots[date][fieldName] && selectedSlots[date][fieldName].includes(time)) {
+                cb.checked = true;
+            }
+        });
+    }
+
+    function checkCheckboxes() {
+        let totalSelections = 0;
+        const uniqueBtn = document.getElementById("unique-btn");
+
+        Object.values(selectedSlots).forEach(fields => {
+            Object.values(fields).forEach(times => totalSelections += times.length);
+        });
+
+        if (uniqueBtn) {
+            uniqueBtn.style.display = totalSelections > 0 ? "block" : "none";
+
+            // Cambia testo se selezioni su più giorni
+            uniqueBtn.textContent = Object.keys(selectedSlots).length > 1 ? "Prenotazione multipla" : "Prenota";
+            document.querySelector("#smbt_btn").value = Object.keys(selectedSlots).length > 1 ? "multipla" : "singola";
+        }
+    }
+
+    // ==== Al submit aggiungo input hidden per tutte le selezioni ====
+    document.querySelector("form").addEventListener("submit", event => {
+        const form = event.target;
+
+        form.querySelectorAll(".dynamic-slot").forEach(e => e.remove());
+
+        Object.entries(selectedSlots).forEach(([date, fields]) => {
+            Object.entries(fields).forEach(([field, times]) => {
+                times.forEach(time => {
+                    const input = document.createElement("input");
+                    input.type = "hidden";
+                    input.name = "times[]";
+                    input.value = `${date}/${time}/${field}`;
+                    input.classList.add("dynamic-slot");
+                    form.appendChild(input);
+                });
+            });
+        });
+    });
+
+});
+</script>
+
+
+
+@endsection
+
+
+
+{{-- <script>
 document.addEventListener("DOMContentLoaded", () => {
     const buttons = document.querySelectorAll("#calendar button");
     const slotsContainer = document.getElementById("slots");
@@ -419,9 +647,5 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-</script>
-
-
-
-@endsection
+</script> --}}
 

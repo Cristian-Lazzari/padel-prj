@@ -119,6 +119,7 @@ class ReservationController extends Controller
                 'type',
                 'field',
                 'duration',
+                'status',
                 DB::raw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS day"),
                 DB::raw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS t")
             )
@@ -132,15 +133,17 @@ class ReservationController extends Controller
         $reserved = [];
 
         foreach ($rows as $r) {
-            $day = $r->day;
-            $field = $r->field;
+            if($r->status == 1 || $r->status == '1'){
+                $day = $r->day;
+                $field = $r->field;
 
-            if (!isset($reserved[$day])) {
-                foreach ($field_set as $k => $f) {
-                    $reserved[$day][$k] = [];
+                if (!isset($reserved[$day])) {
+                    foreach ($field_set as $k => $f) {
+                        $reserved[$day][$k] = [];
+                    }
                 }
+                $reserved[$day][$field][substr($r->t, 0, 5)] = $r->duration;
             }
-            $reserved[$day][$field][substr($r->t, 0, 5)] = $r->duration;
         }
         ksort($reserved);
 

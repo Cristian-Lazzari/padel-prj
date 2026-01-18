@@ -5,17 +5,9 @@
 <div class="page_nav">
     <div class="view_box pt-5">
         <div class="central">
-            <h1>Dettagli di <span>{{$player->nickname}}</span></h1>
+            <h1>Dettagli di #<span>{{$player->nickname}}</span></h1>
         </div>
         <div class="box_container">
-            <div class="box personal">
-                <p>
-                    <strong>Nome</strong> <span>{{$player->name}}</span>
-                </p>
-                <p>
-                    <strong>Cognome</strong> <span>{{$player->surname}}</span>
-                </p>
-            </div>
             <div class="box contact ">
                 <div>
                     <svg xmlns="http://www.w3.org/2000/svg"  fill="currentColor" class="bi bi-envelope-at-fill" viewBox="0 0 16 16">
@@ -32,20 +24,25 @@
                 </div>
                 
             </div>
-            <div class="box level_certificate1">
+            <div class="box personal">
+                <p>
+                    <strong>Nome</strong> <span>{{$player->name}}</span>
+                </p>
+                <p>
+                    <strong>Cognome</strong> <span>{{$player->surname}}</span>
+                </p>
+            </div>
+            
+            <div class="box doc">
                 <div>
-                    <strong>Livello</strong> <span><strong>{{ $player->level}}</strong> / 5</span>
-                </div>
-                <div>
-                    <strong>Certificato medico</strong> 
+                    <strong>Certificato</strong> 
                     @if ($player->certificate)
                         <a href="{{Storage::url($player->certificate)}}" target="_blank" rel="noopener noreferrer">Visualizza certificato</a>
                     @else
-                        <span>Nessun certificato caricato</span>
+                        <span>Nessun documento caricato</span>
                     @endif
                 </div>
-            </div>
-            <div class="box note">
+            
                 <div>
                     <strong>Note</strong> 
                     <p>
@@ -54,6 +51,14 @@
                         @else
                             Nessuna nota
                         @endif
+                    </p>
+                </div>
+            </div>
+            <div class="box level">
+                <strong>Livello</strong>
+                <div class="donut-wrapper" style="--percent: {{ $player->level / 5 * 100}}">
+                    <p>
+                        {{ $player->level }}
                     </p>
                 </div>
             </div>

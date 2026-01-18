@@ -45,15 +45,18 @@ Route::middleware(['auth', 'verified'])
         Route::post('/mailer/update_model',   [MailerController::class, 'update_model'])->name('mailer.update_model');
         Route::delete('/models/{id}',         [MailerController::class, 'delete'])->name('models.delete');
         
-        Route::post('settings/updateAll',     [SettingController::class, 'updateAll'])->name('settings.updateAll');
+        Route::post('/settings/updateAll',     [SettingController::class, 'updateAll'])->name('settings.updateAll');
 
-        Route::post('reservations/cancel',    [ReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::post('/reservations/cancel',    [ReservationController::class, 'cancel'])->name('reservations.cancel');
 
-        Route::post('reservations/createFromD',    [ReservationController::class, 'createFromD'])->name('reservations.createFromD');
-        Route::post('settings/cancelDates',        [SettingController::class, 'cancelDates'])->name('settings.cancelDates');
+        Route::post('/reservations/createFromD',    [ReservationController::class, 'createFromD'])->name('reservations.createFromD');
+        Route::post('/settings/cancelDates',        [SettingController::class, 'cancelDates'])->name('settings.cancelDates');
         
-        Route::get('players/trainer_register',    [PlayerController::class, 'trainer_register'])->name('players.trainer_register');
-        Route::post('players/create_register',    [PlayerController::class, 'create_register'])->name('players.create_register');
+        Route::get('/players/trainer_register',    [PlayerController::class, 'trainer_register'])->name('players.trainer_register');
+        Route::post('/players/create_register',    [PlayerController::class, 'create_register'])->name('players.create_register');
+
+        
+
 
         Route::resource('reservations',  ReservationController::class);
         Route::resource('players',  PlayerController::class);

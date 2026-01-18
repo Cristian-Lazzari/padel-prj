@@ -36,11 +36,12 @@ class PageController extends Controller
             ->select(
                 'field',
                 'duration',
+                'status',
                 DB::raw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS day"),
                 DB::raw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS t")
             )
             ->whereRaw("STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i') >= ?", [$now])
-            ->where('status', '!=', 0) // 👈 controllo aggiunto
+            ->where('status', '!=', 0) // 👈 controllo aggiunto che porco dio non fnizniona
             ->orderByRaw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i')) ASC")
             ->orderByRaw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i')) ASC")
             ->get();
@@ -50,14 +51,16 @@ class PageController extends Controller
         
 
         foreach ($rows as $r) {
-            $day = $r->day;
-            $field = $r->field;
-            if (!isset($reserved[$day])) {
-                foreach ($field_set as $k => $f) {
-                    $reserved[$day][$k] = [];
+            if($r->status == 1 || $r->status == '1'){ 
+                $day = $r->day;
+                $field = $r->field;
+                if (!isset($reserved[$day])) {
+                    foreach ($field_set as $k => $f) {
+                        $reserved[$day][$k] = [];
+                    }
                 }
+                $reserved[$day][$field][substr($r->t, 0, 5)] = $r->duration;
             }
-            $reserved[$day][$field][substr($r->t, 0, 5)] = $r->duration;
         }
         ksort($reserved);
 

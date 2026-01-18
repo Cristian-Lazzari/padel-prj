@@ -16,5 +16,6 @@ Route::post('get_reservation',               [ReservationController::class,     
 Route::post('login_client',                         [PlayerController::class,       'login_client'])->name('api.player.login_client');
 Route::post('verifyOtp',                     [PlayerController::class,       'verifyOtp'])->name('api.player.verifyOtp');
 Route::post('register',                      [PlayerController::class,       'register'])->name('api.player.register');
+Route::get('client_default',                 [SettingController::class, 'client_default'])->name('api.client_default'); // annullamento tramite mail
 
 

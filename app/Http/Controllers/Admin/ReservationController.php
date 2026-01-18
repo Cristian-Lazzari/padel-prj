@@ -15,6 +15,15 @@ class ReservationController extends Controller
 {
     
 
+    public function client_default(Request $request){
+        $code = $request->query('code');
+        [$res_id, $player_id] = explode('.', $code);
+        $match = Reservation::where('id', $res_id)->where('booking_subject', $player_id)->first();
+        $match->status = 0;
+        $match->update();
+        return redirect()->route('guests.delete_success');
+        
+    }
     public function cancel(Request $request){
         $data = $request->all();
         $match = Reservation::where('id', $data['id'])->with('players')->first();
@@ -27,8 +36,9 @@ class ReservationController extends Controller
         $bodymail = [
             'to' => 'user',
             'res_id' => $match->id,
+            'booking_subject_id' => $booking_subject->id,
             
-            'title' => 'Ci dispiace informarti che la tua prenotazione del campo ' . $match->field,
+            'title' => 'Ci dispiace informarti che la tua prenotazione del campo ' . $match->field . 'è stata cancellata.',
             'subtitle' => '',
             
             'name' => $booking_subject->name,
@@ -57,57 +67,88 @@ class ReservationController extends Controller
 
     public function createFromD(Request $request){
         $data = $request->all();
-        $times = $data['times'];
-        $arr_times = [];
-        sort($times);
-        $type = '-';
-        $slot = 0;
-        $field = explode('/', $times[0])[2];
-        $time = explode('/', $times[0])[1];
-        $date = explode('/', $times[0])[0];
+         //dd($data);
         $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
-        foreach ($adv['field_set'] as $key => $value) {
-            if($key == $field){
-                $type = $value['type'];
-                $slot = $value['m_during'];
-                break;
-            }
-        }
-        $field_set = $adv['field_set'];
-        foreach ($times as $t) {
-            $tm = explode('/', $t)[1];
-            if($field !== explode('/', $t)[2]){
-                return redirect()->route('admin.dashboard')->with('error', 'Errore: gli orari devono essere dello stesso campo !');
-            }
-            $arr_times[] = $tm;
-        }
-        if(!$this->checkTimeIntervals($arr_times, $slot)){
-            return redirect()->route('admin.dashboard')->with('error', 'Errore: gli orari devono essere distanziati da mezzora !');
-        }
-        $date_slot = $date . ' ' . $time;
+        if($data['type_res'] == 'multipla'){
+            $times = $data['times'];
+            $grouped = [];
 
-        $match = new Reservation();
-        $match->date_slot = $date_slot;
-        $match->duration = count($arr_times);
-        $match->type = $type; // 1, 2, 3 
-        $match->field = $field; // 1, 2, 3 
-        $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
-        $match->dinner = json_encode([
-            'status' => false,
-            'guests' => false,
-            'time' => false,
-        ]); //[ status, guests, time] 
-        $match->message = $data['message'] ?? null;
-        // /dd(auth()->user()->playerId);
-        $match->booking_subject =  auth()->user()->playerId;
-        $match->save();
-        if (array_key_exists('players',$data)) {
-            $match->players()->sync($data['players']);
-        } else {
-            $match->players()->sync([]);
+            foreach ($times as $t) {
+                [$date, $time, $field] = explode('/', $t);
+                $key = $date . '|' . $field;
+                $grouped[$key][] = $time;
+            }
+            foreach ($grouped as $key => $arr_times) {
+                sort($arr_times);
+                [$date, $field] = explode('|', $key);
+                // Recupero configurazione campo
+                $type = '-';
+                $slot = 0;
+                foreach ($adv['field_set'] as $fKey => $value) {
+                    if ($fKey == $field) {
+                        $type = $value['type'];
+                        $slot = $value['m_during'];
+                        break;
+                    }
+                }
+
+                // Controllo intervalli
+                if (!$this->checkTimeIntervals($arr_times, $slot)) {
+                    return redirect()
+                        ->route('admin.dashboard')
+                        ->with(
+                            'error',
+                            'Errore: gli orari devono essere consecutivi (' . $date . ')'
+                        );
+                }
+
+                // Prima ora come riferimento
+                $date_slot = $date . ' ' . $arr_times[0];
+
+                $this->create_res(
+                    $field,
+                    $type,
+                    $date_slot,
+                    $arr_times,
+                    $data
+                );
+            }
+            $m = 'Prenotazioni multiple create con successo.';
+        }else{
+            $times = $data['times'];
+            $arr_times = [];
+            sort($times);
+            $type = '-';
+            $slot = 0;
+            $field = explode('/', $times[0])[2];
+            $time = explode('/', $times[0])[1];
+            $date = explode('/', $times[0])[0];
+            
+            foreach ($adv['field_set'] as $key => $value) {
+                if($key == $field){
+                    $type = $value['type'];
+                    $slot = $value['m_during'];
+                    break;
+                }
+            }
+            $field_set = $adv['field_set'];
+            foreach ($times as $t) {
+                $tm = explode('/', $t)[1];
+                if($field !== explode('/', $t)[2]){
+                    return redirect()->route('admin.dashboard')->with('error', 'Errore: gli orari devono essere dello stesso campo !');
+                }
+                $arr_times[] = $tm;
+            }
+            if(!$this->checkTimeIntervals($arr_times, $slot)){
+                return redirect()->route('admin.dashboard')->with('error', 'Errore: gli orari devono essere consecutivi !');
+            }
+            $date_slot = $date . ' ' . $time;
+    
+            $this->create_res($field, $type, $date_slot, $arr_times, $data); 
+            $m = 'Prenotazione creata con successo per il campo ' . $field . ' il ' . $date . ' dalle ore ' . $arr_times[0] . ' alle ore ' . Carbon::createFromFormat('H:i', end($arr_times))->addMinutes($slot)->format('H:i');
         }
 
-        return redirect()->route('admin.dashboard')->with('message', 'Prenotazione modificata con successo');
+        return redirect()->route('admin.dashboard')->with('message', $m);
     }
     private function checkTimeIntervals(array $times, int $slot): bool
     {
@@ -143,6 +184,26 @@ class ReservationController extends Controller
         return true;
     }
 
+    private function create_res($field, $type, $date_slot, $arr_times, $data){
+        $match = new Reservation();
+        $match->date_slot = $date_slot;
+        $match->duration = count($arr_times);
+        $match->type = $type; // 1, 2, 3 
+        $match->field = $field; // 1, 2, 3 
+        $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
+        $match->dinner = json_encode([
+            'status' => false,
+            'guests' => false,
+            'time' => false,
+        ]); //[ status, guests, time] 
+        $match->message = $data['message'] ?? null;
+        $match->booking_subject =  auth()->user()->playerId;
+        $match->save();
+        if (array_key_exists('players',$data)) {
+            $match->players()->sync($data['players']);
+        } 
+    }
+
 
 
     public function index()
@@ -159,11 +220,7 @@ class ReservationController extends Controller
         return view('admin.Reservations.index', compact('reservations', 'field_set'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function create()
     {
         //
@@ -177,7 +234,7 @@ class ReservationController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        
     }
 
     /**
@@ -194,7 +251,7 @@ class ReservationController extends Controller
         
         $player = Player::find($reservation->booking_subject);
         $reservation->booking_subject_name = $player->name ?? '';
-        $reservation->booking_subject_surnname = $player->surname ?? '';
+        $reservation->booking_subject_surname = $player->surname ?? '';
         return view('admin.Reservations.show', compact('reservation' ,'m_during'));
     }
 
@@ -210,7 +267,8 @@ class ReservationController extends Controller
         $players = Player::where("role", "player")->get();
         $player = Player::find($reservation->booking_subject);
         $reservation->booking_subject_name = $player->name ?? '';
-        $reservation->booking_subject_surnname = $player->surname ?? '';
+        $reservation->booking_subject_surname = $player->surname ?? '';
+        
         return view('admin.Reservations.edit', compact('reservation','players'));
     }
 
@@ -233,6 +291,7 @@ class ReservationController extends Controller
             $reservation->dinner = json_encode($old_dinner);
         }
         $reservation->status = $data['status'];
+        $reservation->message = $data['message'] ?? null;
         $reservation->update();
         if (array_key_exists('players',$data)) {
             $reservation->players()->sync($data['players']);
