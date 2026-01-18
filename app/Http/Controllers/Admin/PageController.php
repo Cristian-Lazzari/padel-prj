@@ -52,7 +52,7 @@ class PageController extends Controller
 
         foreach ($rows as $r) {
             if($r->status == 1 || $r->status == '1'){ 
-                dump($r->status);
+                dump($r->status . ' ' . $r->day);
                 $day = $r->day;
                 $field = $r->field;
                 if (!isset($reserved[$day])) {
