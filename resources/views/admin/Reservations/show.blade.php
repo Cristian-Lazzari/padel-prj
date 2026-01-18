@@ -17,8 +17,8 @@
     
 <div class="page_nav">
     <div class="view_box pt-5">
+        <h1>Dettagli del MATCH</h1>
         <div class="central">
-            <h1>Dettagli del MATCH {{$reservation->status}}</h1>
             <h2><span>Prenotato da:</span> <a class="my_btn_5" href="{{route('admin.players.show', $reservation->booking_subject)}}">{{$reservation->booking_subject_name}} {{$reservation->booking_subject_surname}}</a></h2>
             <div class=" my_btn_2 ml-auto 
             @if($reservation->status == 0)  btn_delete @endif
