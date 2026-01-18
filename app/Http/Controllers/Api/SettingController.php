@@ -26,15 +26,14 @@ class SettingController extends Controller
     }
 
     public function client_default(Request $request) {
-        $id = $request->query('id');
-        //return $messageId;
-
-        if (!$id) {
+        $code = $request->query('code');
+        [$res_id, $player_id] = explode('.', $code);
+        if (!$code) {
             return response()->json(['error' => 'id mancante'], 400);
         }
-        $reservation = Reservation::where('id', $id)->first();
+        $reservation = Reservation::where('id', $res_id)->where('booking_subject', $player_id)->first();
          // parse della data
-        $date = Carbon::createFromFormat('Y/m/d H:i', $reservation->date_slot);
+        $date = Carbon::createFromFormat('Y-m-d H:i', $reservation->date_slot);
 
         // se la data è già passata → false
         if ($date->isPast()) {

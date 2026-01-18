@@ -15,15 +15,6 @@ class ReservationController extends Controller
 {
     
 
-    public function client_default(Request $request){
-        $code = $request->query('code');
-        [$res_id, $player_id] = explode('.', $code);
-        $match = Reservation::where('id', $res_id)->where('booking_subject', $player_id)->first();
-        $match->status = 0;
-        $match->update();
-        return redirect()->route('guests.delete_success');
-        
-    }
     public function cancel(Request $request){
         $data = $request->all();
         $match = Reservation::where('id', $data['id'])->with('players')->first();
