@@ -154,8 +154,8 @@ class PageController extends Controller
                                     's' => in_array($hour_f, $hour_array_control) ? 1 : 0
                                 ];
                                 
-                                if($res->lesson && User::find($res->booking_subject ?? 0)){
-                                    $user_trainer = User::where('id', $res->booking_subject)->first();
+                                if($res->lesson && User::find($trainer_id[0] ?? 0)){
+                                    $user_trainer = User::where('id', $trainer_id[0])->first();
                                     if($user_trainer){
                                         $time_in['flag'] = $user_trainer->flag;
                                     }
