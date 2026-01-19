@@ -84,9 +84,12 @@ class ReservationController extends Controller
                         break;
                     }
                 }
-
                 // Controllo intervalli
                 if (!$this->checkTimeIntervals($arr_times, $slot)) {
+                    dump($grouped);
+                    dump($arr_times);
+                    dump($slot);
+                    dd('errore..');
                     return redirect()
                         ->route('admin.dashboard')
                         ->with(
@@ -145,17 +148,12 @@ class ReservationController extends Controller
     }
     private function checkTimeIntervals(array $times, int $slot): bool
     {
-        // Filtra eventuali valori vuoti o non validi
-        $times = array_filter($times, fn($t) => !empty($t));
-
-        // Se c'è meno di 2 orari, non ha senso controllare
-        if (count($times) < 2) {
+        $times = array_filter($times, fn($t) => !empty($t)); // Filtra eventuali valori vuoti o non validi
+        
+        if (count($times) < 2) { // Se c'è meno di 2 orari, non ha senso controllare
             return true;
         }
-
-        // Ordina gli orari (per sicurezza)
-        sort($times);
-
+        sort($times); // Ordina gli orari (per sicurezza)
         for ($i = 0; $i < count($times) - 1; $i++) {
             try {
                 $current = Carbon::createFromFormat('H:i', trim($times[$i]));
@@ -164,16 +162,13 @@ class ReservationController extends Controller
                 // Formato orario non valido
                 return false;
             }
-
             // Differenza in minuti tra orari consecutivi
             $diff = $current->diffInMinutes($next, false);
-
             // Se non è esattamente uguale allo slot, fallisce
             if ($diff !== $slot) {
                 return false;
             }
         }
-
         return true;
     }
 
