@@ -86,6 +86,7 @@ class ReservationController extends Controller
                 }
                 // Controllo intervalli
                 if (!$this->checkTimeIntervals($arr_times, $slot)) {
+                    dump($times);
                     dump($grouped);
                     dump($arr_times);
                     dump($slot);
