@@ -3547,8 +3547,10 @@ label{
             color: var(--c3) !important;
             font-size: $fs_md !important;
         }
-        span{
+
+        .booking_subject{
             font-size: $fs_sm;
+            white-space: nowrap;
         }
     }
     &::after{
