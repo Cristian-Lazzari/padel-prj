@@ -347,6 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         if (slot.status == 1) {
                             timeDiv.classList.add("trainer_slot");
+                            timeDiv.style.setProperty('--flag', slot.flag);
                         }
 
                         let role = '{{ auth()->user()->role }}';

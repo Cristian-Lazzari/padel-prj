@@ -3590,13 +3590,14 @@ label{
     }
 }
 .trainer_slot{
+    --flag : red;
     opacity: 1;
     &::after{
         border-top-color: $c2 !important;
         border-bottom-color: $c2 !important;
         background: repeating-linear-gradient(
-        $c2,
-        $c2 12px,
+        var(--flag),
+        var(--flag) 12px,
         var(--c3) 12px,
         var(--c3) 22px
         );
