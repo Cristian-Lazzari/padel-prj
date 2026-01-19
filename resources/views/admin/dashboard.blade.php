@@ -336,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const fieldDiv = document.createElement("div");
                 fieldDiv.classList.add("field");
+                fieldDiv.dataset.field = fieldName;
 
                 if (times.length > 0) {
                     times.forEach(slot => {
@@ -443,26 +444,50 @@ document.addEventListener("DOMContentLoaded", () => {
         const activeBtn = document.querySelector("#calendar button.selected");
         if (!activeBtn) return;
 
-        const day = JSON.parse(activeBtn.dataset.day);
-        const date = day.date;
-
-        if (!selectedSlots[date]) selectedSlots[date] = {};
+        const { date } = JSON.parse(activeBtn.dataset.day);
+        selectedSlots[date] = {};
 
         document.querySelectorAll("#fields .field").forEach(fieldDiv => {
-            const fieldName = fieldDiv.previousSibling.textContent.trim();
+            const fieldName = fieldDiv.dataset.field;
             const checked = fieldDiv.querySelectorAll(".slot-checkbox:checked");
+
+            if (!checked.length) return;
 
             selectedSlots[date][fieldName] = [];
             checked.forEach(cb => {
-                const time = cb.value.split("/")[1];
-                selectedSlots[date][fieldName].push(time);
+            selectedSlots[date][fieldName].push(cb.value.split("/")[1]);
             });
-
-            if (selectedSlots[date][fieldName].length === 0) delete selectedSlots[date][fieldName];
         });
 
-        if (Object.keys(selectedSlots[date]).length === 0) delete selectedSlots[date];
-    }
+        if (!Object.keys(selectedSlots[date]).length) {
+            delete selectedSlots[date];
+        }
+        }
+
+    // function saveCurrentDaySelections() {
+    //     const activeBtn = document.querySelector("#calendar button.selected");
+    //     if (!activeBtn) return;
+
+    //     const day = JSON.parse(activeBtn.dataset.day);
+    //     const date = day.date;
+
+    //     if (!selectedSlots[date]) selectedSlots[date] = {};
+
+    //     document.querySelectorAll("#fields .field").forEach(fieldDiv => {
+    //         const fieldName = fieldDiv.dataset.field;
+    //         const checked = fieldDiv.querySelectorAll(".slot-checkbox:checked");
+
+    //         selectedSlots[date][fieldName] = [];
+    //         checked.forEach(cb => {
+    //             const time = cb.value.split("/")[1];
+    //             selectedSlots[date][fieldName].push(time);
+    //         });
+
+    //         if (selectedSlots[date][fieldName].length === 0) delete selectedSlots[date][fieldName];
+    //     });
+
+    //     if (Object.keys(selectedSlots[date]).length === 0) delete selectedSlots[date];
+    // }
 
     function restoreSelections(date) {
         if (!selectedSlots[date]) return;
