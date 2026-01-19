@@ -17,7 +17,7 @@
     
 <div class="page_nav">
     <div class="view_box pt-5">
-        <h1>Dettagli del MATCH</h1>
+        <h1>Dettagli {{$reservation->lesson ? ' della LEZIONE' : 'del MATCH'}}</h1>
         <div class="central">
             <h2><span>Prenotato da:</span> <a class="my_btn_5" href="{{route('admin.players.show', $reservation->booking_subject)}}">{{$reservation->booking_subject_name}} {{$reservation->booking_subject_surname}}</a></h2>
             <div class=" my_btn_2 ml-auto 
@@ -25,7 +25,7 @@
             ">{{$reservation->status == 1 ? 'Confermata' : 'Annullata'}}</div>
         </div>
         <div class="box_container">
-            <div class="box personal">
+            <div class="box ">
                 <p>
                     <strong class="field">Campo </strong>
                     <span>{{$reservation->field}}</span>
@@ -36,7 +36,7 @@
                 </p>
                 
             </div>
-            <div class="box personal">
+            <div class="box ">
                 <p>
                     <strong class="field">Orario </strong>
                     <span>{{$ora}}  -  {{$ora_fine}}</span>

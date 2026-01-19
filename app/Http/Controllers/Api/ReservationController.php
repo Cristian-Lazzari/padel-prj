@@ -88,6 +88,7 @@ class ReservationController extends Controller
             'status' => $match->status,
 
             'message' => $data['message'] ?? null,
+            'booking_subject_id' => $booking_subject->id,
 
             'field' => $match->field,
             'phone' => $booking_subject->phone,

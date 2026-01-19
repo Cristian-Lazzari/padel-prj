@@ -17,6 +17,7 @@ class ReservationController extends Controller
 
     public function cancel(Request $request){
         $data = $request->all();
+        
         $match = Reservation::where('id', $data['id'])->with('players')->first();
         $booking_subject = Player::where('id', $match->booking_subject)->first();
         $match->status = 0;
@@ -24,6 +25,7 @@ class ReservationController extends Controller
 
         $contact = json_decode(Setting::where('name', 'Contatti')->first()->property, 1);
         $advanced = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
+
         $bodymail = [
             'to' => 'user',
             'res_id' => $match->id,
@@ -58,7 +60,7 @@ class ReservationController extends Controller
 
     public function createFromD(Request $request){
         $data = $request->all();
-         //dd($data);
+        //dd($data);
         $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
         if($data['type_res'] == 'multipla'){
             $times = $data['times'];
@@ -188,6 +190,7 @@ class ReservationController extends Controller
             'time' => false,
         ]); //[ status, guests, time] 
         $match->message = $data['message'] ?? null;
+        $match->lesson = $data['lesson'] == 1 ? 1 :null;
         $match->booking_subject =  auth()->user()->playerId;
         $match->save();
         if (array_key_exists('players',$data)) {

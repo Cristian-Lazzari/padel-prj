@@ -3000,6 +3000,11 @@ html{
         margin-bottom: 8px;
         font-weight: bolder;
         font-size: $fs_sm_3;
+        svg{
+            fill: var(--c3);
+            height: 20px;
+            width: 20px;
+        }
     }
     .price_input{
         p{
@@ -3285,6 +3290,8 @@ label{
         display: flex;
         align-items: center;    
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
         width: 100%;
         h2{
             display: flex;
@@ -3310,7 +3317,8 @@ label{
         }
         .box{
             display: flex;
-            justify-content: space-between;
+            justify-content: space-between !important;
+            flex-direction: row !important;
             flex-wrap: wrap;
             font-size: $fs_sm_3;
             gap: 1rem;
@@ -3334,18 +3342,37 @@ label{
                 font-style: italic;
             }
             .dinner{
+                margin: 0 !important;
                 width: fit-content !important;
                 display: flex;
                 align-items: flex-start;
                 flex-direction: column;
+                gap: .3rem;
                 text-align: center;
-
-                input{
-                    width: 140px !important;
-                    text-align: start;
-                    padding-inline: 1rem;
+                .sub_d{
+                    display: flex;
+                    gap: 1rem;
+                    align-items: center;
+                    input{
+                        width: 60px !important;
+                        text-align: start;
+                        padding-inline: 1rem;
+                        height: 30px !important;
+                    }
+                    #time{
+                        width: 100px !important;
+                    }
+                    label{
+                        display: flex;
+                        align-items: center;
+                        gap: .3rem;
+                    }
                 }
             }
+
+        }
+        .box.desc{
+            flex-direction: column !important;
         }
     }
     .level{
@@ -3531,6 +3558,10 @@ label{
         border-top: 1px solid $c2 !important;
         border-bottom: 1px solid $c2 !important;
     }
+}
+.lesson{
+    background: red !important;
+    background-color: red !important;
 }
 .trainer_slot{
     opacity: 1;

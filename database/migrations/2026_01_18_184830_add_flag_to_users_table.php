@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('reservations', function (Blueprint $table) {
-            $table->boolean('lesson')->nullable()->after('duration');
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('flag')->default('#23B792')->after('duration');
         });
     }
 
@@ -25,8 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('reservations', function (Blueprint $table) {
-            $table->dropColumn(['lesson']);
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn(['flag']);
         });
     }
 };
