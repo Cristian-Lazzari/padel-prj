@@ -44,7 +44,33 @@ class SettingsTableSeeder extends Seeder
                     'property' => [
                         'max_delay_default' => 24,
                         'day_off' => [],
-                        'field_set'=> [],
+                        'field_set'=> [
+                            'Campo 1' => [
+                                'h_start' => '08:00',
+                                "n_slot"=>"10",
+                                "m_during"=>"30",
+                                "m_during_client"=>"90",
+                                "type"=>"padel",
+                                "closed_days"=>[]
+                            ],
+                            'Campo 2' => [
+                                'h_start' => '08:00',
+                                "n_slot"=>"10",
+                                "m_during"=>"30",
+                                "m_during_client"=>"90",
+                                "type"=>"padel",
+                                "closed_days"=>[]
+                            ],
+                            'Campo 3' => [
+                                'h_start' => '08:00',
+                                "n_slot"=>"10",
+                                "m_during"=>"30",
+                                "m_during_client"=>"90",
+                                "type"=>"padel",
+                                "closed_days"=>[]
+                            ],
+                        ],
+                        'trainer_set'=> [],
                     ]
                 ],
                 
