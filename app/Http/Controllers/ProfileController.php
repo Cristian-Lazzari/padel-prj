@@ -40,6 +40,7 @@ class ProfileController extends Controller
         }
 
         $request->user()->save();
+
         if( in_array(auth()->check() && auth()->user()->role, ['trainer', 'admin'])){
             return Redirect::route('admin.profile.edit')->with('status', 'profile-updated');
         }
