@@ -352,11 +352,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         let userId = {{ auth()->user()->id }};
 
                         if (slot.status == 2) {
-                            timeDiv.classList.add("booked", `bk_${slot.d}`);
                             if(slot.lesson == 1){
                                 timeDiv.classList.add("lesson");
+                                timeDiv.style.setProperty('--flag', slot.flag);
                             }else{
-                                
+                                timeDiv.classList.add("booked", `bk_${slot.d}`);
                             }
                             const link = document.createElement("a");
                             link.href = `/admin/reservations/${slot.id}`;

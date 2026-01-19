@@ -16,6 +16,8 @@
                     @csrf
                 </form>
 
+                
+
                 <form class="form-reg" method="post" action="{{ route('admin.profile.update') }}" class="mt-6 space-y-6">
                     @csrf
                     @method('patch')
@@ -31,7 +33,7 @@
                     
                     <div class="full">
 
-                            <label for="email" :value="__('Name')" > Email </label>
+                            <label for="email" :value="__('Email')" > Email </label>
                             <input id="email" name="email" type="text" value="{{old('email', $user->email)}}" required  autocomplete="email" />
                             @error('email') <p class="error w-100">{{ $message }}</p> @enderror
 
@@ -53,6 +55,43 @@
                                 @endif
                             </div>
                         @endif
+                    </div>
+                    
+                    <div class="full">
+                        {{-- scegli un colore per il tuo accaount (flag) --}}
+                        <label for="flag" :value="__('Flag')" > Colore account <span style="--flag: {{$user->flag}}" class="square"> </span> </label>
+                        <style>
+                            .square{
+                                --flag : #23B792;
+                                width:20px;
+                                height:20px;
+                                margin-left: 3px;
+                                display:inline-block;
+                                margin-right:10px;
+                                border-radius: 3px;
+                                background-color: var(--flag);
+                            }
+                        </style>
+                        <select id="flag" name="flag" required>
+                            @php
+                                $colors = [
+                                    'future +' => '#23B792',
+                                    'giallo oro' => '#F5C542',
+                                    'giallo lime' => '#D6FF3F',
+                                    'verde menta' => '#3FF4C6',
+                                    'turchese acceso' => '#1DE9B6',
+                                    'azzurro elettrico' => '#4DA3FF',
+                                    'viola neon' => '#9B5CFF',
+                                    'fucsia' => '#FF4FD8',
+                                    'corallo' => '#FF6B4A',
+                                    'arancio acceso' => '#FF9F1C',
+                                    'rosso lampone' => '#E63946',
+                                ];
+                            @endphp
+                            @foreach ($colors as $key => $value)
+                                <option class="square" value="{{$value}}" {{ old('flag', $user->flag) == $value ? 'selected' : '' }}>{{$key}} </option>
+                            @endforeach
+                        </select>
                     </div>
 
 

@@ -137,7 +137,7 @@ class PageController extends Controller
                                 $day['fields'][$k]['times'][] = $hour_null;
                             }else{
                                 $res = Reservation::where('date_slot', $day['date'].' '.$hour_f)->where('field', $k)->where('status', '!=', 0)->first();
-                                $day['fields'][$k]['times'][] = [
+                                $day_in = [
                                     'time' => $hour_f,
                                     'status' => 2,
                                     'id' => $res->id ?? '',
@@ -146,6 +146,15 @@ class PageController extends Controller
                                     'd' => $reserved[$day['date']][$k][$hour_f],
                                     's' => in_array($hour_f, $hour_array_control) ? 1 : 0
                                 ];
+                                
+                                if($res->lesson && User::find($res->booking_subject ?? 0)){
+                                    $user_trainer = User::where('id', $res->booking_subject)->first();
+                                    if($user_trainer){
+                                        $day_in['flag'] = $user_trainer->flag;
+                                    }
+                                }
+                                $day['fields'][$k]['times'][] = $day_in;
+                                    
                                 $day['fields'][$k]['match'] = ($day['fields'][$k]['match'] ?? 0) + 1;
                                 $day['reserved']++;
                                 $start_time->addMinutes($f['m_during'] * ($reserved[$day['date']][$k][$hour_f] - 1));
