@@ -409,6 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 }
 
                                 checkCheckboxes();
+                                console.log(selectedSlots);
                             });
 
                         } else {
