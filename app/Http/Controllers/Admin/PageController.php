@@ -120,10 +120,10 @@ class PageController extends Controller
                                 if($this->isTimeInRange($hour_f, $value['h_start'], $value['h_end'])){
                                     $status = 1;
                                     $trainer_id[] = $key;
+
                                 }
                             }
                         }
-
                         $hour_null = [
                             'time' => $hour_f,
                             'status' => $status,
@@ -132,12 +132,19 @@ class PageController extends Controller
                             'booking_subject' => null,
                             's' => in_array($hour_f, $hour_array_control) ? 1 : 0
                         ];
+                        if($status == 1){
+                            $user_trainer = User::where('id', $trainer_id[0])->first();
+                            if($user_trainer){
+                                $hour_null['flag'] = $user_trainer->flag;
+                            }
+                        }
+
                         if(isset($reserved[$day['date']])) {
                             if(!isset($reserved[$day['date']][$k][$hour_f])) {
                                 $day['fields'][$k]['times'][] = $hour_null;
                             }else{
                                 $res = Reservation::where('date_slot', $day['date'].' '.$hour_f)->where('field', $k)->where('status', '!=', 0)->first();
-                                $day_in = [
+                                $time_in = [
                                     'time' => $hour_f,
                                     'status' => 2,
                                     'id' => $res->id ?? '',
@@ -150,10 +157,10 @@ class PageController extends Controller
                                 if($res->lesson && User::find($res->booking_subject ?? 0)){
                                     $user_trainer = User::where('id', $res->booking_subject)->first();
                                     if($user_trainer){
-                                        $day_in['flag'] = $user_trainer->flag;
+                                        $time_in['flag'] = $user_trainer->flag;
                                     }
                                 }
-                                $day['fields'][$k]['times'][] = $day_in;
+                                $day['fields'][$k]['times'][] = $time_in;
                                     
                                 $day['fields'][$k]['match'] = ($day['fields'][$k]['match'] ?? 0) + 1;
                                 $day['reserved']++;
