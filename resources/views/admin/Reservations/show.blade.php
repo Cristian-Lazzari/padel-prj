@@ -111,6 +111,7 @@
             <p>
                 <strong>Creato il</strong> {{$reservation->created_at->format('d/m/Y')}},
                 <strong>Aggiornato il</strong> {{$reservation->updated_at->format('d/m/Y')}}
+                <strong>ID prenotazione: </strong> {{$reservation->id}}
             </p>
         </div>
         <div class="action_page">
