@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Mail\otpUser;
 use App\Models\Player;
 use App\Models\Setting;
+use App\Models\Reservation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
@@ -80,6 +81,25 @@ class PlayerController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Nessun utente trovato con queste credenziali',
+                'data' => []
+            ]); 
+        }
+    }
+    public function account(Request $request){
+        $data = $request->all();
+        $player = Player::where('id', $data['id'])->with('reservations')->first();
+        if($player){
+            $reservations = Reservation::where('booking_subject', $player->id)->with('players')->get();
+            $player->reservations_play = $reservations;
+            $player->logged = true;
+            return response()->json([
+                'success' => true,
+                'data' => $player
+            ]);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => $data,
                 'data' => []
             ]); 
         }

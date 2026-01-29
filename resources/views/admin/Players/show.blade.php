@@ -66,7 +66,7 @@
         @if(count($player_reservations))  
             <h2>Match prenotati da <strong> #{{$player->nickname}}</strong> </h2>
         @else
-            <h2> <strong> #{{$player->nickname}}</strong> non ha prenotato ancona a nessun match</h2>
+            <h2> <strong> #{{$player->nickname}}</strong> non ha prenotato ancora a nessun match</h2>
         @endif
         <div class="newtable w-100">
             @foreach ($player_reservations as $r)
@@ -168,7 +168,7 @@
         @if(count($player->reservations))
             <h2>Match in cui <strong> #{{$player->nickname}}</strong> ha giocato</h2>
         @else
-            <h2> <strong> #{{$player->nickname}}</strong> non ha giocato ancona a nessun match</h2>
+            <h2> <strong> #{{$player->nickname}}</strong> non ha giocato ancora a nessun match</h2>
         @endif
         <div class="newtable w-100">
             @foreach ($player->reservations as $r)
@@ -184,11 +184,8 @@
                 <div class="res_item">
                     <div class="left">
                         <div class="time_slot">{{$ora}}   
-                        <span class="second">{{$ora_fine}}
-                        </span>
-                        
+                        <span class="second">{{$ora_fine}}</span> 
                     </div>
-                    <div class="date">{{$data}}</div>
                     </div>
                     <div class="center">
                         <div>
