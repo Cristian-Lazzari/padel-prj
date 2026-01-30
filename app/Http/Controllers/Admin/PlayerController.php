@@ -121,8 +121,10 @@ class PlayerController extends Controller
     
     public function show($id)
     {
-        $player = Player::findOrFail($id);
-        $player_reservations = Reservation::where('booking_subject',$id)->with('players')->get();
+        $player = Player::with(['reservations' => function ($query) {
+            $query->orderBy('date_slot', 'desc'); // più recente → più vecchia
+        }])->find($id);
+        $player_reservations = Reservation::where('booking_subject',$id)->with('players')->orderBy('date_slot', 'desc')->get();
         return view('admin.Players.show', compact('player', 'player_reservations'));
     }
     

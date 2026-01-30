@@ -281,6 +281,7 @@ class ReservationController extends Controller
             $reservation->dinner = json_encode($old_dinner);
         }
         $reservation->status = $data['status'];
+        $reservation->lesson = $data['lesson'] == 1 ? 1 : null;
         $reservation->message = $data['message'] ?? null;
         $reservation->update();
         if (array_key_exists('players',$data)) {

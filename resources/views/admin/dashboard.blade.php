@@ -152,7 +152,7 @@
                                             <div class="time_slot">#{{$p->nickname}}</div>
                                             <div class="date">{{$p->name}} {{$p->surname}}</div>
                                         </div>
-                                        <div class="center player_center">
+                                        <div class="player_center">
 
                                             <div class="line">
                                                 <a href="{{route('admin.players.show', $p)}}"  class="donut-wrapper" style="--percent: {{ $p->level / 5 * 100}}">
