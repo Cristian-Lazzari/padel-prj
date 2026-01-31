@@ -129,7 +129,7 @@ body{
 }
 
 
-$svg: clamp(30px, 5vw, 37px);
+$svg: clamp(33px, 5vw, 37px);
  
 .d-back-g{
 
@@ -4035,9 +4035,10 @@ label{
             width: $svg;
             cursor: pointer;
             transition: all .2s ease-in-out;
-            padding: 7px;
+            padding: calc($svg / 3.5);
+            box-shadow: inset 0 0 10px 3px var(--c1);
             background-color: var(--c1_op_8);
-            border-radius: 5px;
+            border-radius: 10px;
             &:hover{
                 background-color: var(--c1) !important;
                 fill: var(--c2);
@@ -4070,6 +4071,13 @@ label{
             }
            
         }
+    }
+}
+.set_item{
+    background-color: var(--c1_op_8) !important;
+    .left{
+        justify-content: flex-start !important;
+        text-align: start !important;
     }
 }
 

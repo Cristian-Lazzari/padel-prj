@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Date;
+use App\Models\User;
+use App\Models\Player;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -14,7 +16,14 @@ class SettingController extends Controller
     
     public function index(){
         $settings = Setting::all()->keyBy('name');
-        return view('admin.settings', compact('settings'));
+        $users = User::where('role', 'trainer')->get();
+        $trainers = [];
+        foreach ($users as $u) {
+            $player = Player::find($u->playerId);
+            $player->flag = $u->flag;
+            $trainers[] = $player;
+        }
+        return view('admin.settings', compact('settings' , 'trainers'));
     }
 
     public function updateAll(Request $request)
