@@ -42,6 +42,19 @@ class SettingController extends Controller
         $setting['Periodo di Ferie']->property = json_encode($propertyArray);
         $setting['Periodo di Ferie']->save();
 
+        
+        if(!isset($setting['Impostazioni cena'])) {
+            $setting['Impostazioni cena'] = new Setting();
+            $setting['Impostazioni cena']->name = 'Impostazioni cena';
+        }
+
+        $setting['Impostazioni cena']->status = $data['dinner_status'];
+        $propertyArray = [
+            'user_mail' => $data['user_mail'],
+        ];
+        $setting['Impostazioni cena']->property = json_encode($propertyArray);
+        $setting['Impostazioni cena']->save();
+
 
         $contatti = [
             'phone'  => $request->phone,

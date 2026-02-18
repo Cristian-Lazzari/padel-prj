@@ -44,6 +44,37 @@
                     </div>
 
                 </div>
+                @php
+                    if(isset($settings['Impostazioni cena'])){
+                        $user_mail = json_decode($settings['Impostazioni cena']['property'], true)['user_mail'];
+                    }else {
+                        $user_mail = '';
+                    }
+                @endphp
+                <div class="set">
+                    <h4>Ristorante affiliato</h4>
+                    <div class="set-cont">
+                        <div class="radio-inputs">
+                            <label class="radio">
+                                <input type="radio" name="dinner_status"  @if(isset($settings['Impostazioni cena']) && $settings['Impostazioni cena']['status'] == 0) checked  @endif value="0" >
+                                <span class="name">Off</span>
+                            </label>
+
+                            <label class="radio">
+                                <input type="radio" name="dinner_status"  @if(isset($settings['Impostazioni cena']) && $settings['Impostazioni cena']['status'] == 2) checked  @endif value="2" >
+                                <span class="name">On</span>
+                            </label>
+                        </div>
+                        @php
+                            $property_adv = json_decode($settings['advanced']['property'], true);
+                        @endphp
+                        <div class="input-group my-3">
+                            <label class="input-group-text" id="user_mail">Email ristoratore</label>
+                            <input type="email" class="form-control"  name="user_mail" value="{{$user_mail}}">
+                        </div>
+                    </div>
+
+                </div>
          
 
                 @php

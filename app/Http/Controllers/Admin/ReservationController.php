@@ -207,7 +207,10 @@ class ReservationController extends Controller
             $r->booking_subject_surname = $player->surname ?? '';
             $r->m_during = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'][$r->field]['m_during'];
         }
-        return view('admin.Reservations.index', compact('reservations', 'field_set'));
+        $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
+        
+        //dd($dinner_off);
+        return view('admin.Reservations.index', compact('reservations', 'field_set', 'dinner_off'));
     }
 
 
@@ -242,7 +245,8 @@ class ReservationController extends Controller
         $player = Player::find($reservation->booking_subject);
         $reservation->booking_subject_name = $player->name ?? '';
         $reservation->booking_subject_surname = $player->surname ?? '';
-        return view('admin.Reservations.show', compact('reservation' ,'m_during'));
+        $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
+        return view('admin.Reservations.show', compact('reservation' ,'m_during','dinner_off'));
     }
 
     /**
@@ -258,8 +262,8 @@ class ReservationController extends Controller
         $player = Player::find($reservation->booking_subject);
         $reservation->booking_subject_name = $player->name ?? '';
         $reservation->booking_subject_surname = $player->surname ?? '';
-        
-        return view('admin.Reservations.edit', compact('reservation','players'));
+        $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
+        return view('admin.Reservations.edit', compact('reservation','players', 'dinner_off'));
     }
 
     /**

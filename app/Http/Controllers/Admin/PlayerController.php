@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
+use App\Models\Setting;
 
 class PlayerController extends Controller
 {
@@ -124,8 +125,9 @@ class PlayerController extends Controller
         $player = Player::with(['reservations' => function ($query) {
             $query->orderBy('date_slot', 'desc'); // più recente → più vecchia
         }])->find($id);
+        $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
         $player_reservations = Reservation::where('booking_subject',$id)->with('players')->orderBy('date_slot', 'desc')->get();
-        return view('admin.Players.show', compact('player', 'player_reservations'));
+        return view('admin.Players.show', compact('player', 'player_reservations', 'dinner_off'));
     }
     
     
