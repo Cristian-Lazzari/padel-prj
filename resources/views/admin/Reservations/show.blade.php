@@ -22,7 +22,7 @@
     
 <div class="page_nav">
     <div class="view_box pt-5">
-        <h1>Dettagli {{$title[$reservation->lesson]}}</h1>
+        <h1>Dettagli {{$title[$reservation->lesson ?? 0]}}</h1>
         <div class="central">
             <h2><span>Prenotato da:</span> <a class="my_btn_5" href="{{route('admin.players.show', $reservation->booking_subject)}}">{{$reservation->booking_subject_name}} {{$reservation->booking_subject_surname}}</a></h2>
             <div class=" my_btn_2 ml-auto 
