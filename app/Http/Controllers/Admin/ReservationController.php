@@ -186,7 +186,7 @@ class ReservationController extends Controller
             'time' => false,
         ]); //[ status, guests, time] 
         $match->message = $data['message'] ?? null;
-        $match->lesson = $data['lesson'] == 1 ? 1 :null;
+        $match->lesson = $data['lesson'];
         $match->booking_subject =  auth()->user()->playerId;
         $match->save();
         if (array_key_exists('players',$data)) {
@@ -285,7 +285,7 @@ class ReservationController extends Controller
             $reservation->dinner = json_encode($old_dinner);
         }
         $reservation->status = $data['status'];
-        $reservation->lesson = $data['lesson'] == 1 ? 1 : null;
+        $reservation->lesson = $data['lesson'];
         $reservation->message = $data['message'] ?? null;
         $reservation->update();
         if (array_key_exists('players',$data)) {

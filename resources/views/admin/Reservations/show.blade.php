@@ -12,12 +12,17 @@
     $ora_fine = $datetime->addMinutes($m_during * $reservation->duration)->format('H:i'); // es: 19:00
 
     $dinner = json_decode($reservation->dinner, true);
+    $title = [
+        0 => 'del MATCH',
+        1 => 'della LEZIONE',
+        2 => 'del TORNEO'
+    ]
 
 @endphp
     
 <div class="page_nav">
     <div class="view_box pt-5">
-        <h1>Dettagli {{$reservation->lesson ? ' della LEZIONE' : 'del MATCH'}}</h1>
+        <h1>Dettagli {{$title[$reservation->lesson]}}</h1>
         <div class="central">
             <h2><span>Prenotato da:</span> <a class="my_btn_5" href="{{route('admin.players.show', $reservation->booking_subject)}}">{{$reservation->booking_subject_name}} {{$reservation->booking_subject_surname}}</a></h2>
             <div class=" my_btn_2 ml-auto 

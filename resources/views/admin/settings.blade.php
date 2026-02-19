@@ -17,7 +17,7 @@
             <div class="top-set">
                 @csrf
                 <div class="set">
-                    <h4>Servizio</h4>
+                    <h4>Prenotazioni Online</h4>
                     <div class="set-cont">
                         <div class="radio-inputs">
                             <label class="radio">

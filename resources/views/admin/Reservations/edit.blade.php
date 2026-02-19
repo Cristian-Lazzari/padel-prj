@@ -19,11 +19,12 @@
     <form class="view_box pt-5" action="{{ route('admin.reservations.update', $reservation) }}"   method="POST">
         @csrf
         @method('PUT')
-        <h1 class="central">Modifica  {{$reservation->lesson ? ' la ' : 'il '}}
+        <h1 class="central">Modifica  {{$reservation->lesson == 1 ? ' la ' : 'il '}}
 
             <select name="lesson" id="">
-                <option @if(!$reservation->lesson) selected @endif value="1">Match</option>
-                <option @if($reservation->lesson) selected @endif value="0">Lezione</option>
+                <option @if(!$reservation->lesson || $reservation->lesson == 0) selected @endif value="0">Match</option>
+                <option @if($reservation->lesson == 1) selected @endif value="1">Lezione</option>
+                <option @if($reservation->lesson == 2) selected @endif value="2">Torneo</option>
             </select>
         </h1>
 

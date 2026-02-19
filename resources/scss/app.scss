@@ -4008,6 +4008,12 @@ label{
                     width: $fs_sm_1;
                 }
             }
+            .field{
+                align-self: stretch;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
         }
 
         p{
