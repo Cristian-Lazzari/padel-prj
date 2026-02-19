@@ -3567,9 +3567,10 @@ label{
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        padding-right: 75px;
-        text-shadow:  0px 0 2px var(--c2), 0px 0px 10px var(--c2);
-        //background: linear-gradient(45deg, var(--c2) 0%, var(--c1_op) 20%, var(--c2_op) 40%, var(--c1_op) 80%, var(--c2) 100%, ) !important;
+        padding-right: 45%;
+        font-size: $fs_md;
+        text-shadow:  0px 0 2px var(--c1), 0px 0px 10px var(--c1);
+        background: linear-gradient(45deg, var(--c2) 0%,  var(--c2_op) 40%, rgba(214, 214, 8, 0.719) 80%, var(--c2) 100%, ) !important;
     }
 
 }
