@@ -192,6 +192,7 @@
                                 <select name="lesson" id="">
                                     <option value="0">Partita</option>
                                     <option value="1">Lezione</option>
+                                    <option value="2">Torneo</option>
                                 </select>
                             </section>
                             <p class="desc"> 
@@ -379,6 +380,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             if(slot.lesson == 1){
                                 timeDiv.classList.add("lesson");
                                 timeDiv.style.setProperty('--flag', slot.flag);
+                            }else if(slot.lesson == 2){
+                                timeDiv.classList.add("booked","trophy", `bk_${slot.d}`);
                             }else{
                                 timeDiv.classList.add("booked", `bk_${slot.d}`);
                             }
