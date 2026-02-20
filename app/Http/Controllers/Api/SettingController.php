@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use Carbon\Carbon;
-use App\Models\Setting;
-use App\Models\Reservation;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Reservation;
+use App\Models\Setting;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class SettingController extends Controller
 {
@@ -17,11 +18,13 @@ class SettingController extends Controller
         foreach ($field_set as $k => $f) {
             $field_arr[] = $f['type'];
         }
+        $trainers = User::where('role', 'trainer')->get();
         return response()->json([
             'success' => true,
             'type_of_field' => array_unique($field_arr),
             'service' => $setting['Servizio di Prenotazione Online']->status,
-            'social' => $setting['Contatti']->property
+            'social' => $setting['Contatti']->property,
+            'trainers' => $trainers,
         ]);
     }
 
