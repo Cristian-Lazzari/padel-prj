@@ -34,11 +34,11 @@
                             $property_adv = json_decode($settings['advanced']['property'], true);
                         @endphp
                         <div class="input-group my-3">
-                            <label class="input-group-text" id="max_delay_default">Min. H per cancellazione</label>
+                            <label class="input-group-text" id="max_delay_default">Min H per annullare</label>
                             <input type="number" class="form-control"  name="max_delay_default" value="{{$property_adv['max_delay_default']}}">
                         </div>
                         <div class="input-group my-3">
-                            <label class="input-group-text" id="delay_trainer">H. per liberare il campo</label>
+                            <label class="input-group-text" id="delay_trainer">H per liberare il campo</label>
                             <input type="number" class="form-control"  name="delay_trainer" value="{{$property_adv['delay_trainer'] ?? ''}}">
                         </div>
                     </div>

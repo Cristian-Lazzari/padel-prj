@@ -127,7 +127,10 @@ class PlayerController extends Controller
         }])->find($id);
         $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
         $player_reservations = Reservation::where('booking_subject',$id)->with('players')->orderBy('date_slot', 'desc')->get();
-        return view('admin.Players.show', compact('player', 'player_reservations', 'dinner_off'));
+
+        $field_set = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'];
+
+        return view('admin.Players.show', compact('player', 'player_reservations', 'dinner_off', 'field_set'));
     }
     
     

@@ -9,7 +9,7 @@
     // Variabili separate
     $data = $datetime->translatedFormat('l j F'); // es: giovedì 25 settembre
     $ora = $datetime->format('H:i');              // es: 18:00
-    $ora_fine = $datetime->addMinutes($m_during * $reservation->duration)->format('H:i'); // es: 19:00
+    $ora_fine = $datetime->addMinutes($m_during * $reservation->duration)->format('H:i'); 
 
     $dinner = json_decode($reservation->dinner, true);
     $title = [
