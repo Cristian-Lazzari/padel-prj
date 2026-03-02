@@ -663,27 +663,33 @@ html{
             .bookings{
                 justify-content: flex-start;
                 align-items: flex-start;
-                gap: 3px;
                 position: absolute;
-                bottom: 3px;
-                left: 3px;
+                bottom: 0px;
+                left: 0px;
+                width: 100% ;
                 flex-wrap: nowrap;
-                font-size: $fs_xsm !important;   
-                svg{
-                    width: $fs_xsm;
-                    height: $fs_xsm;
-                       
-                }
-                strong{
-                    padding-bottom: 3px;
+                display: flex;
+                justify-content: space-between;
+                div{
+                    font-size: $fs_xsm !important;   
+                    display: flex;
+                    align-items: center;
+                    gap: 1px;
+                    //background-color: var(--c1_op_8);
+                    border-radius: 4px;
+                    padding: 1px 2px;
+                    color: var(--c1);
+                    svg{
+                        filter: none !important;
+                        fill: var(--c1);
+                        width: $fs_xsm;
+                        height: $fs_xsm;      
+                    }
                 }
             }
             .bookings.top{
-                top: 3px;
-                right: 3px;
+                top: 0px;
                 bottom: auto;
-                left: auto;
-
             }
 
         }

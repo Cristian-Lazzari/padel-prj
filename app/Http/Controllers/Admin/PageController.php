@@ -35,6 +35,8 @@ class PageController extends Controller
         $rows = DB::table('reservations')
             ->select(
                 'field',
+                // 'lesson',
+                // 'dinner',
                 'duration',
                 DB::raw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS day"),
                 DB::raw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS t")
@@ -93,7 +95,10 @@ class PageController extends Controller
                 'day_w' => $first_day->format('N'), // 1 = lunedì, 7 = domenica
                 'fields' => array_map(fn() => [], $field_set),
                 'status' => true, // libero, pieno, parziale 
-                'reserved' => 0,
+                'reserved_match' => 0,
+                'reserved_lesson' => 0,
+                'reserved_tournament' => 0,
+                'reserved_dinner' => 0,
             ];
             if(in_array($first_day->copy()->format('Y-m-d'), $adv['day_off'])){
                 $day['status'] = false;
@@ -154,16 +159,21 @@ class PageController extends Controller
                                     's' => in_array($hour_f, $hour_array_control) ? 1 : 0
                                 ];
                                 
-                                if($res->lesson){
+                                if($res->lesson == 1){
                                     $user_trainer = User::where('playerId', $res->booking_subject)->first();
-                                    if($user_trainer){
-                                        $time_in['flag'] = $user_trainer->flag;
-                                    }
+                                    if($user_trainer){ $time_in['flag'] = $user_trainer->flag;}
+                                    $day['reserved_lesson']++;
+                                }elseif($res->lesson == 2){
+                                    $day['reserved_tournament']++;
+                                }else{
+                                    $day['reserved_match']++;
+                                }
+                                if(json_decode($res->dinner, 1)['status'] == 1){
+                                    $day['reserved_dinner']++;
                                 }
                                 $day['fields'][$k]['times'][] = $time_in;
                                     
                                 $day['fields'][$k]['match'] = ($day['fields'][$k]['match'] ?? 0) + 1;
-                                $day['reserved']++;
                                 $start_time->addMinutes($f['m_during'] * ($reserved[$day['date']][$k][$hour_f] - 1));
                             }
                         }else{
