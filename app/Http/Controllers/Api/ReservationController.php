@@ -36,8 +36,25 @@ class ReservationController extends Controller
         
         $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
         $field_set = $adv['field_set'];
-        
-        $reserved = $this->get_res($now->addMinutes(30), $field_set, $data['type']);
+        $during = $field_set[$field]['m_during'];
+
+        $reservations = Reservation::where('date_slot', 'LIKE', '%' . $date . '%')
+            ->where('field', $field)
+            ->where('status', '!=', 0)
+            ->select('date_slot', 'duration')
+            ->get();
+        foreach ($reservations as $r) {
+            $t = Carbon::parse($r->date_slot);
+            if($this->isTimeInRange($time, $t->format('H:i'), $t->addMinutes($during * $r->duration)->format('H:i'))){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Campo non disponibile, ricarica la pagina per aggiornare le disponibilità!',
+                ]);
+
+            }
+            
+        }
+
         
         if (isset($reserved[$date])) {
             if (in_array($time, $reserved[$date][$field])) {
