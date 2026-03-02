@@ -118,8 +118,10 @@
         </div>
         <div class="more_info my-5" >
             <p>
-                <strong>Creato il</strong> {{$reservation->created_at->format('d/m/Y')}},
-                <strong>Aggiornato il</strong> {{$reservation->updated_at->format('d/m/Y')}}
+                <strong>Creato il</strong> {{$reservation->created_at->format('d/m/Y H:i')}}
+                 -,
+                <strong>Aggiornato il</strong> {{$reservation->updated_at->format('d/m/Y H:i')}}
+                 -,
                 <strong>ID prenotazione: </strong> {{$reservation->id}}
             </p>
         </div>

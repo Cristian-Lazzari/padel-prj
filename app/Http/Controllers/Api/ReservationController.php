@@ -207,7 +207,7 @@ class ReservationController extends Controller
                             $hour_f = $start_time->copy()->format('H:i');
                             
 
-                            if ($trainer_set !== null) {
+                            if ($trainer_set !== null) { // blocco per definere se staus è "trainer" (1)
                                 foreach ($trainer_set as $key => $value) {
                                     if(in_array($first_day->format('N'), $value['day_w']) && $k == $value['field'] ){
                                         if($this->isTimeInRange($hour_f, $value['h_start'], $value['h_end'])){
@@ -239,12 +239,10 @@ class ReservationController extends Controller
                                             if( !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes($f['m_during'])->format('H:i')]) &&
                                                 !isset($reserved[$day['date']][$k][$start_time->copy()->addMinutes($f['m_during'] * 2)->format('H:i')]))
                                             {
-                                                
                                                 $day['fields'][$k][] = $hour_f;
                                             }
                                         }
                                     }else{
-
                                         $start_time->addMinutes($f['m_during'] * ($reserved[$day['date']][$k][$hour_f]- 1) );
                                     }
                                 }else {
