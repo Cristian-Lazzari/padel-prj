@@ -381,10 +381,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                 timeDiv.classList.add("lesson");
                                 timeDiv.style.setProperty('--flag', slot.flag);
                             }else if(slot.lesson == 2){
-                                timeDiv.classList.add("booked","trophy", `bk_${slot.d}`);
+                                timeDiv.classList.add("booked","trophy");
                             }else{
-                                timeDiv.classList.add("booked", `bk_${slot.d}`);
+                                timeDiv.classList.add("booked");
                             }
+                            timeDiv.classList.add(`bk_${slot.d > 3 ? '3' : slot.d}`);
                             const link = document.createElement("a");
                             link.href = `/admin/reservations/${slot.id}`;
 
