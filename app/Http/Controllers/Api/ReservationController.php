@@ -222,8 +222,7 @@ class ReservationController extends Controller
                         do {
                             $status = 0;
                             $hour_f = $start_time->copy()->format('H:i');
-                            
-
+                        
                             if ($trainer_set !== null) { // blocco per definere se staus è "trainer" (1)
                                 foreach ($trainer_set as $key => $value) {
                                     if(in_array($first_day->format('N'), $value['day_w']) && $k == $value['field'] ){
@@ -236,19 +235,21 @@ class ReservationController extends Controller
                                             $ora   = $start_time->hour;
                                             $minuti = $start_time->minute;
 
-                                            // 3. Creo la data corretta
+                                            // // 3. Creo la data corretta
+                                            // $dataCorretta = Carbon::create($anno, $mese, $giorno, $ora, $minuti);
+                                            // if($dataCorretta->diffInHours(Carbon::now(), false) > $delay_trainer){
+                                            //     $status = 1;
+                                            // }
+
                                             $dataCorretta = Carbon::create($anno, $mese, $giorno, $ora, $minuti);
-                                            if($dataCorretta->diffInHours(Carbon::now(), false) > $delay_trainer){
+                                            if (Carbon::now()->diffInMinutes($dataCorretta, false) > $delay_trainer * 60) {
                                                 $status = 1;
                                             }
                                         }
                                     }
                                 }
                             }
-
-                            if($status == 0){
-
-                               
+                            if($status == 0){ 
                                 //da fixare dimanica per ogni durata minima di ogni campo
                                 if(isset($reserved[$day['date']])) {
                                     if(!isset($reserved[$day['date']][$k][$hour_f])) {

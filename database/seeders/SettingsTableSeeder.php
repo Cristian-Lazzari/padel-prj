@@ -42,6 +42,7 @@ class SettingsTableSeeder extends Seeder
                 [
                     'name' => 'advanced',
                     'property' => [
+                        'delay_trainer' => 7,
                         'max_delay_default' => 24,
                         'day_off' => [],
                         'field_set'=> [
