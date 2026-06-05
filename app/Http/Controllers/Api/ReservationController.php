@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Mail\confermaOrdineAdmin;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class ReservationController extends Controller
@@ -17,117 +18,134 @@ class ReservationController extends Controller
     
     public function get_reservation(Request $request)
     {
-        $data = $request->all();
+        try {
+            $data = $request->all();
 
-        $booking_subject = Player::where('id', $data['user_id'])->first();
-        if (!$booking_subject) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Utente non trovato',
-            ]);
-        }
-
-        $field = $data['field'];
-        $date_slot = $data['date_slot'];
-        $time = Carbon::parse($date_slot)->format('H:i');
-        $date = Carbon::parse($date_slot)->format('Y-m-d');
-        
-        $now = Carbon::now('Europe/Rome');
-        
-        $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
-        $field_set = $adv['field_set'];
-        $during = $field_set[$field]['m_during'];
-
-        $reservations = Reservation::where('date_slot', 'LIKE', '%' . $date . '%')
-            ->where('field', $field)
-            ->where('status', '!=', 0)
-            ->select('date_slot', 'duration')
-            ->get();
-        foreach ($reservations as $r) {
-            $t = Carbon::parse($r->date_slot);
-            if($this->isTimeInRange($time, $t->format('H:i'), $t->addMinutes($during * $r->duration)->format('H:i'))){
+            $booking_subject = Player::where('id', $data['user_id'])->first();
+            if (! $booking_subject) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Campo non disponibile, ricarica la pagina per aggiornare le disponibilità!',
-                ]);
-
-            }
-            
-        }
-
-        
-        if (isset($reserved[$date])) {
-            if (in_array($time, $reserved[$date][$field])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Campo non disponibile, RIPROVARE',
+                    'message' => 'Utente non trovato',
                 ]);
             }
-        }
 
+            $field = $data['field'];
+            $date_slot = $data['date_slot'];
+            $time = Carbon::parse($date_slot)->format('H:i');
+            $date = Carbon::parse($date_slot)->format('Y-m-d');
 
+            $now = Carbon::now('Europe/Rome');
 
-        $match = new Reservation();
-        $match->date_slot = $date_slot;
-        $match->field = $field; // 1, 2, 3 
-        $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
-        $match->duration = 3; 
-        $match->type = $data['type']; //padel, basket , calcio ...
-        $match->dinner = json_encode($data['dinner']); //[ status, guests, time] 
-        $match->message = $data['message'] ?? null;
-        $match->booking_subject = $booking_subject->id;
-    
-        $match->save();
-        $team = [];
-        if(isset($data['players']) && count($data['players']) > 0){     
-            foreach ($data['players'] as $p) {
-                $player = Player::where('nickname', $p)->first();
-                if ($player) {
-                    array_push($team, $player->id);
+            $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
+            $field_set = $adv['field_set'];
+            $during = $field_set[$field]['m_during'];
+
+            $reservations = Reservation::where('date_slot', 'LIKE', '%'.$date.'%')
+                ->where('field', $field)
+                ->where('status', '!=', 0)
+                ->select('date_slot', 'duration')
+                ->get();
+            foreach ($reservations as $r) {
+                $t = Carbon::parse($r->date_slot);
+                if ($this->isTimeInRange($time, $t->format('H:i'), $t->addMinutes($during * $r->duration)->format('H:i'))) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Campo non disponibile, ricarica la pagina per aggiornare le disponibilità!',
+                    ]);
+
+                }
+
+            }
+
+            if (isset($reserved[$date])) {
+                if (in_array($time, $reserved[$date][$field])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Campo non disponibile, RIPROVARE',
+                    ]);
                 }
             }
-            $match->players()->sync($team ?? []);
+
+            $match = new Reservation;
+            $match->date_slot = $date_slot;
+            $match->field = $field; // 1, 2, 3
+            $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
+            $match->duration = 3;
+            $match->type = $data['type']; // padel, basket , calcio ...
+            $match->dinner = json_encode($data['dinner']); // [ status, guests, time]
+            $match->message = $data['message'] ?? null;
+            $match->booking_subject = $booking_subject->id;
+
+            $match->save();
+            $team = [];
+            if (isset($data['players']) && count($data['players']) > 0) {
+                foreach ($data['players'] as $p) {
+                    $player = Player::where('nickname', $p)->first();
+                    if ($player) {
+                        array_push($team, $player->id);
+                    }
+                }
+                $match->players()->sync($team ?? []);
+            }
+            $contact = json_decode(Setting::where('name', 'Contatti')->first()->property, 1);
+            $bodymail = [
+                'to' => 'admin',
+                'res_id' => $match->id,
+
+                'title' => $booking_subject->name.' ha appena prenotato il campo '.$match->field,
+                'subtitle' => $data['dinner']['status'] ? 'Ha anche prenotato la cena per '.$data['dinner']['guests'].' persone alle ore '.$data['dinner']['time'] : 'Non ha prenotato la cena',
+
+                'name' => $booking_subject->name,
+                'surname' => $booking_subject->surname,
+                'mail' => $booking_subject->mail,
+
+                'date_slot' => $match->date_slot,
+                'team' => $match->players,
+                'status' => $match->status,
+
+                'message' => $data['message'] ?? null,
+                'booking_subject_id' => $booking_subject->id,
+
+                'field' => $match->field,
+                'phone' => $booking_subject->phone,
+                'admin_phone' => $contact['phone'] ?? null,
+                'max_delay_default' => $adv['max_delay_default'],
+
+            ];
+            try {
+                $mailAdmin = new confermaOrdineAdmin($bodymail);
+                Mail::to($contact['email'])->send($mailAdmin);
+
+                $bodymail['to'] = 'user';
+                $bodymail['title'] = 'Ciao '.$booking_subject->nickname.', grazie per aver prenotato un campo tramite la nostra web-app';
+                $bodymail['subtitle'] = 'Ti aspettiamo il '.$match->date_slot.' al campo '.$match->field.($data['dinner']['status'] ? ' e ricorda che hai prenotato la cena per '.$data['dinner']['guests'].' persone alle ore '.$data['dinner']['time'] : '');
+                $mail = new confermaOrdineAdmin($bodymail);
+                Mail::to($bodymail['mail'])->send($mail);
+            } catch (\Throwable $e) {
+                Log::warning('Reservation confirmation email failed', [
+                    'reservation_id' => $match->id,
+                    'exception' => $e,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'ok',
+                'data' => $data,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Reservation booking failed', [
+                'user_id' => $request->input('user_id'),
+                'date_slot' => $request->input('date_slot'),
+                'field' => $request->input('field'),
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Non siamo riusciti a completare la prenotazione online. Attualmente non è possibile prenotare: chiama la struttura per prenotare.',
+            ], 500);
         }
-        $contact = json_decode(Setting::where('name', 'Contatti')->first()->property, 1);
-        $bodymail = [
-            'to' => 'admin',
-            'res_id' => $match->id,
-
-            'title' =>  $booking_subject->name . ' ha appena prenotato il campo ' . $match->field,
-            'subtitle' => $data['dinner']['status'] ? 'Ha anche prenotato la cena per ' . $data['dinner']['guests'] . ' persone alle ore ' . $data['dinner']['time'] : 'Non ha prenotato la cena',
-            
-            'name' => $booking_subject->name,
-            'surname' => $booking_subject->surname,
-            'mail' => $booking_subject->mail,
-
-            'date_slot' => $match->date_slot,
-            'team' => $match->players,
-            'status' => $match->status,
-
-            'message' => $data['message'] ?? null,
-            'booking_subject_id' => $booking_subject->id,
-
-            'field' => $match->field,
-            'phone' => $booking_subject->phone,
-            'admin_phone' => $contact['phone'] ?? null,
-            'max_delay_default' => $adv['max_delay_default'],
-
-        
-        ];
-        $mailAdmin = new confermaOrdineAdmin($bodymail);
-        Mail::to($contact['email'])->send($mailAdmin);
-
-        $bodymail['to'] = 'user';
-        $bodymail['title'] = 'Ciao ' . $booking_subject->nickname . ', grazie per aver prenotato un campo tramite la nostra web-app';
-        $bodymail['subtitle'] = 'Ti aspettiamo il ' . $match->date_slot . ' al campo ' . $match->field . ($data['dinner']['status'] ? ' e ricorda che hai prenotato la cena per ' . $data['dinner']['guests'] . ' persone alle ore ' . $data['dinner']['time'] : '');
-        $mail = new confermaOrdineAdmin($bodymail);
-        Mail::to($bodymail['mail'])->send($mail);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'ok',
-            'data' => $data
-        ]);
     }
 
     private function get_res($now, $field_set, $type){
