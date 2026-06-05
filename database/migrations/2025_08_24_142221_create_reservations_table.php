@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('message')->nullable(); // messaggio opzionale
             $table->string('type'); //padel, basket , calcio ...
             $table->text  ('dinner')->nullable(); //[ status, ospiti, orario]
-            $table->unsignedBigInteger('booking_subject'); //[id di chi ha fatto la prenotazione]
+            $table->tinyInteger('booking_subject'); //[id di chi ha fatto la prenotazione]
             $table->tinyInteger('duration'); //n * 30minuti
 
 
