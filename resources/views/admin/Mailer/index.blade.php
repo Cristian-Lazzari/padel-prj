@@ -1,334 +1,354 @@
+@extends('layouts.ui')
 
-@extends('layouts.base')
+@section('title', 'Comunicazioni - F+')
 
 @section('contents')
-@if (session('create_success'))
-    @php
-        $data = session('create_success')
-    @endphp
-    <div class="alert w-75 m-auto alert-primary">
-        {{ $data }}
-    </div>
-@endif
-@if (session('send_success'))
-    @php
-        $data = session('send_success')
-    @endphp
-    <div class="alert w-75 m-auto alert-success">
-        {{ $data }}
-    </div>
-@endif
-@if (session('extra'))
-    @php
-        $data = session('extra')
-    @endphp
-    <div class="alert w-75 m-auto alert-info">
-        {{ $data }}
-    </div>
-@endif
-{{-- compact('models', 'last_mail_list', 'extra_mail_list', 'users', 'order_users', 'reservation_users'));    --}}
 
-<div class="email-m pt-5">
-    
-    <h1 class="mt-5 ">Email Marketing</h1>
-    <section class="lists">
-        <h2>Le tue liste di contatti</h2>
-        <div class="list_wrap">
-            <h3>Contatti extra</h3>
-            <div class="list">
-                @foreach ($extra_mail_list as $i)
-                    <div class="contact">
-                        <span class="name">{{$i->name}}</span>
-                        <span class="mail">{{$i->email}}</span>
-                    </div>
-                @endforeach
-            </div>
-            <div class="params act">
-                <p>
-                    <span>{{count($extra_mail_list)}} contatti</span>
-                </p>
-                <button type="button" class="my_btn_1" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                    Modifica
-                </button>
-            </div>
+<nav class="ui-crumbs" aria-label="Percorso">
+    <a href="{{ route('admin.dashboard') }}">Gestionale</a>
+    <span class="ui-crumbs__sep" aria-hidden="true">@include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 10])</span>
+    <b>Comunicazioni</b>
+</nav>
+
+@foreach (['create_success' => '', 'send_success' => '', 'extra' => ''] as $chiave => $x)
+    @if (session($chiave))
+        <div class="ui-flash" role="alert">
+            @include('admin.partials.ui-icon', ['name' => 'check-circle-fill', 'size' => 20])
+            <span>{{ session($chiave) }}</span>
+            <button type="button" class="ui-flash__close" data-ui-dismiss aria-label="Chiudi avviso">
+                @include('admin.partials.ui-icon', ['name' => 'x-lg', 'size' => 14])
+            </button>
         </div>
-        <div class="list_wrap">
-            <h3>Contattati nell'ultima mail</h3>
-            <div class="list">
-                @foreach ($last_mail_list as $i)
-                    <div class="contact">
-                        <span class="name">{{$i->name}}</span>
-                        <span class="mail">{{$i->email}}</span>
-                    </div>
-                @endforeach
-            </div>
-            <div class="params act">
-                <p>
-                    <span>{{count($last_mail_list)}} contatti</span>
-                </p>
-            </div>
+    @endif
+@endforeach
+
+<header class="ui-head">
+    <div class="ui-head__title">
+        <h1>Comunicazioni</h1>
+        <div class="ui-head__count">
+            <span>Modelli <b>{{ count($models) }}</b></span>
+            <span>Contatti extra <b>{{ count($extra_mail_list) }}</b></span>
         </div>
-    </section>
-    
-    <section>
-        <h2>Modelli per Email</h2>
-        <a class="my_btn_2 m-2" href="{{route('admin.mailer.create_model')}}"> Crea un nuovo modello </a>
-        <div class="models">
-            @foreach ($models as $m)  
-                <div class="model">
-                    <div class="name my_btn_4 mb-4">{{$m['name']}}</div>
-        
-                    <h1>{{$m['heading']}}</h1>
-                
-                    @if($m['img_1'] !== NULL)   
-                    <img src="{{ asset('public/storage/' . $m['img_1']) }}" alt="">
-                    @endif
-                    
-                    <div class="corpo">
-                        @foreach (explode("/*/", $m['body']) as $b)
-                        
-                        {{-- <p>{!! Str::markdown($b) !!}</p> --}}
-                        <p>{!! nl2br(e(str_replace('\n', "\n", $b))) !!}</p>
+    </div>
+    <div class="ui-head__actions">
+        <a class="ui-btn" href="{{ route('admin.mailer.create_model') }}">
+            @include('admin.partials.ui-icon', ['name' => 'plus-lg', 'size' => 16])
+            <span>Nuovo modello</span>
+        </a>
+        <a class="ui-btn ui-btn--primary" href="{{ route('admin.mailer.send_mail') }}">
+            @include('admin.partials.ui-icon', ['name' => 'envelope-at', 'size' => 16])
+            <span>Avvia campagna</span>
+        </a>
+    </div>
+</header>
+
+{{-- ============ Liste di contatti ============ --}}
+<section class="ui-section">
+    <div class="ui-section__head"><h2>Liste di contatti</h2></div>
+
+    <div class="ui-cards">
+        <section class="ui-panel">
+            <div class="ui-panel__head">
+                <h2>Contatti extra</h2>
+                <span class="ui-panel__note">{{ count($extra_mail_list) }}</span>
+            </div>
+            <div class="mail_contacts">
+                @forelse ($extra_mail_list as $i)
+                    <span class="mail_contact"><b>{{ $i->name }}</b>{{ $i->email }}</span>
+                @empty
+                    <p class="ui-hint">Nessun contatto aggiunto a mano.</p>
+                @endforelse
+            </div>
+            <button type="button" class="ui-btn" data-bs-toggle="modal" data-bs-target="#listaExtra">
+                @include('admin.partials.ui-icon', ['name' => 'pencil-square', 'size' => 16])
+                <span>Modifica la lista</span>
+            </button>
+        </section>
+
+        <section class="ui-panel">
+            <div class="ui-panel__head">
+                <h2>Contattati nell'ultima mail</h2>
+                <span class="ui-panel__note">{{ count($last_mail_list) }}</span>
+            </div>
+            <div class="mail_contacts">
+                @forelse ($last_mail_list as $i)
+                    <span class="mail_contact"><b>{{ $i->name }}</b>{{ $i->email }}</span>
+                @empty
+                    <p class="ui-hint">Nessuna campagna inviata finora.</p>
+                @endforelse
+            </div>
+        </section>
+    </div>
+</section>
+
+{{-- ============ Modelli ============ --}}
+<section class="ui-section">
+    <div class="ui-section__head">
+        <h2>Modelli di email</h2>
+        <div class="ui-section__meta"><span class="ui-pill">{{ count($models) }}</span></div>
+    </div>
+
+    @if (count($models))
+        <div class="ui-cards">
+            @foreach ($models as $m)
+                <article class="ui-card">
+                    <div class="ui-card__head">
+                        <span class="ui-pill ui-pill--accent">{{ $m['name'] }}</span>
+                        <h3>{{ $m['heading'] }}</h3>
+                    </div>
+
+                    <div class="ui-card__body">
+                        @if ($m['img_1'] !== null)
+                            <img src="{{ asset('public/storage/'.$m['img_1']) }}" alt="" loading="lazy">
+                        @endif
+                        @foreach (explode('/*/', $m['body']) as $b)
+                            <p>{!! nl2br(e(str_replace('\n', "\n", $b))) !!}</p>
                         @endforeach
+                        @if ($m['img_2'] !== null)
+                            <img src="{{ asset('public/storage/'.$m['img_2']) }}" alt="" loading="lazy">
+                        @endif
+                        <p>{!! nl2br(e(str_replace('\n', "\n", $m['ending']))) !!}</p>
                     </div>
-                    
-                    @if($m['img_2'] !== NULL)   
-                        <img src="{{ asset('public/storage/' . $m['img_2']) }}" alt="">
-                    @endif
-        
-                    <p class="ending">{!! nl2br(e(str_replace('\n', "\n", $m['ending']))) !!}</p>
-        
-                    <div class="sender" style="color: #04001d">
-                        <p>{{$m['sender']}}</p>
-                        <p class="date">martedi 3 gennaio</p>
-                    </div>
-                    <div class="act">
-                        <a class="my_btn_1" href="{{route('admin.mailer.edit_model',  $m)}}">
-                            <svg style="vertical-align: sub" xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                            </svg>
-                        </a>
-                        <button type="button" class="my_btn_2" data-bs-toggle="modal" data-bs-target="#staticBackdrop{{$m->id}}">
-                            <svg style="vertical-align: sub" xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
-                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-                            </svg>
-                        </button>
-                        
-                    </div>
-                </div>
-                  <!-- Modal -->
-                <div class="modal fade" id="staticBackdrop{{$m->id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdrop{{$m->id}}Label" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered creation">
-                        <form action="{{ route('admin.models.delete', $m['id']) }}" class="creation modal-content" method="post" >
-                            @method('delete')
-                            @csrf
-                            <section>
-                                <div class="split">
-                                    <h1 class="modal-title fs-2" id="staticBackdrop{{$m->id}}Label">Sicuro di voler eliminare il modello?</h1>
-                                    <button type="button" class="btn-close my_btn_2" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <p>Il modello: " {{$m->name}}" non potrà piu essere recuperato una volta eliminato.</p>
-                                <button class="my_btn_2" type="submit">
-                                    Eliminina definitivamente
-                                </button>
-                            </section>
 
-                        </form>
+                    <div class="ui-card__foot">
+                        <span class="ui-code">{{ $m['sender'] }}</span>
+                        <div class="ui-actions">
+                            <a class="ui-action ui-action--icon" href="{{ route('admin.mailer.edit_model', $m) }}"
+                               aria-label="Modifica il modello {{ $m['name'] }}" title="Modifica">
+                                @include('admin.partials.ui-icon', ['name' => 'pencil-square', 'size' => 16])
+                            </a>
+                            <button type="button" class="ui-action ui-action--icon ui-action--danger"
+                                    data-bs-toggle="modal" data-bs-target="#eliminaModello{{ $m->id }}"
+                                    aria-label="Elimina il modello {{ $m['name'] }}" title="Elimina">
+                                @include('admin.partials.ui-icon', ['name' => 'trash3-fill', 'size' => 16])
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <div class="modal fade ui-modal" id="eliminaModello{{ $m->id }}" tabindex="-1"
+                     aria-labelledby="eliminaModello{{ $m->id }}Label" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <h2 id="eliminaModello{{ $m->id }}Label" style="font-size:19px;font-weight:700;margin-bottom:10px;">
+                                    Eliminare il modello "{{ $m->name }}"?
+                                </h2>
+                                <p class="ui-hint">Una volta eliminato non si recupera.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="ui-btn" data-bs-dismiss="modal">Lascia com'è</button>
+                                <form action="{{ route('admin.models.delete', $m['id']) }}" method="post">
+                                    @method('delete')
+                                    @csrf
+                                    <button class="ui-btn ui-btn--danger" type="submit">Elimina</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endforeach
         </div>
-    </section>
-    <a class="my_btn_6 m-auto w-50 m-2" href="{{route('admin.mailer.send_mail')}}"> Avvia Campagna </a>
-
-      
-      <!-- Modal -->
-    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog creation">
-
-            <form class="creation modal-content"  action="{{ route('admin.mailer.extra_list') }}" method="POST">
-                @csrf
-                <section >
-
-                    <div class="split">
-                        <h1 class="modal-title fs-2" id="staticBackdropLabel">Aggiorna manualmente la lista</h1>
-                        <button type="button" class="btn-close my_btn_2" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-
-                    <div class="list" id="emailList">
-                        @foreach ($extra_mail_list as $i)
-                            <div class="wrappercontact">
-                                <input name="recipients[]" id="{{$i->email}}old" class="btn-check" type="text" value="{{json_encode($i)}}">
-                                <label class="contact" for="{{$i->email}}old">
-                                    <span class="name">{{$i->name}}</span>
-                                    <span class="mail">{{$i->email}}</span>
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="split">
-                        <div>
-                            <label class="label_c" for="sender">Mail e Nome *</label>   
-                            <input value="{{ old('name') }}" type="text"  id="emailInput" class="w-100" placeholder="email@mail.it nome, email1@mail.it nome2, ">
-                                @error('name') <p class="error">{{ $message }}</p> @enderror
-            
-                        </div>
-                        <div class="my_btn_3" id="addEmailsButton">Aggiungi</div>
-                    </div>
-    
-                </section>
-                <section>
-                    <button type="sumbit" class="my_btn_5">Aggiorna lista</button>
-                </section>
-
-            </form>
+    @else
+        <div class="ui-empty">
+            <span class="ui-empty__icon">@include('admin.partials.ui-icon', ['name' => 'envelope-at', 'size' => 25])</span>
+            <h2>Nessun modello di email</h2>
+            <p>Un modello è la struttura fissa della mail: intestazione, testo, immagini e firma. Ti serve per avviare una campagna.</p>
+            <a class="ui-btn ui-btn--primary" href="{{ route('admin.mailer.create_model') }}">
+                @include('admin.partials.ui-icon', ['name' => 'plus-lg', 'size' => 16])
+                <span>Crea il primo modello</span>
+            </a>
         </div>
-    </div>
+    @endif
+</section>
 
-      
-    
+{{-- ============ Finestra: lista contatti extra ============ --}}
+<div class="modal fade ui-modal" id="listaExtra" data-bs-backdrop="static" data-bs-keyboard="false"
+     tabindex="-1" aria-labelledby="listaExtraLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" action="{{ route('admin.mailer.extra_list') }}" method="POST">
+            @csrf
+            <div class="modal-body">
+                <h2 id="listaExtraLabel" style="font-size:19px;font-weight:700;margin-bottom:14px;">Contatti extra</h2>
+
+                {{-- id e classi restano quelli di prima: sono agganci del JS qui sotto --}}
+                <div class="list" id="emailList">
+                    @foreach ($extra_mail_list as $i)
+                        <div class="wrappercontact">
+                            <input name="recipients[]" id="{{ $i->email }}old" class="btn-check" type="text" value="{{ json_encode($i) }}">
+                            <label class="contact" for="{{ $i->email }}old">
+                                <span class="name">{{ $i->name }}</span>
+                                <span class="mail">{{ $i->email }}</span>
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="ui-field" style="margin-top:16px;">
+                    <label for="emailInput">Aggiungi contatti</label>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <input type="text" id="emailInput" style="flex:1 1 220px;"
+                               placeholder="mario@mail.it Mario, lucia@mail.it Lucia">
+                        <button type="button" class="ui-btn" id="addEmailsButton">Aggiungi</button>
+                    </div>
+                    <p class="ui-hint">Email e nome separati da uno spazio, più contatti separati da virgola.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ui-btn" data-bs-dismiss="modal">Chiudi</button>
+                <button type="submit" class="ui-btn ui-btn--primary">Aggiorna lista</button>
+            </div>
+        </form>
+    </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', async function() {
-    const emailList1 = document.getElementById('emailList');
-    const mail_old = Array.from(emailList1.querySelectorAll('.wrappercontact'));
+@endsection
 
-    mail_old.forEach(e => {
-        const removeButton = document.createElement('button');
-        removeButton.className = 'btn-close my_btn_2';
-        
-        removeButton.addEventListener('click', () => {
-            emailList1.removeChild(e);
-        });
-        e.appendChild(removeButton);
+@section('styles')
+<style>
+    /* Contatti come pastiglie: le classi .wrappercontact/.contact/.name/.mail
+       sono create anche dal JS in fondo alla pagina, quindi non si rinominano. */
+    .mail_contacts, #emailList{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        max-height: 220px;
+        overflow: auto;
+        padding: 2px;
+    }
+    .mail_contact, .ui-page .contact{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 34px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: rgba(216, 221, 232, .095);
+        font-size: 12.5px;
+        color: rgba(216, 221, 232, .62);
+        white-space: nowrap;
+    }
+    .mail_contact b, .ui-page .contact .name{ color: #d8dde8; font-weight: 600; }
+    .ui-page .wrappercontact{ display: inline-flex; align-items: center; gap: 4px; }
+    .ui-page .wrappercontact input{ display: none; }
+    /* Il bottone di rimozione lo crea il JS con le classi di Bootstrap */
+    .ui-page .wrappercontact .btn-close{
+        width: 26px; height: 26px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(233, 90, 90, .16);
+        color: #ef8181;
+        font-size: 13px;
+        line-height: 1;
+        cursor: pointer;
+        opacity: 1;
+    }
+    .ui-page .wrappercontact .btn-close::before{ content: "×"; }
+</style>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-ui-dismiss]').forEach((b) => {
+        b.addEventListener('click', () => b.closest('.ui-flash')?.remove());
     });
-    document.getElementById('addEmailsButton').addEventListener('click', function() {
+
+    const emailList1 = document.getElementById('emailList');
+    if (!emailList1) return;
+
+    Array.from(emailList1.querySelectorAll('.wrappercontact')).forEach((e) => {
+        e.appendChild(bottoneRimuovi(emailList1, e));
+    });
+
+    document.getElementById('addEmailsButton').addEventListener('click', function () {
         const emailInput = document.getElementById('emailInput');
         const emailList = document.getElementById('emailList');
-        const entries = emailInput.value.split(/[ ,]+(?=[^ ,]*@)/).filter(Boolean); // Divide mantenendo mail e nome
+        // Divide mantenendo insieme mail e nome
+        const entries = emailInput.value.split(/[ ,]+(?=[^ ,]*@)/).filter(Boolean);
 
-        const existingEmails = Array.from(emailList.querySelectorAll('input[name="recipients[]"]')).map(input => JSON.parse(input.value).email);
+        const existingEmails = Array.from(emailList.querySelectorAll('input[name="recipients[]"]'))
+            .map((input) => JSON.parse(input.value).email);
 
-        const mail_old = Array.from(emailList.querySelectorAll('wrappercontact'));
-
-        mail_old.forEach(e => {
-            const removeButton = document.createElement('button');
-            removeButton.className = 'btn-close my_btn_2';
-            
-            removeButton.addEventListener('click', () => {
-                emailList.removeChild(e);
-            });
-            e.appendChild(removeButton);
-        });
-
-        console.log(existingEmails)
-        entries.forEach(entry => {
-            const parts = entry.split(' ');
+        entries.forEach((entry) => {
+            const parts = entry.trim().split(' ');
             const email = parts[0];
-            const name = parts.slice(1).join(' ') || 'Senza Nome'; // Default se manca il nome
-            if(name !== 'Senza Nome'){
-                if (validateEmail(email)) {
-                    if (!existingEmails.includes(email)) {
-                        const uniqueId = `email-${Math.random().toString(36).substr(2, 9)}`;
+            const name = parts.slice(1).join(' ');
 
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'wrappercontact';
-
-                        const input = document.createElement('input');
-                        input.type = 'checkbox';
-                        input.checked = true;
-                        input.className = 'd-none';
-                        input.id = uniqueId;
-                        input.name = 'recipients[]';
-                        input.value = JSON.stringify({ email: email, name: name });
-
-
-                        const label = document.createElement('label');
-                        label.className = 'contact';
-                        //label.setAttribute('for', uniqueId);
-                        //label.textContent = `${name} <${email}>`;
-                            
-                        const span = document.createElement('span');
-                        span.className = 'name';
-                        span.textContent = `${name}`;
-
-                        const span1 = document.createElement('span');
-                        span1.className = 'mail';
-                        span1.textContent = `${email}`;
-                        label.appendChild(span);
-                        label.appendChild(span1);
-
-                        const removeButton = document.createElement('button');
-                        removeButton.className = 'btn-close my_btn_2';
-                        removeButton.addEventListener('click', () => {
-                            emailList.removeChild(wrapper);
-                        });
-
-                        wrapper.appendChild(input);
-                        wrapper.appendChild(label);
-                        wrapper.appendChild(removeButton);
-                        emailList.appendChild(wrapper);
-                    } else {
-                        showAlert('Email gia presente nella lista', 'danger', 8000);
-                    }
-                } else {
-                    showAlert('Email non valida', 'danger', 8000);
-                }
-            }else{
-                showAlert('Per ogni Email inseririre un nome destinatario in questo modo: "mario@mail.it mario, lucia@mail.it lucia"', 'danger', 8000);
+            if (!name) {
+                avviso('Per ogni email serve anche il nome: "mario@mail.it Mario, lucia@mail.it Lucia"');
+                return;
             }
+            if (!validateEmail(email)) {
+                avviso('Email non valida: ' + email);
+                return;
+            }
+            if (existingEmails.includes(email)) {
+                avviso('Email già presente nella lista: ' + email);
+                return;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'wrappercontact';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'recipients[]';
+            input.value = JSON.stringify({ email: email, name: name });
+
+            const label = document.createElement('label');
+            label.className = 'contact';
+
+            const span = document.createElement('span');
+            span.className = 'name';
+            span.textContent = name;
+
+            const span1 = document.createElement('span');
+            span1.className = 'mail';
+            span1.textContent = email;
+
+            label.appendChild(span);
+            label.appendChild(span1);
+            wrapper.appendChild(input);
+            wrapper.appendChild(label);
+            wrapper.appendChild(bottoneRimuovi(emailList, wrapper));
+            emailList.appendChild(wrapper);
+            existingEmails.push(email);
         });
 
-        emailInput.value = ''; // Svuota l'input
+        emailInput.value = '';
     });
 
+    function bottoneRimuovi(lista, riga) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn-close';
+        b.setAttribute('aria-label', 'Rimuovi contatto');
+        b.addEventListener('click', () => lista.removeChild(riga));
+        return b;
+    }
+
     function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
-    function showAlert(message, type, timeout) {
-        // Controlla se esiste già un contenitore per gli alert
-        let alertContainer = document.getElementById('alert-container');
-        if (!alertContainer) {
-            alertContainer = document.createElement('div');
-            alertContainer.id = 'alert-container';
-            alertContainer.style.position = 'fixed';
-            alertContainer.style.top = '0';
-            alertContainer.style.left = '50%';
-            alertContainer.style.transform = 'translateX(-50%)';
-            alertContainer.style.width = 'auto';
-            alertContainer.style.maxWidth = '90%';
-            alertContainer.style.zIndex = '5550'; // Sopra a tutto
-            document.body.appendChild(alertContainer);
+
+    // Avviso nel linguaggio della pagina, non un alert di Bootstrap
+    function avviso(messaggio) {
+        let cont = document.getElementById('ui-avvisi');
+        if (!cont) {
+            cont = document.createElement('div');
+            cont.id = 'ui-avvisi';
+            cont.style.cssText = 'position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:5550;display:grid;gap:8px;max-width:92vw;';
+            document.body.appendChild(cont);
         }
-
-        // Creazione dell'alert
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show shadow-lg`;
-        alertDiv.setAttribute('role', 'alert');
-        alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        `;
-
-        // Aggiunge l'alert al contenitore
-        alertContainer.appendChild(alertDiv);
-
-        // Rimuove l'alert dopo il timeout (default 5s)
-        setTimeout(() => {
-            alertDiv.classList.remove('show');
-            setTimeout(() => alertDiv.remove(), 150);
-        }, timeout);
+        // Stili in linea: l'avviso vive fuori da .ui-page, dove i token non arrivano
+        const el = document.createElement('div');
+        el.setAttribute('role', 'alert');
+        el.style.cssText = 'padding:14px 20px;border-radius:20px;background:rgba(233,90,90,.16);color:#d8dde8;font-size:14px;font-weight:600;box-shadow:0 12px 28px rgba(0,0,0,.28);';
+        el.textContent = messaggio;
+        cont.appendChild(el);
+        setTimeout(() => el.remove(), 6000);
     }
-
 });
 </script>
-<style>
-    .modal-header h1{
-        color: black
-    }
-
-</style>
+@endsection

@@ -445,6 +445,8 @@ document.addEventListener("DOMContentLoaded", () => {
                                 timeDiv.classList.add("booked");
                             }
                             timeDiv.classList.add(`bk_${slot.d > 3 ? '3' : slot.d}`);
+                            // Campo fisso: si distingue dalle prenotazioni normali
+                            if (slot.fixed) timeDiv.classList.add("fixed_slot");
                             const link = document.createElement("a");
                             link.href = `/admin/reservations/${slot.id}`;
 
@@ -454,7 +456,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             const spanSubj = document.createElement("span");
                             spanSubj.classList.add("booking_subject");
-                            spanSubj.textContent = `#${slot.booking_subject}`;
+                            spanSubj.textContent = slot.fixed ? `\u21bb #${slot.booking_subject}` : `#${slot.booking_subject}`;
 
                             link.appendChild(spanTime);
                             link.appendChild(spanSubj);
@@ -620,6 +622,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+
+<style>
+    /* Campo fisso ricorrente: si distingue dalle prenotazioni normali */
+    .time.fixed_slot {
+        outline: 2px dashed rgba(204, 108, 231, .85);
+        outline-offset: -2px;
+    }
+    .time.fixed_slot .booking_subject { font-style: italic; }
+</style>
+
 @endsection
 
 
@@ -686,6 +698,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (slot.status == 2) {
                             // se è già prenotato, creo link e span
                             timeDiv.classList.add("booked", `bk_${slot.d}`);
+                            if (slot.fixed) timeDiv.classList.add("fixed_slot");
                             const link = document.createElement("a");
                             link.href = `/admin/reservations/${slot.id}`;
 
@@ -695,7 +708,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             const spanSubj = document.createElement("span");
                             spanSubj.classList.add("booking_subject");
-                            spanSubj.textContent = `#${slot.booking_subject}`;
+                            spanSubj.textContent = slot.fixed ? `\u21bb #${slot.booking_subject}` : `#${slot.booking_subject}`;
 
                             link.appendChild(spanTime);
                             link.appendChild(spanSubj);

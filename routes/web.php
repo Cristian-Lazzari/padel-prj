@@ -8,6 +8,9 @@ use App\Http\Controllers\Admin\MailerController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ReservationController;
+use App\Http\Controllers\Admin\TournamentController;
+use App\Http\Controllers\Admin\FixedSlotController;
+use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Guests\PageController as GuestsPageController;
 
@@ -49,6 +52,11 @@ Route::middleware(['auth', 'verified'])
 
         Route::post('/reservations/cancel',    [ReservationController::class, 'cancel'])->name('reservations.cancel');
 
+        // Gestione degli iscritti alle partite aperte
+        Route::post('/reservations/{id}/participants',              [ReservationController::class, 'addParticipant'])->name('reservations.participants.store');
+        Route::delete('/reservations/{id}/participants/{playerId}', [ReservationController::class, 'removeParticipant'])->name('reservations.participants.destroy');
+        Route::post('/reservations/{id}/close-open',                [ReservationController::class, 'closeOpen'])->name('reservations.close_open');
+
         Route::post('/reservations/createFromD',    [ReservationController::class, 'createFromD'])->name('reservations.createFromD');
         Route::post('/settings/cancelDates',        [SettingController::class, 'cancelDates'])->name('settings.cancelDates');
         
@@ -58,6 +66,33 @@ Route::middleware(['auth', 'verified'])
         
 
 
+        // Tornei: iscritti, calendario e risultati
+        Route::post('/tournaments/{tournament}/registrations',                       [TournamentController::class, 'registrationStore'])->name('tournaments.registrations.store');
+        Route::post('/tournaments/{tournament}/registrations/{registration}/status', [TournamentController::class, 'registrationStatus'])->name('tournaments.registrations.status');
+        Route::post('/tournaments/{tournament}/registrations/{registration}/paid',   [TournamentController::class, 'registrationPaid'])->name('tournaments.registrations.paid');
+
+        Route::post('/tournaments/{tournament}/matches',                  [TournamentController::class, 'matchStore'])->name('tournaments.matches.store');
+        Route::post('/tournaments/{tournament}/matches/{match}',          [TournamentController::class, 'matchUpdate'])->name('tournaments.matches.update');
+        Route::delete('/tournaments/{tournament}/matches/{match}',        [TournamentController::class, 'matchDestroy'])->name('tournaments.matches.destroy');
+
+        Route::post('/tournaments/{tournament}/reminder',                 [TournamentController::class, 'reminder'])->name('tournaments.reminder');
+
+        // Campi fissi
+        Route::post('/fixed-slots/{fixedSlot}/status',                       [FixedSlotController::class, 'status'])->name('fixed-slots.status');
+        Route::post('/fixed-slots/{fixedSlot}/exceptions',                   [FixedSlotController::class, 'exceptionStore'])->name('fixed-slots.exceptions.store');
+        Route::delete('/fixed-slots/{fixedSlot}/exceptions/{exception}',     [FixedSlotController::class, 'exceptionDestroy'])->name('fixed-slots.exceptions.destroy');
+        Route::resource('fixed-slots', FixedSlotController::class)->parameters(['fixed-slots' => 'fixedSlot']);
+
+        // Bacheca annunci
+        Route::post('/listings/settings',              [ListingController::class, 'updateSettings'])->name('listings.settings');
+        Route::post('/listings/{listing}/approve',     [ListingController::class, 'approve'])->name('listings.approve');
+        Route::post('/listings/{listing}/reject',      [ListingController::class, 'reject'])->name('listings.reject');
+        Route::post('/listings/{listing}/status',      [ListingController::class, 'status'])->name('listings.status');
+        Route::delete('/listings/{listing}',           [ListingController::class, 'destroy'])->name('listings.destroy');
+        Route::get('/listings/{listing}',              [ListingController::class, 'show'])->name('listings.show');
+        Route::get('/listings',                        [ListingController::class, 'index'])->name('listings.index');
+
+        Route::resource('tournaments',   TournamentController::class);
         Route::resource('reservations',  ReservationController::class);
         Route::resource('players',  PlayerController::class);
 

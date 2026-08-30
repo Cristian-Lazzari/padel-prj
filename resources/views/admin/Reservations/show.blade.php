@@ -1,171 +1,241 @@
-@extends('layouts.base')
+@extends('layouts.ui')
+
+@section('title', 'Prenotazione - F+')
 
 @section('contents')
 
 @php
-    // Parsing della stringa
     $datetime = Carbon\Carbon::parse($reservation->date_slot)->locale('it');
-
-    // Variabili separate
-    $data = $datetime->translatedFormat('l j F'); // es: giovedì 25 settembre
-    $ora = $datetime->format('H:i');              // es: 18:00
-    $ora_fine = $datetime->addMinutes($m_during * $reservation->duration)->format('H:i'); 
+    $data     = $datetime->translatedFormat('l j F');
+    $ora      = $datetime->format('H:i');
+    $ora_fine = $datetime->copy()->addMinutes($m_during * $reservation->duration)->format('H:i');
 
     $dinner = json_decode($reservation->dinner, true);
-    $title = [
-        0 => 'del MATCH',
-        1 => 'della LEZIONE',
-        2 => 'del TORNEO'
-    ]
-
+    $tipo   = [0 => 'Partita', 1 => 'Lezione', 2 => 'Torneo'][$reservation->lesson ?? 0] ?? 'Partita';
+    $annullata = $reservation->status == 0;
+    $intestatario = trim($reservation->booking_subject_name.' '.$reservation->booking_subject_surname);
 @endphp
-    
-<div class="page_nav">
-    <div class="view_box pt-5">
-        <h1>Dettagli {{$title[$reservation->lesson ?? 0]}}</h1>
-        <div class="central">
-            <h2><span>Prenotato da:</span> <a class="my_btn_5" href="{{route('admin.players.show', $reservation->booking_subject)}}">{{$reservation->booking_subject_name}} {{$reservation->booking_subject_surname}}</a></h2>
-            <div class=" my_btn_2 ml-auto 
-            @if($reservation->status == 0)  btn_delete @endif
-            ">{{$reservation->status == 1 ? 'Confermata' : 'Annullata'}}</div>
+
+<nav class="ui-crumbs" aria-label="Percorso">
+    <a href="{{ route('admin.dashboard') }}">Gestionale</a>
+    <span class="ui-crumbs__sep" aria-hidden="true">@include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 10])</span>
+    <a href="{{ route('admin.reservations.index') }}">Prenotazioni</a>
+    <span class="ui-crumbs__sep" aria-hidden="true">@include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 10])</span>
+    <b>{{ $intestatario ?: 'Dettaglio' }}</b>
+</nav>
+
+@if (session('message'))
+    <div class="ui-flash" role="alert">
+        @include('admin.partials.ui-icon', ['name' => 'check-circle-fill', 'size' => 20])
+        <span>{{ session('message') }}</span>
+    </div>
+@endif
+
+@if ($errors->any())
+    <div class="ui-flash ui-flash--error" role="alert">
+        @include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 20])
+        <ul>@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+    </div>
+@endif
+
+<header class="ui-head">
+    <div class="ui-head__title">
+        <h1>{{ $tipo }} di {{ $intestatario ?: 'ospite' }}</h1>
+        <div class="ui-head__count">
+            <span>{{ ucfirst($data) }}</span>
+            <span>{{ $ora }} → {{ $ora_fine }}</span>
+            <span>Campo <b>{{ $reservation->field }}</b></span>
         </div>
-        <div class="box_container">
-            <div class="box ">
-                <p>
-                    <strong class="field">Campo </strong>
-                    <span>{{$reservation->field}}</span>
-                </p>
-                <p>
-                    <strong class="field">Data</strong>
-                    <span class="date">{{$data}}</span>
-                </p>
-                
-            </div>
-            <div class="box ">
-                <p>
-                    <strong class="field">Orario </strong>
-                    <span>{{$ora}}  -  {{$ora_fine}}</span>
-                </p>
-                @if ($dinner_off)
-                
-                    <p>
-                        <strong>Cena</strong>
-                        @if ($dinner['status'])
-                        
-                        <span> 
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
-                                <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
-                            </svg>
-                            {{$dinner['guests']}} &nbsp; &nbsp;
-                    
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z"/>
-                                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
-                                <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
-                            </svg>
-                            {{ $dinner['time'] }}</span>
-                        
-                        @else
-                            <span>Non prenotata</span>
-                        @endif
-                    </p>
-                @endif
-            </div>
-            
-            <div class="box note">
-                <div>
-                    <h2>Note</h2> 
-                    <p>
-                        @if ($reservation->message)
-                            {{$reservation->message}}
-                        @else
-                            Nessuna nota
-                        @endif
-                    </p>
+    </div>
+    <div class="ui-head__actions">
+        <a class="ui-btn" href="{{ route('admin.reservations.index') }}">
+            @include('admin.partials.ui-icon', ['name' => 'arrow-90deg-left', 'size' => 16])
+            <span>Torna all'elenco</span>
+        </a>
+        <a class="ui-btn ui-btn--primary" href="{{ route('admin.reservations.edit', $reservation) }}">
+            @include('admin.partials.ui-icon', ['name' => 'pencil-square', 'size' => 16])
+            <span>Modifica</span>
+        </a>
+    </div>
+</header>
+
+<div class="ui-split">
+    <div class="ui-split__main">
+
+        {{-- Partita aperta: sta in cima perché è l'unica parte che richiede una decisione --}}
+        @if ($reservation->is_open)
+            @php $cat_labels = ['match' => 'Partita', 'lesson' => 'Lezione', 'tournament' => 'Torneo']; @endphp
+            <section class="ui-panel">
+                <div class="ui-panel__head">
+                    <h2>Partita aperta</h2>
+                    <span class="ui-panel__note">{{ $reservation->slots_taken }}/{{ $reservation->slots_total }} posti</span>
                 </div>
-            </div>
-        </div>
-        <div class="box players">
-            @if (!$reservation->players->isEmpty()) <h3>Giocatori presenti alla partita</h3> @endif
-           
-            @foreach ($reservation->players as $p)
-                <div class="res_item">
-                    <div class="left">
-                        <div class="time_slot">#{{$p->nickname}}</div>
-                        <div class="date">{{$p->name}} {{$p->surname}}</div>
+                <div class="ui-facts">
+                    <div class="ui-fact">
+                        <span>Categoria</span>
+                        <strong>{{ $cat_labels[$reservation->open_category] ?? 'Partita' }}</strong>
                     </div>
-                    <div class="player_center">
-                        <div class="donut-wrapper" style="--percent: {{ $p->level / 5 * 100}}">
-                            <p>
-                                {{ $p->level }}
-                            </p>
+                    <div class="ui-fact">
+                        <span>Livello richiesto</span>
+                        <strong>{{ $reservation->levelLabel() }}</strong>
+                    </div>
+                    <div class="ui-fact">
+                        <span>Iscrizioni fino al</span>
+                        <strong>{{ $reservation->open_closes_at ? $reservation->open_closes_at->format('d/m/Y H:i') : 'inizio slot' }}</strong>
+                    </div>
+                </div>
+                @if ($reservation->open_note)
+                    <p class="ui-hint">{{ $reservation->open_note }}</p>
+                @endif
+                <form action="{{ route('admin.reservations.close_open', $reservation->id) }}" method="post">
+                    @csrf
+                    <button class="ui-btn ui-btn--danger" type="submit">Chiudi le iscrizioni</button>
+                </form>
+            </section>
+        @endif
+
+        <section class="ui-panel">
+            <div class="ui-panel__head">
+                <h2>Giocatori</h2>
+                <span class="ui-panel__note">{{ $reservation->players->count() }} in elenco</span>
+            </div>
+
+            @forelse ($reservation->players as $p)
+                @php
+                    $join_labels = [
+                        'accepted'  => ['ui-pill--accent', 'Iscritto'],
+                        'pending'   => ['ui-pill--warn',   'In attesa'],
+                        'rejected'  => ['ui-pill--danger', 'Rifiutato'],
+                        'cancelled' => ['ui-pill--danger', 'Annullato'],
+                    ];
+                    $join = $join_labels[$p->pivot->join_status] ?? ['ui-pill--accent', 'Iscritto'];
+                @endphp
+                <div class="ui-row" style="padding: 14px 18px;">
+                    <div class="ui-name">
+                        <a href="{{ route('admin.players.show', $p) }}">#{{ $p->nickname }}</a>
+                        <div class="ui-name__meta">
+                            <span>{{ $p->name }} {{ $p->surname }}</span>
+                            <span class="ui-pill {{ $join[0] }}">{{ $join[1] }}</span>
+                            @if ($p->pivot->is_owner)
+                                <span class="ui-pill">Organizzatore</span>
+                            @endif
+                            <span class="ui-code">livello {{ $p->level }}</span>
                         </div>
                     </div>
-                    <div class="actions">
-                        
-                        <a href="{{route('admin.players.show', $p)}}" class="show">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
-                                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
-                                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
-                            </svg>
+                    <div class="ui-actions">
+                        <a class="ui-action ui-action--icon" href="{{ route('admin.players.show', $p) }}"
+                           aria-label="Scheda di {{ $p->nickname }}" title="Scheda">
+                            @include('admin.partials.ui-icon', ['name' => 'eye-fill', 'size' => 16])
                         </a>
-                    </div>
-                </div>
-            @endforeach
-            @if ($reservation->players->isEmpty())
-                <p>Nessun giocatore associato a questa prenotazione</p>
-            @endif
-        </div>
-        <div class="more_info my-5" >
-            <p>
-                <strong>Creato il</strong> {{$reservation->created_at->format('d/m/Y H:i')}},
-                <strong>Aggiornato il</strong> {{$reservation->updated_at->format('d/m/Y H:i')}},
-                <strong>ID prenotazione: </strong> {{$reservation->id}}
-            </p>
-        </div>
-        <div class="action_page">
-            <a class="my_btn_7" href="{{ route('admin.reservations.edit', $reservation) }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                </svg>
-                Modifica
-            </a>
-            @if ($reservation->status !== '0')     
-                <button class="my_btn_6 btn_delete" type="button" data-bs-toggle="modal" data-bs-target="#exampleModaldelete">
-                    Annulla Match
-                </button>
-            @endif
-
-                
-        </div>
-
-       
-
-
-        <!-- Modal -->
-        <div class="modal fade" id="exampleModaldelete" tabindex="-1" aria-labelledby="exampleModaldeleteLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <button type="button" class="btn_close mb-3" data-bs-dismiss="modal">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M1.146 4.854a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H12.5A2.5 2.5 0 0 1 15 6.5v8a.5.5 0 0 1-1 0v-8A1.5 1.5 0 0 0 12.5 5H2.707l3.147 3.146a.5.5 0 1 1-.708.708z"/>
-                            </svg>
-                        </button>
-                        <h3>Sei sicuro di voler anullare questo Match?</h3>
-                        <p>Annullando il match da questa finestra manderai automaticamente la mail con la disdetta a {{$reservation->booking_subject_name}}</p>
-                        <form class="w-100" action="{{ route('admin.reservations.cancel') }}" method="post" >
-                            @method('POST')
+                        <form action="{{ route('admin.reservations.participants.destroy', ['id' => $reservation->id, 'playerId' => $p->id]) }}"
+                              method="post" onsubmit="return confirm('Rimuovere #{{ $p->nickname }} da questa prenotazione?')">
                             @csrf
-                            <input value="{{$reservation->id}}" type="hidden" name="id">
-                            <button class="my_btn_1 btn_delete m-auto mt-4" type="submit">Annulla</button>
+                            @method('DELETE')
+                            <button type="submit" class="ui-action ui-action--icon ui-action--danger"
+                                    aria-label="Rimuovi {{ $p->nickname }} dalla prenotazione" title="Rimuovi">
+                                @include('admin.partials.ui-icon', ['name' => 'trash3-fill', 'size' => 16])
+                            </button>
                         </form>
                     </div>
+                </div>
+            @empty
+                <p class="ui-hint">Nessun giocatore associato a questa prenotazione.</p>
+            @endforelse
+
+            <form class="ui-field" action="{{ route('admin.reservations.participants.store', $reservation->id) }}" method="post">
+                @csrf
+                <label for="player_id">Aggiungi un partecipante</label>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <select name="player_id" id="player_id" required style="flex:1 1 220px;">
+                        <option value="">Seleziona un giocatore</option>
+                        @foreach ($available_players as $ap)
+                            <option value="{{ $ap->id }}">#{{ $ap->nickname }} — {{ $ap->name }} {{ $ap->surname }} (liv. {{ $ap->level }})</option>
+                        @endforeach
+                    </select>
+                    <button class="ui-btn" type="submit">Aggiungi</button>
+                </div>
+                @error('player_id') <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
+            </form>
+        </section>
+
+        @if ($reservation->message)
+            <section class="ui-panel">
+                <div class="ui-panel__head"><h2>Nota di chi ha prenotato</h2></div>
+                <p>{{ $reservation->message }}</p>
+            </section>
+        @endif
+    </div>
+
+    <aside class="ui-split__side">
+        <section class="ui-panel">
+            <div class="ui-panel__head"><h2>Stato</h2></div>
+            <span class="ui-status {{ $annullata ? 'ui-status--cancelled' : 'ui-status--running' }}">
+                {{ $annullata ? 'Annullata' : 'Confermata' }}
+            </span>
+
+            <div class="ui-facts" style="grid-template-columns: 1fr;">
+                <div class="ui-fact">
+                    <span>Prenotato da</span>
+                    <strong>
+                        @if ($reservation->booking_subject)
+                            <a href="{{ route('admin.players.show', $reservation->booking_subject) }}">{{ $intestatario ?: 'Ospite' }}</a>
+                        @else
+                            {{ $intestatario ?: 'Ospite' }}
+                        @endif
+                    </strong>
+                </div>
+                @if ($dinner_off)
+                    <div class="ui-fact">
+                        <span>Cena</span>
+                        @if ($dinner['status'] ?? false)
+                            <strong>{{ $dinner['guests'] }} coperti alle {{ $dinner['time'] }}</strong>
+                        @else
+                            <strong>Non prenotata</strong>
+                        @endif
+                    </div>
+                @endif
+            </div>
+
+            @if (! $annullata)
+                <button class="ui-btn ui-btn--danger" type="button" data-bs-toggle="modal" data-bs-target="#annullaPrenotazione">
+                    @include('admin.partials.ui-icon', ['name' => 'ban', 'size' => 16])
+                    <span>Annulla {{ Str::lower($tipo) }}</span>
+                </button>
+            @endif
+        </section>
+
+        <p class="ui-panel__note" style="padding: 0 6px;">
+            Creata il {{ $reservation->created_at->format('d/m/Y H:i') }} ·
+            aggiornata il {{ $reservation->updated_at->format('d/m/Y H:i') }} ·
+            ID {{ $reservation->id }}
+        </p>
+    </aside>
+</div>
+
+@if (! $annullata)
+    <div class="modal fade ui-modal" id="annullaPrenotazione" tabindex="-1" aria-labelledby="annullaPrenotazioneLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h2 id="annullaPrenotazioneLabel" style="font-size:19px;font-weight:700;margin-bottom:10px;">
+                        Annullare questa prenotazione?
+                    </h2>
+                    <p class="ui-hint">
+                        Annullando da qui parte automaticamente la mail di disdetta a
+                        {{ $intestatario ?: 'chi ha prenotato' }}.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="ui-btn" data-bs-dismiss="modal">Lascia com'è</button>
+                    <form action="{{ route('admin.reservations.cancel') }}" method="post">
+                        @csrf
+                        <input value="{{ $reservation->id }}" type="hidden" name="id">
+                        <button class="ui-btn ui-btn--danger" type="submit">Annulla la prenotazione</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
+@endif
 
 @endsection

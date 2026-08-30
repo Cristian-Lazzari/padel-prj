@@ -1,134 +1,197 @@
-@extends('layouts.base')
+@extends('layouts.ui')
+
+@section('title', 'Modifica prenotazione - F+')
 
 @section('contents')
 
 @php
-    // Parsing della stringa
     $datetime = Carbon\Carbon::parse($reservation->date_slot)->locale('it');
-
-    // Variabili separate
-    $data = $datetime->translatedFormat('l j F'); // es: giovedì 25 settembre
-    $ora = $datetime->format('H:i');              // es: 18:00
-    $ora_fine = $datetime->addHour()->addMinutes(30)->format('H:i'); // es: 19:00
-
-    $dinner = json_decode($reservation->dinner, true);
-
+    $data     = $datetime->translatedFormat('l j F');
+    $ora      = $datetime->format('H:i');
+    $dinner   = json_decode($reservation->dinner, true);
+    $intestatario = trim($reservation->booking_subject_name.' '.$reservation->booking_subject_surname);
+    $scelti   = $reservation->players->pluck('id');
 @endphp
-    
-<div class="page_nav">
-    <form class="view_box pt-5" action="{{ route('admin.reservations.update', $reservation) }}"   method="POST">
-        @csrf
-        @method('PUT')
-        <h1 class="central">Modifica  {{$reservation->lesson == 1 ? ' la ' : 'il '}}
 
-            <select name="lesson" id="">
-                <option @if(!$reservation->lesson || $reservation->lesson == 0) selected @endif value="0">Match</option>
-                <option @if($reservation->lesson == 1) selected @endif value="1">Lezione</option>
-                <option @if($reservation->lesson == 2) selected @endif value="2">Torneo</option>
-            </select>
-        </h1>
+<nav class="ui-crumbs" aria-label="Percorso">
+    <a href="{{ route('admin.dashboard') }}">Gestionale</a>
+    <span class="ui-crumbs__sep" aria-hidden="true">@include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 10])</span>
+    <a href="{{ route('admin.reservations.index') }}">Prenotazioni</a>
+    <span class="ui-crumbs__sep" aria-hidden="true">@include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 10])</span>
+    <b>Modifica</b>
+</nav>
 
-        <div class="central">
-            <h2><span>Prenotato da:</span> <a class="my_btn_5" href="{{route('admin.players.show', $reservation->booking_subject)}}">{{$reservation->booking_subject_name}} {{$reservation->booking_subject_surname}}</a></h2>
-            <select name="status" id="">
-                <option @if($reservation->status == 1) selected @endif value="1">Confermata</option>
-                <option @if($reservation->status == 0) selected @endif value="0">Annullata</option>
-            </select>
+@if ($errors->any())
+    <div class="ui-flash ui-flash--error" role="alert">
+        @include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 20])
+        <ul>@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+    </div>
+@endif
+
+<header class="ui-head">
+    <div class="ui-head__title">
+        <h1>Modifica prenotazione</h1>
+        <div class="ui-head__count">
+            <span>{{ ucfirst($data) }}</span>
+            <span>{{ $ora }}</span>
+            <span>Campo <b>{{ $reservation->field }}</b></span>
         </div>
-        <div class="box_container">
-            <div class="box">
-                <p>
-                    <strong class="field">Campo </strong>
-                    <span>{{$reservation->field}}</span>
-                </p>
-                <p>
-                    <strong class="field">Data</strong>
-                    <span class="date">{{$data}}</span>
-                </p>
-                
-            </div>
-            <section class="box">
-                <p>
-                    <strong class="field">Orario </strong>
-                    <span>{{$ora}}  -  {{$ora_fine}}</span>
-                </p>
-                @if ($dinner_off)
-                    <div class="dinner">
-                        <strong>Cena</strong>
-                        @if ($dinner['status'])
-                        
-                        <div class="sub_d"> 
-                            <label for="guests">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
-                                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
-                                </svg>
-                                <input type="number" name="guests" id="guests" value="{{$dinner['guests']}}"> 
-                            </label>
+    </div>
+    <div class="ui-head__actions">
+        <a class="ui-btn" href="{{ route('admin.reservations.show', $reservation) }}">
+            @include('admin.partials.ui-icon', ['name' => 'arrow-90deg-left', 'size' => 16])
+            <span>Torna al dettaglio</span>
+        </a>
+    </div>
+</header>
 
-                            <label for="time">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                                    <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z"/>
-                                    <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
-                                    <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
-                                </svg>
-                                <input type="time" name="time" id="time" value="{{$dinner['time']}}"> 
-                            </label>
+<form class="ui-form" action="{{ route('admin.reservations.update', $reservation) }}" method="POST">
+    @csrf
+    @method('PUT')
+
+    <div class="ui-form__main">
+        <section class="ui-panel">
+            <div class="ui-panel__head"><h2>Prenotazione</h2></div>
+            <div class="ui-fields ui-fields--2">
+                <div class="ui-field">
+                    <label for="lesson">Tipo</label>
+                    <select name="lesson" id="lesson">
+                        <option value="0" @selected(! $reservation->lesson || $reservation->lesson == 0)>Partita</option>
+                        <option value="1" @selected($reservation->lesson == 1)>Lezione</option>
+                        <option value="2" @selected($reservation->lesson == 2)>Torneo</option>
+                    </select>
+                </div>
+                <div class="ui-field">
+                    <label for="status">Stato</label>
+                    <select name="status" id="status">
+                        <option value="1" @selected($reservation->status == 1)>Confermata</option>
+                        <option value="0" @selected($reservation->status == 0)>Annullata</option>
+                    </select>
+                    <p class="ui-hint">Annullando da qui non parte la mail di disdetta: usa il pulsante nel dettaglio se vuoi avvisare il cliente.</p>
+                </div>
+            </div>
+        </section>
+
+        @if ($dinner_off)
+            <section class="ui-panel">
+                <div class="ui-panel__head"><h2>Cena</h2></div>
+                @if ($dinner['status'] ?? false)
+                    <div class="ui-fields ui-fields--2">
+                        <div class="ui-field">
+                            <label for="guests">Coperti</label>
+                            <input type="number" name="guests" id="guests" min="1" value="{{ $dinner['guests'] }}">
                         </div>
-                        
-                        @else
-                            <span>Non prenotata</span>
-                        @endif
+                        <div class="ui-field">
+                            <label for="time">Orario</label>
+                            <input type="time" name="time" id="time" value="{{ $dinner['time'] }}">
+                        </div>
                     </div>
+                @else
+                    <p class="ui-hint">Cena non prenotata per questa partita.</p>
                 @endif
             </section>
-            
-            <div class="box desc">
-                <p class="">
-                    <h2>Note</h2> 
-                    <textarea name="message" id="" cols="30" rows="10"> {{$reservation->message}} </textarea>
-                </p>
-            </div>
-        </div>
-       
-        <div class="box players new_players">
-            <h3 class="first">Giocatori presenti alla partita</h3>
-            
-            @foreach ($players as $p)
-                <input type="checkbox" name="players[]" id="{{$p->id}}" value="{{$p->id}}"
-                @if ($reservation->players->contains($p)) checked style="order:-1" @endif
-                >
-                <label for="{{$p->id}}"
-                @if ($reservation->players->contains($p)) style="order:-1" @endif
-                class="res_item">
-                    <div class="left">
-                        <div class="time_slot">#{{$p->nickname}}</div>
-                        <div class="date">{{$p->name}} {{$p->surname}}</div>
-                    </div>
-                    <div class="player_center">
-                        <div class="line">
-                            <a href="{{route('admin.players.show', $p)}}"  class="donut-wrapper" style="--percent: {{ $p->level / 5 * 100}}">
-                                <p>
-                                    {{ $p->level }}
-                                </p>
-                            </a>
-                        </div>
-                        <div class="line">
-                            @if ($p->sex == 'm')
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing man" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M6 6.75v8.5a.75.75 0 0 0 1.5 0V10.5a.5.5 0 0 1 1 0v4.75a.75.75 0 0 0 1.5 0v-8.5a.25.25 0 1 1 .5 0v2.5a.75.75 0 0 0 1.5 0V6.5a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2.75a.75.75 0 0 0 1.5 0v-2.5a.25.25 0 0 1 .5 0"/></svg>
-                            @else
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing-dres girl" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m-.5 12.25V12h1v3.25a.75.75 0 0 0 1.5 0V12h1l-1-5v-.215a.285.285 0 0 1 .56-.078l.793 2.777a.711.711 0 1 0 1.364-.405l-1.065-3.461A3 3 0 0 0 8.784 3.5H7.216a3 3 0 0 0-2.868 2.118L3.283 9.079a.711.711 0 1 0 1.365.405l.793-2.777a.285.285 0 0 1 .56.078V7l-1 5h1v3.25a.75.75 0 0 0 1.5 0Z"/></svg>
-                            @endif
-                            {{-- <p>{{$r->sex == 'm' ? 'UOMO': 'DONNA'}}</p> --}}
-                        </div>
-                    </div>
-            
-                </label>
-            @endforeach
-            <h3 class="second">Aggiungi giocatori</h3>
-        </div>
+        @endif
 
-         <div class="action_page">
-            <button class="my_btn_3"  type="submit">Conferma modifiche</button>
+        <section class="ui-panel">
+            <div class="ui-panel__head"><h2>Nota</h2></div>
+            <div class="ui-field">
+                <label class="ui-vh" for="message">Nota della prenotazione</label>
+                <textarea name="message" id="message" placeholder="Nessuna nota">{{ trim($reservation->message ?? '') }}</textarea>
+            </div>
+        </section>
+
+        <section class="ui-panel">
+            <div class="ui-panel__head">
+                <h2>Giocatori</h2>
+                <span class="ui-panel__note"><span data-ui-chips-count>{{ $scelti->count() }}</span> selezionati</span>
+            </div>
+
+            <div class="ui-chips" data-ui-chips>
+                <div class="ui-chips__head">
+                    <div class="ui-search">
+                        @include('admin.partials.ui-icon', ['name' => 'search', 'size' => 16])
+                        <label class="ui-vh" for="chipsSearch">Cerca un giocatore</label>
+                        <input type="search" id="chipsSearch" placeholder="Cerca giocatore..." autocomplete="off" data-ui-chips-search>
+                    </div>
+                </div>
+
+                <div class="ui-chips__area">
+                    {{-- Chi è già in partita viene prima: senza ordinamento andrebbe cercato nel mucchio --}}
+                    @foreach ($players->sortByDesc(fn ($p) => $scelti->contains($p->id) ? 1 : 0) as $p)
+                        <label class="ui-chips__item" data-ui-chip="{{ Str::lower($p->nickname.' '.$p->name.' '.$p->surname) }}">
+                            <input type="checkbox" name="players[]" value="{{ $p->id }}" @checked($scelti->contains($p->id))>
+                            <span>#{{ $p->nickname }}<small>liv {{ $p->level }}</small></span>
+                        </label>
+                    @endforeach
+                </div>
+                <p class="ui-chips__empty" data-ui-chips-empty hidden>Nessun giocatore con questo nome.</p>
+            </div>
+        </section>
+    </div>
+
+    <aside class="ui-form__side">
+        <section class="ui-panel">
+            <div class="ui-panel__head"><h2>Riepilogo</h2></div>
+            <div class="ui-facts" style="grid-template-columns: 1fr;">
+                <div class="ui-fact">
+                    <span>Prenotato da</span>
+                    <strong>
+                        @if ($reservation->booking_subject)
+                            <a href="{{ route('admin.players.show', $reservation->booking_subject) }}">{{ $intestatario ?: 'Ospite' }}</a>
+                        @else
+                            {{ $intestatario ?: 'Ospite' }}
+                        @endif
+                    </strong>
+                </div>
+                <div class="ui-fact">
+                    <span>Quando</span>
+                    <strong>{{ ucfirst($data) }}</strong>
+                    <small>Dalle {{ $ora }}</small>
+                </div>
+                <div class="ui-fact">
+                    <span>Campo</span>
+                    <strong>{{ $reservation->field }}</strong>
+                </div>
+            </div>
+            <p class="ui-hint">Campo, data e orario non si modificano da qui: si spostano dal calendario.</p>
+        </section>
+    </aside>
+
+    <div class="ui-savebar" style="grid-column: 1 / -1;">
+        <span class="ui-savebar__note">Le modifiche valgono solo dopo il salvataggio.</span>
+        <div class="ui-savebar__actions">
+            <a class="ui-btn" href="{{ route('admin.reservations.show', $reservation) }}">Annulla</a>
+            <button class="ui-btn ui-btn--primary" type="submit">Conferma modifiche</button>
         </div>
-    </form>
-</div>
+    </div>
+</form>
+
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-ui-chips]').forEach((box) => {
+        const search  = box.querySelector('[data-ui-chips-search]');
+        const items   = Array.from(box.querySelectorAll('[data-ui-chip]'));
+        const vuoto   = box.querySelector('[data-ui-chips-empty]');
+        const counter = document.querySelector('[data-ui-chips-count]');
+
+        search?.addEventListener('input', () => {
+            const term = (search.value || '').toLowerCase().trim();
+            let shown = 0;
+            items.forEach((el) => {
+                const ok = !term || el.dataset.uiChip.includes(term);
+                el.hidden = !ok;
+                if (ok) shown++;
+            });
+            if (vuoto) vuoto.hidden = shown > 0;
+        });
+
+        box.addEventListener('change', () => {
+            if (counter) counter.textContent = box.querySelectorAll('input:checked').length;
+        });
+    });
+});
+</script>
+@endsection

@@ -156,7 +156,9 @@ class PageController extends Controller
                                     'lesson' => $res->lesson ?? 0,
                                     'booking_subject' => Player::where('id', $res->booking_subject?? 0)->value('nickname') ?? 'utente cancellato',
                                     'd' => $reserved[$day['date']][$k][$hour_f],
-                                    's' => in_array($hour_f, $hour_array_control) ? 1 : 0
+                                    's' => in_array($hour_f, $hour_array_control) ? 1 : 0,
+                                    // Distingue in calendario le occorrenze dei campi fissi
+                                    'fixed' => (bool) ($res->fixed_slot_id ?? false),
                                 ];
                                 
                                 if($res->lesson == 1){

@@ -1,166 +1,261 @@
-@extends('layouts.base')
+@extends('layouts.ui')
+
+@section('title', 'Giocatori - F+')
+
+@section('page_vars', '--ui-cols: minmax(0, 2.4fr) 120px 150px 160px 132px;')
 
 @section('contents')
-@php
-    $role = ['admin' => 'Amministratore', 'trainer' => 'Istruttore'];
-@endphp
-<div class="page_nav">
 
-    @if (session('message'))
-    @php
-        $message = session('message');
-    @endphp
-        
-    <div class="alert-cont">
-        <div class="alert alert-dismissible fade show notify_success" role="alert">
-            {{$message}}
-            <button type="button" class="btn-close close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+<nav class="ui-crumbs" aria-label="Percorso">
+    <a href="{{ route('admin.dashboard') }}">Gestionale</a>
+    <span class="ui-crumbs__sep" aria-hidden="true">@include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 10])</span>
+    <b>Giocatori</b>
+</nav>
+
+@if (session('message'))
+    <div class="ui-flash" role="alert">
+        @include('admin.partials.ui-icon', ['name' => 'check-circle-fill', 'size' => 20])
+        <span>{{ session('message') }}</span>
+        <button type="button" class="ui-flash__close" data-ui-dismiss aria-label="Chiudi avviso">
+            @include('admin.partials.ui-icon', ['name' => 'x-lg', 'size' => 14])
+        </button>
     </div>
-    @endif
+@endif
 
-    <h1 class="pt-5">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-people-fill mx-3" viewBox="0 0 16 16">
-        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
-        </svg>
-        GIOCATORI
-    </h1>
+@php
+    $certScaduti  = $players->where('certificate_status', 'expired')->count();
+@endphp
 
-    <div class="floating">
-        <div class="int">
-            <a class="my_btn_3 gap-2" href="{{route('admin.players.create')}}"> 
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
-                </svg> NUOVO GIOCATORE
+<header class="ui-head">
+    <div class="ui-head__title">
+        <h1>Giocatori</h1>
+        @if ($players->isNotEmpty())
+            <div class="ui-head__count">
+                <span data-ui-count-all>In tutto <b>{{ $players->count() }}</b></span>
+                <span data-ui-count-shown hidden>Mostrati <b>0</b> di {{ $players->count() }}</span>
+                @if ($certScaduti)
+                    <span>Certificati scaduti <b>{{ $certScaduti }}</b></span>
+                @endif
+            </div>
+        @endif
+    </div>
+    @if ($players->isNotEmpty())
+        <div class="ui-head__actions">
+            <a class="ui-btn ui-btn--primary" href="{{ route('admin.players.create') }}">
+                @include('admin.partials.ui-icon', ['name' => 'plus-lg', 'size' => 16])
+                <span>Nuovo giocatore</span>
             </a>
         </div>
+    @endif
+</header>
+
+@if ($players->isNotEmpty())
+    <div class="ui-filters">
+        <div class="ui-search">
+            @include('admin.partials.ui-icon', ['name' => 'search', 'size' => 16])
+            <label class="ui-vh" for="searchInput">Cerca un giocatore per nome o soprannome</label>
+            <input type="search" id="searchInput" placeholder="Cerca giocatore..." autocomplete="off">
+        </div>
+
+        <button type="button" class="ui-chip is-on" data-ui-level="all" aria-pressed="true">Tutti i livelli</button>
+        @for ($l = 1; $l <= 5; $l++)
+            @php $n = $players->where('level', $l)->count(); @endphp
+            @continue($n === 0)
+            <button type="button" class="ui-chip" data-ui-level="{{ $l }}" aria-pressed="false">
+                Livello {{ $l }}<span class="ui-chip__count">{{ $n }}</span>
+            </button>
+        @endfor
+
+        <button type="button" class="ui-chip" data-ui-sex="m" aria-pressed="false">Uomini<span class="ui-chip__count">{{ $players->where('sex', 'm')->count() }}</span></button>
+        <button type="button" class="ui-chip" data-ui-sex="f" aria-pressed="false">Donne<span class="ui-chip__count">{{ $players->where('sex', '!=', 'm')->count() }}</span></button>
     </div>
+@endif
 
-    <div class="filters">
-        <div class="bar"> 
-            <input type="checkbox" class="check" id="f"> 
-            <div class="box"> 
-                <input type="text" id="searchInput" class="search" placeholder="Cerca cliente..." > 
-                <button id="levelToggle" class="filter-btn type">Livello: Tutti</button>
-                <button id="sexToggle" class="filter-btn type sex-btn" title="Filtro sesso">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
-                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
-                    </svg>
-                </button>
-            </div> 
+<div class="ui-list" role="table" aria-label="Elenco dei giocatori" id="playersList">
+    @if ($players->isNotEmpty())
+        <div class="ui-list__head" role="row">
+            <span role="columnheader">Giocatore</span>
+            <span role="columnheader">Livello</span>
+            <span role="columnheader">Telefono</span>
+            <span role="columnheader">Certificato</span>
+            <span role="columnheader" class="ui-vh">Azioni</span>
+        </div>
+    @endif
 
-            <label for="f"> 
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel-fill" viewBox="0 0 16 16"> 
-                    <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5z"/> 
-                </svg> 
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16"> 
-                    <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/> 
-                </svg> 
-            </label> 
-        </div> 
-    </div>
+    @forelse ($players as $r)
+        @php
+            $iniziali = strtoupper(substr($r->name, 0, 1).substr($r->surname, 0, 1));
+            $cert = $r->certificate_status;
+        @endphp
+        <article class="ui-row" role="row"
+                 data-level="{{ $r->level }}" data-sex="{{ $r->sex }}"
+                 data-name="{{ Str::lower($r->nickname.' '.$r->name.' '.$r->surname.' '.$r->city) }}">
 
-    <div id="playersList" class="newtable">
-        @foreach ($players as $r)
-            <div class="res_item" data-level="{{ $r->level }}" data-sex="{{ $r->sex }}"
-                onclick="window.location='{{ route('admin.players.show', $r) }}'"
-                >
-                <div class="left">
-                    <div class="time_slot">#{{$r->nickname}}</div>
-                    <div class="date">{{$r->name}} {{$r->surname}}</div>
-                </div>
-                <div class="player_center">
-                    <div class="line">
-                        <div class="donut-wrapper" style="--percent: {{ $r->level / 5 * 100}}">
-                            <p>
-                                {{ $r->level }}
-                            </p>
-                        </div>
+            <div class="ui-name ui-name--media" role="cell">
+                @if ($r->img_url)
+                    <img class="ui-avatar" src="{{ $r->img_url }}" alt="" loading="lazy">
+                @else
+                    <span class="ui-avatar" aria-hidden="true">{{ $iniziali }}</span>
+                @endif
+                <div class="ui-name__body">
+                    <a href="{{ route('admin.players.show', $r) }}">#{{ $r->nickname }}</a>
+                    <div class="ui-name__meta">
+                        <span>{{ $r->name }} {{ $r->surname }}</span>
+                        @if ($r->city)<span>{{ $r->city }}</span>@endif
+                        @unless ($r->mail_verified)
+                            <span class="ui-pill ui-pill--warn">Email da verificare</span>
+                        @endunless
                     </div>
-                    <div class="line">
-                        @if ($r->sex == 'm')
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing man" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M6 6.75v8.5a.75.75 0 0 0 1.5 0V10.5a.5.5 0 0 1 1 0v4.75a.75.75 0 0 0 1.5 0v-8.5a.25.25 0 1 1 .5 0v2.5a.75.75 0 0 0 1.5 0V6.5a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2.75a.75.75 0 0 0 1.5 0v-2.5a.25.25 0 0 1 .5 0"/></svg>
-                        @else
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing-dres girl" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m-.5 12.25V12h1v3.25a.75.75 0 0 0 1.5 0V12h1l-1-5v-.215a.285.285 0 0 1 .56-.078l.793 2.777a.711.711 0 1 0 1.364-.405l-1.065-3.461A3 3 0 0 0 8.784 3.5H7.216a3 3 0 0 0-2.868 2.118L3.283 9.079a.711.711 0 1 0 1.365.405l.793-2.777a.285.285 0 0 1 .56.078V7l-1 5h1v3.25a.75.75 0 0 0 1.5 0Z"/></svg>
-                        @endif
-                        {{-- <p>{{$r->sex == 'm' ? 'UOMO': 'DONNA'}}</p> --}}
-                    </div>
-                </div>
-                <div class="actions">
-                    <a href="tel:{{$r->phone}}" class="edit">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-telephone-forward-fill" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877zm10.761.135a.5.5 0 0 1 .708 0l2.5 2.5a.5.5 0 0 1 0 .708l-2.5 2.5a.5.5 0 0 1-.708-.708L14.293 4H9.5a.5.5 0 0 1 0-1h4.793l-1.647-1.646a.5.5 0 0 1 0-.708"/>
-                        </svg>
-                    </a>
-                    <a href="{{route('admin.players.edit', $r)}}" class="edit">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                        </svg>
-                    </a>
                 </div>
             </div>
-        @endforeach
-    </div>
 
+            <div class="ui-meter" data-label="Livello" role="cell">
+                <div class="ui-meter__value">{{ $r->level }}<small>/5</small></div>
+                <div class="ui-meter__track">
+                    <span class="ui-meter__fill" style="width: {{ min(100, $r->level / 5 * 100) }}%"></span>
+                </div>
+            </div>
+
+            <div class="ui-cell ui-cell--money" data-label="Telefono" role="cell">
+                <strong>{{ $r->phone ?: '—' }}</strong>
+                <span>{{ $r->sex == 'm' ? 'Uomo' : 'Donna' }}</span>
+            </div>
+
+            <div class="ui-cell" data-label="Certificato" role="cell">
+                @if ($cert === 'expired')
+                    <strong><span class="ui-pill ui-pill--danger">Scaduto</span></strong>
+                @elseif ($cert === 'expiring')
+                    <strong><span class="ui-pill ui-pill--warn">In scadenza</span></strong>
+                @elseif ($cert === 'valid')
+                    <strong><span class="ui-pill ui-pill--accent">In regola</span></strong>
+                @else
+                    {{-- 'missing': niente pillola, uno stato neutro è assenza di segnale --}}
+                    <strong>—</strong>
+                @endif
+                @if ($r->certificate_expires_at)
+                    <span>{{ \Carbon\Carbon::parse($r->certificate_expires_at)->format('d/m/Y') }}</span>
+                @endif
+            </div>
+
+            <div class="ui-actions" role="cell">
+                @if ($r->phone)
+                    <a class="ui-action ui-action--icon" href="tel:{{ $r->phone }}"
+                       aria-label="Chiama {{ $r->nickname }}" title="Chiama">
+                        @include('admin.partials.ui-icon', ['name' => 'telephone-fill', 'size' => 16])
+                    </a>
+                @endif
+                <a class="ui-action ui-action--icon" href="{{ route('admin.players.edit', $r) }}"
+                   aria-label="Modifica {{ $r->nickname }}" title="Modifica">
+                    @include('admin.partials.ui-icon', ['name' => 'pencil-square', 'size' => 16])
+                </a>
+                <a class="ui-action ui-action--icon" href="{{ route('admin.players.show', $r) }}"
+                   aria-label="Apri la scheda di {{ $r->nickname }}" title="Apri">
+                    @include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 16])
+                </a>
+            </div>
+        </article>
+    @empty
+        <div class="ui-empty">
+            <span class="ui-empty__icon">@include('admin.partials.ui-icon', ['name' => 'people-fill', 'size' => 25])</span>
+            <h2>Nessun giocatore in anagrafica</h2>
+            <p>Registra il primo giocatore: da qui tieni contatti, livello, certificato medico e storico delle prenotazioni.</p>
+            <a class="ui-btn ui-btn--primary" href="{{ route('admin.players.create') }}">
+                @include('admin.partials.ui-icon', ['name' => 'plus-lg', 'size' => 16])
+                <span>Nuovo giocatore</span>
+            </a>
+        </div>
+    @endforelse
 </div>
 
+<div class="ui-empty" id="noResults" hidden>
+    <span class="ui-empty__icon">@include('admin.partials.ui-icon', ['name' => 'search', 'size' => 25])</span>
+    <h2>Nessun giocatore con questi filtri</h2>
+    <p>Prova a cercare un altro nome o a togliere il filtro di livello.</p>
+    <button type="button" class="ui-btn" data-ui-reset>Azzera i filtri</button>
+</div>
 
+@endsection
+
+@section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const players = document.querySelectorAll('#playersList .res_item');
-    const levelButton = document.getElementById('levelToggle');
-    const sexButton = document.getElementById('sexToggle');
-    const searchInput = document.getElementById('searchInput');
-
-    let level = 'Tutti';
-    let sex = 'Tutti';
-    const levels = ['Tutti', 5, 4, 3, 2, 1];
-    const sexes = ['Tutti', 'm', 'f'];
-
-    // 🔹 Cambio livello
-    levelButton.addEventListener('click', () => {
-        let currentIndex = levels.indexOf(level);
-        level = levels[(currentIndex + 1) % levels.length];
-        levelButton.textContent = `Livello: ${level}`;
-        filterPlayers();
+    document.querySelectorAll('[data-ui-dismiss]').forEach((b) => {
+        b.addEventListener('click', () => b.closest('.ui-flash')?.remove());
     });
 
-        // Cambio sesso con icone
-    sexButton.addEventListener('click', () => {
-        let currentIndex = sexes.indexOf(sex);
-        sex = sexes[(currentIndex + 1) % sexes.length];
-        updateSexIcon();
-        filterPlayers();
-    });
+    const list   = document.getElementById('playersList');
+    const search = document.getElementById('searchInput');
+    if (!list || !search) return;
 
-    function updateSexIcon() {
-        sexButton.innerHTML = '';
-        if (sex === 'Tutti') {
-            sexButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/></svg>`;
-        } else if (sex === 'm') {
-            sexButton.innerHTML = ` <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing man" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M6 6.75v8.5a.75.75 0 0 0 1.5 0V10.5a.5.5 0 0 1 1 0v4.75a.75.75 0 0 0 1.5 0v-8.5a.25.25 0 1 1 .5 0v2.5a.75.75 0 0 0 1.5 0V6.5a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2.75a.75.75 0 0 0 1.5 0v-2.5a.25.25 0 0 1 .5 0"/></svg>`;
-        } else {
-            sexButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing-dres girl" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m-.5 12.25V12h1v3.25a.75.75 0 0 0 1.5 0V12h1l-1-5v-.215a.285.285 0 0 1 .56-.078l.793 2.777a.711.711 0 1 0 1.364-.405l-1.065-3.461A3 3 0 0 0 8.784 3.5H7.216a3 3 0 0 0-2.868 2.118L3.283 9.079a.711.711 0 1 0 1.365.405l.793-2.777a.285.285 0 0 1 .56.078V7l-1 5h1v3.25a.75.75 0 0 0 1.5 0Z"/></svg>`;
+    const rows       = Array.from(list.querySelectorAll('.ui-row'));
+    const levelChips = Array.from(document.querySelectorAll('[data-ui-level]'));
+    const sexChips   = Array.from(document.querySelectorAll('[data-ui-sex]'));
+    const empty      = document.getElementById('noResults');
+    const countAll   = document.querySelector('[data-ui-count-all]');
+    const countShown = document.querySelector('[data-ui-count-shown]');
+
+    let level = 'all';
+    let sex = null;
+
+    function apply() {
+        const term = (search.value || '').toLowerCase().trim();
+        let shown = 0;
+
+        rows.forEach((row) => {
+            const ok = (!term || row.dataset.name.includes(term))
+                    && (level === 'all' || row.dataset.level === level)
+                    && (!sex || (sex === 'm' ? row.dataset.sex === 'm' : row.dataset.sex !== 'm'));
+            row.hidden = !ok;
+            if (ok) shown++;
+        });
+
+        list.hidden = rows.length > 0 && shown === 0;
+        if (empty) empty.hidden = !(rows.length > 0 && shown === 0);
+
+        const filtrato = shown !== rows.length;
+        if (countAll)   countAll.hidden = filtrato;
+        if (countShown) {
+            countShown.hidden = !filtrato;
+            countShown.querySelector('b').textContent = shown;
         }
     }
 
-    // 🔹 Filtro ricerca
-    searchInput.addEventListener('input', filterPlayers);
+    search.addEventListener('input', apply);
 
-    function filterPlayers() {
-        const term = searchInput.value.toLowerCase();
-        players.forEach(p => {
-            const name = p.querySelector('.date').textContent.toLowerCase();
-            const pLevel = p.dataset.level;
-            const pSex = p.dataset.sex;
-            const matchesSearch = name.includes(term);
-            const matchesLevel = level === 'Tutti' || pLevel == level;
-            const matchesSex = sex === 'Tutti' || pSex == sex;
-            p.style.display = (matchesSearch && matchesLevel && matchesSex) ? '' : 'none';
+    levelChips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+            level = chip.dataset.uiLevel;
+            levelChips.forEach((c) => {
+                const on = c === chip;
+                c.classList.toggle('is-on', on);
+                c.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+            apply();
         });
-    }
+    });
+
+    sexChips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+            // Un secondo clic sulla stessa pastiglia toglie il filtro
+            sex = sex === chip.dataset.uiSex ? null : chip.dataset.uiSex;
+            sexChips.forEach((c) => {
+                const on = c.dataset.uiSex === sex;
+                c.classList.toggle('is-on', on);
+                c.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+            apply();
+        });
+    });
+
+    document.querySelector('[data-ui-reset]')?.addEventListener('click', () => {
+        search.value = '';
+        sex = null;
+        sexChips.forEach((c) => { c.classList.remove('is-on'); c.setAttribute('aria-pressed', 'false'); });
+        levelChips[0]?.click();
+        search.focus();
+    });
+
+    apply();
 });
 </script>
 @endsection
-

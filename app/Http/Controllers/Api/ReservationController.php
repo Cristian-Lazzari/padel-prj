@@ -8,6 +8,8 @@ use App\Models\Setting;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use App\Mail\confermaOrdineAdmin;
+use App\Services\OpenMatchService;
+use App\Services\FixedSlotService;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
@@ -66,6 +68,18 @@ class ReservationController extends Controller
                 }
             }
 
+            // Rete di sicurezza sui campi fissi: fra due esecuzioni del
+            // comando schedulato un'occorrenza può non essere ancora
+            // materializzata, ma lo slot è comunque riservato.
+            $fixed = app(FixedSlotService::class)->conflictingSlot($field, $date_slot, 3);
+
+            if ($fixed) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Campo non disponibile: questo orario è assegnato come campo fisso.',
+                ]);
+            }
+
             $match = new Reservation;
             $match->date_slot = $date_slot;
             $match->field = $field; // 1, 2, 3
@@ -85,8 +99,16 @@ class ReservationController extends Controller
                         array_push($team, $player->id);
                     }
                 }
-                $match->players()->sync($team ?? []);
+                // syncWithPivotValues: stessa sincronizzazione di prima,
+                // in più valorizza i campi di iscrizione del pivot.
+                $match->players()->syncWithPivotValues($team, [
+                    'join_status' => 'accepted',
+                    'joined_at' => now(),
+                ]);
             }
+
+            // Opzionale: la prenotazione nasce già fra le partite aperte.
+            $this->publishAsOpenMatch($match, $data);
             $contact = json_decode(Setting::where('name', 'Contatti')->first()->property, 1);
             $bodymail = [
                 'to' => 'admin',
@@ -321,4 +343,45 @@ class ReservationController extends Controller
         return $t >= $s && $t < $e; // h_end escluso
     }
 
+    /**
+     * Pubblica la prenotazione appena creata fra le partite aperte,
+     * se il frontend ha inviato il blocco "open". In assenza di quel
+     * blocco il comportamento della prenotazione resta invariato.
+     */
+    private function publishAsOpenMatch(Reservation $match, array $data): void
+    {
+        $open = $data['open'] ?? null;
+
+        if (! is_array($open) || empty($open['enabled'])) {
+            return;
+        }
+
+        $validator = validator($open, OpenMatchService::rules());
+
+        if ($validator->fails()) {
+            // Una configurazione incompleta non deve far fallire la
+            // prenotazione: viene salvata come prenotazione normale.
+            Log::warning('Partita aperta non pubblicata: parametri non validi', [
+                'reservation_id' => $match->id,
+                'errors' => $validator->errors()->all(),
+            ]);
+
+            return;
+        }
+
+        try {
+            app(OpenMatchService::class)->publish($match, [
+                'slots_total' => $open['slots_total'],
+                'category' => $open['category'] ?? null,
+                'level_min' => $open['level_min'] ?? null,
+                'level_max' => $open['level_max'] ?? null,
+                'note' => $open['note'] ?? null,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Pubblicazione partita aperta fallita', [
+                'reservation_id' => $match->id,
+                'exception' => $e,
+            ]);
+        }
+    }
 }

@@ -1,648 +1,473 @@
-@extends('layouts.base')
+@extends('layouts.ui')
+
+@section('title', 'Impostazioni - F+')
 
 @section('contents')
+
 @php
-    $pack = ['NON attivo', 'Essentials * 360', 'Work on * 360', 'Boost up * 360', 'Essentials * 30', 'Work on * 30', 'Boost up * 30' ];
-    $role = ['admin' => 'Amministratore', 'trainer' => 'Istruttore'];
+    $property_adv     = json_decode($settings['advanced']['property'], true);
+    $field_set        = $property_adv['field_set'];
+    $trainer_set      = $property_adv['trainer_set'] ?? [];
+    $this_trainer     = $trainer_set[auth()->user()->id] ?? [];
+    $this_trainer_field     = $this_trainer['field'] ?? 0;
+    $this_trainer_field_set = $field_set[$this_trainer_field] ?? [];
+
+    $property_contatti = json_decode($settings['Contatti']['property'], true);
+    $ferie   = json_decode($settings['Periodo di Ferie']['property'], true);
+    $cena    = isset($settings['Impostazioni cena'])
+        ? json_decode($settings['Impostazioni cena']['property'], true)
+        : ['user_mail' => ''];
+
+    $week = [
+        'Lunedì' => 1, 'Martedì' => 2, 'Mercoledì' => 3, 'Giovedì' => 4,
+        'Venerdì' => 5, 'Sabato' => 6, 'Domenica' => 7,
+    ];
 @endphp
-<div class="page_nav">
-    <div class="mydash">
-        <form class="setting" action="{{ route('admin.settings.updateAll')}}" method="POST" enctype="multipart/form-data">
-            <h2>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sliders" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"/>
-                </svg>
-            Impostazioni</h2>
-            
-            <div class="top-set">
-                @csrf
-                <div class="set">
-                    <h4>Prenotazioni Online</h4>
-                    <div class="set-cont">
-                        <div class="radio-inputs">
-                            <label class="radio">
-                                <input type="radio" name="status_service"  @if($settings['Servizio di Prenotazione Online']['status'] == 0) checked  @endif value="0" >
-                                <span class="name">Off</span>
-                            </label>
 
-                            <label class="radio">
-                                <input type="radio" name="status_service"  @if($settings['Servizio di Prenotazione Online']['status'] == 2) checked  @endif value="2" >
-                                <span class="name">On</span>
-                            </label>
-                        </div>
-                        @php
-                            $property_adv = json_decode($settings['advanced']['property'], true);
-                        @endphp
-                        <div class="input-group my-3">
-                            <label class="input-group-text" id="max_delay_default">Min H per annullare</label>
-                            <input type="number" class="form-control"  name="max_delay_default" value="{{$property_adv['max_delay_default']}}">
-                        </div>
-                        <div class="input-group my-3">
-                            <label class="input-group-text" id="delay_trainer">H per liberare il campo</label>
-                            <input type="number" class="form-control"  name="delay_trainer" value="{{$property_adv['delay_trainer'] ?? ''}}">
-                        </div>
-                    </div>
+<nav class="ui-crumbs" aria-label="Percorso">
+    <a href="{{ route('admin.dashboard') }}">Gestionale</a>
+    <span class="ui-crumbs__sep" aria-hidden="true">@include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 10])</span>
+    <b>Impostazioni</b>
+</nav>
 
-                </div>
-                @php
-                    if(isset($settings['Impostazioni cena'])){
-                        $user_mail = json_decode($settings['Impostazioni cena']['property'], true)['user_mail'];
-                    }else {
-                        $user_mail = '';
-                    }
-                @endphp
-                <div class="set">
-                    <h4>Ristorante affiliato</h4>
-                    <div class="set-cont">
-                        <div class="radio-inputs">
-                            <label class="radio">
-                                <input type="radio" name="dinner_status"  @if(isset($settings['Impostazioni cena']) && $settings['Impostazioni cena']['status'] == 0) checked  @endif value="0" >
-                                <span class="name">Off</span>
-                            </label>
-
-                            <label class="radio">
-                                <input type="radio" name="dinner_status"  @if(isset($settings['Impostazioni cena']) && $settings['Impostazioni cena']['status'] == 2) checked  @endif value="2" >
-                                <span class="name">On</span>
-                            </label>
-                        </div>
-                        @php
-                            $property_adv = json_decode($settings['advanced']['property'], true);
-                        @endphp
-                        <div class="input-group my-3">
-                            <label class="input-group-text" id="user_mail">Email ristoratore</label>
-                            <input type="email" class="form-control"  name="user_mail" value="{{$user_mail}}">
-                        </div>
-                    </div>
-
-                </div>
-         
-
-                @php
-                    $settings['Periodo di Ferie']['property'] = json_decode($settings['Periodo di Ferie']['property'], true);
-                @endphp
-                <div class="set">
-                    <h4>Ferie</h4>
-                    <div class="sets">
-                        <div class="radio-inputs">
-                            <label class="radio">
-                                <input type="radio" name="ferie_status"  @if($settings['Periodo di Ferie']['status'] == 0) checked  @endif value="0" >
-                                <span class="name">A lavoro</span>
-                            </label>
-                            <label class="radio">
-                                <input type="radio" name="ferie_status"  @if($settings['Periodo di Ferie']['status'] == 1) checked  @endif value="1" >
-                                <span class="name">In ferie</span>
-                            </label>
-                        </div>
-                        
-                        <div class="input-group flex-nowrap">
-                            <label for="form" class="input-group-text" >Da</label>
-                            <input name="from" id="form" type="date" class="form-control" placeholder="da" @if($settings['Periodo di Ferie']['property']['from'] !== '') value="{{$settings['Periodo di Ferie']['property']['from']}}"  @endif>
-                            <label for="to" class="input-group-text" >A</label>
-                            <input name="to" id="to" type="date" class="form-control" placeholder="da" @if($settings['Periodo di Ferie']['property']['to'] !== '') value="{{$settings['Periodo di Ferie']['property']['to']}}"  @endif>
-                        </div>
-                    </div>
-                </div>
-                
-
-                    
-            </div>
-            <div class="bottom-set">
-                @php 
-                    $property_contatti = json_decode($settings['Contatti']['property'], true);
-                    $field_set = json_decode($settings['advanced']['property'], true)['field_set'];
-                    $trainer_set = json_decode($settings['advanced']['property'], true)['trainer_set'] ?? [];
-                    $this_trainer = $trainer_set[auth()->user()->id] ?? [];
-                    $this_trainer_field = $this_trainer['field'] ?? 0;
-                    $this_trainer_field_set = $field_set[$this_trainer_field] ?? [];
-
-                @endphp
-                <div class="accordion accordion-flush" id="accordionFlushExample">
-                    <div class="accordion-item"> 
-                        <h4 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
-                                Contatti e Social
-                            </button>
-                        </h4>
-                        <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                            <div class="accordion-body">
-                                <section>
-                                    <div class="input-group">
-                                        <label for="phone" class="input-group-text">Telefono</label>
-                                        <input type="text" class="form-control"  name="phone" @if($property_contatti) value="{{ $property_contatti['phone'] }}" @endif>
-                                    </div>
-                                    <div class="input-group">
-                                        <label for="email" class="input-group-text">Email</label>
-                                        <input type="text" class="form-control"  name="email" @if($property_contatti) value="{{ $property_contatti['email'] }}" @endif>
-                                    </div>        
-                                    <div class="input-group">
-                                        <label for="instagram" class="input-group-text">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-instagram" viewBox="0 0 16 16">
-                                                <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/>
-                                            </svg>
-                                        </label>
-                                        <input type="text" class="form-control"  placeholder="Link di instagram" name="instagram" @if(isset($property_contatti['instagram'])) value="{{ $property_contatti['instagram'] }}" @endif>
-                                    </div>        
-                                    <div class="input-group">
-                                        <label for="facebook" class="input-group-text">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-facebook" viewBox="0 0 16 16">
-                                                <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"/>
-                                            </svg>
-                                        </label>
-                                        <input type="text" class="form-control"  placeholder="Link di facebook" name="facebook" @if(isset($property_contatti['facebook'])) value="{{ $property_contatti['facebook'] }}" @endif>
-                                    </div>        
-                                    <div class="input-group">
-                                        <label for="tiktok" class="input-group-text">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tiktok" viewBox="0 0 16 16">
-                                                <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z"/>
-                                            </svg>
-                                        </label>
-                                        <input type="text" class="form-control"  placeholder="Link di tiktok" name="tiktok" @if(isset($property_contatti['tiktok'])) value="{{ $property_contatti['tiktok'] }}" @endif>
-                                    </div>        
-                                    <div class="input-group">
-                                        <label for="youtube" class="input-group-text">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-youtube" viewBox="0 0 16 16">
-                                                <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.01 2.01 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.01 2.01 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31 31 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.01 2.01 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A100 100 0 0 1 7.858 2zM6.4 5.209v4.818l4.157-2.408z"/>
-                                            </svg>
-                                        </label>
-                                        <input type="text" class="form-control"  placeholder="Link di youtube" name="youtube" @if(isset($property_contatti['youtube'])) value="{{ $property_contatti['youtube'] }}" @endif>
-                                    </div>              
-                                    <div class="input-group">
-                                        <label for="whatsapp" class="input-group-text">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
-                                                <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
-                                            </svg>
-                                        </label>
-                                        <input type="text" class="form-control" placeholder="+39001110000"  name="whatsapp" @if(isset($property_contatti['whatsapp'])) value="{{ $property_contatti['whatsapp'] }}" @endif>
-                                    </div>        
-                                </section>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item"> 
-                        <h4 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseField" aria-expanded="false" aria-controls="flush-collapseField">
-                                Impostazioni campi
-                            </button>
-                        </h4>
-                        <div id="flush-collapseField" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                            <div class="accordion-body cont_field">
-                                <div class="cont">
-                                    @foreach ($field_set as $k => $f) 
-                                        <section class="">
-                                            <div class="top">
-                                                <div class="name_field">{{$k}} - {{$f['type']}}</div>
-                                                <div class="btn-group dropup">
-                                                    <button type="button" class="my_btn_1" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
-                                                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
-                                                        </svg>
-                                                    </button>
-                                                    <div class="dropdown-menu">
-                                                        <div class="body">
-                                                            <div class="btn delete">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill " viewBox="0 0 16 16">
-                                                                    <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/>
-                                                                </svg>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <input type="hidden" name="field_set[{{$k}}][name_field]" value="{{$k}}">
-                                            <input type="hidden" name="field_set[{{$k}}][type]" value="{{$f['type']}}">
-                                            <div class="my_input_group">
-                                                <label for="{{$f['h_start']}}" class="input-group-text">Apertura</label>
-                                                <input type="text" id="{{$f['h_start']}}" class="form-control" name="field_set[{{$k}}][h_start]" value="{{$f['h_start']}}">
-                                            </div>
-                                            <div class="my_input_group">
-                                                <label for="{{$f['m_during']}}" class="input-group-text">Durata minima</label>
-                                                <input type="text" id="{{$f['m_during']}}" class="form-control" name="field_set[{{$k}}][m_during]" value="{{$f['m_during']}}">
-                                            </div>
-                                            <div class="my_input_group">
-                                                <label for="{{$f['m_during_client']}}" class="input-group-text">Durata slot cliente</label>
-                                                <input type="text" id="{{$f['m_during_client']}}" class="form-control" name="field_set[{{$k}}][m_during_client]" value="{{$f['m_during_client']}}">
-                                            </div>
-                                            <div class="my_input_group">
-                                                <label for="{{$f['n_slot']}}" class="input-group-text">N slot</label>
-                                                <input type="text" id="{{$f['n_slot']}}" class="form-control" name="field_set[{{$k}}][n_slot]" value="{{$f['n_slot']}}">
-                                            </div>
-                                            <h3 >Giorni di chiusura</h3>
-                                            <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
-                                                @php
-                                                    $week = [
-                                                        'Lunedì' => 1,
-                                                        'Martedì' => 2,
-                                                        'Mercoledì' => 3,
-                                                        'Giovedì' => 4,
-                                                        'Venerdì' => 5,
-                                                        'Sabato' => 6,
-                                                        'Domenica' => 7,
-                                                    ]
-                                                @endphp     
-                                                @foreach ($week as $kw => $v) 
-                                                    <input type="checkbox" class="btn-check"
-                                                        name="field_set[{{$k}}][closed_days][]" id="btncheck{{$k}}_{{$v}}_{{$kw}}"
-                                                        value="{{$v}}"
-                                                        autocomplete="off" 
-                                                        @if(in_array($v, $f['closed_days'])) checked @endif
-                                                        >
-                                                    <label class="btn btn-outline-danger" for="btncheck{{$k}}_{{$v}}_{{$kw}}">{{$kw}}</label>
-                                                @endforeach
-                                            </div>
-                                        </section>
-                                    @endforeach
-                                </div>
-                                <div class="my_btn_7 my-2 " id="addFieldBtn">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
-                                    </svg>
-                                    Nuovo campo</div>  
-                                <div class="cont" id="container"></div>
-                            </div>
-                        </div>
-                    </div>
-                    @if (auth()->user()->role == 'trainer')            
-                        <div class="accordion-item"> 
-                            <h4 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseset" aria-expanded="false" aria-controls="flush-collapseset">
-                                    Orari allenatori
-                                </button>
-                            </h4>
-                            <div id="flush-collapseset" class="accordion-collapse collapse trainer_set" data-bs-parent="#accordionFlushExample">
-                                <div class="accordion-body cont_field">
-                                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
-                                        @foreach ($field_set as $k => $f) 
-                                            <input type="radio" class="btn-check"
-                                                name="set_trainer[field]" id="check{{$k}}"
-                                                value="{{$k}}"
-                                                autocomplete="off" 
-                                                @if($this_trainer !== [] && $this_trainer['field'] == $k) checked @endif
-                                                data-h_start="{{ $f['h_start'] }}"
-                                                data-n_slot="{{ $f['n_slot'] }}"
-                                                data-m_during_client="{{ $f['m_during_client'] }}"
-                                            >
-                                            <label class="btn btn-outline-dark" for="check{{$k}}">{{$k}}</label>
-                                        @endforeach
-                                    </div>
-                                    <div class="cont">
-                                        <section>
-                                            <div class="my_input_group">
-                                                <label for="h_start_trainer" class="input-group-text">Inizio</label>
-                                                <select id="h_start_trainer" class="form-control" name="set_trainer[h_start]" >
-                                                    @if ($this_trainer !== [])
-                                                        @php $hour_option_1 = Carbon\Carbon::createFromFormat('H:i', $this_trainer_field_set['h_start']); @endphp
-                                                        @for ($i = 0; $i < $this_trainer_field_set['n_slot']; $i++)
-                                                            <option value="{{ $hour_option_1->copy()->format('H:i') }}" @if($this_trainer['h_start'] == $hour_option_1->copy()->format('H:i')) selected @endif>{{ $hour_option_1->copy()->format('H:i') }}</option>
-                                                            @php $hour_option_1->addMinutes($this_trainer_field_set['m_during_client']); @endphp
-                                                        @endfor
-                                                    @endif
-                                                </select>
-                                            </div>
-                                            <div class="my_input_group">
-                                                <label for="h_end_trainer" class="input-group-text">Fine</label>
-                                                <select id="h_end_trainer" class="form-control" name="set_trainer[h_end]" >
-                                                    @if ($this_trainer !== [])
-                                                        @php $hour_option_2 = Carbon\Carbon::createFromFormat('H:i', $this_trainer_field_set['h_start'])->addMinutes($this_trainer_field_set['m_during_client']); @endphp
-                                                        @for ($i = 0; $i < ($this_trainer_field_set['n_slot']- 1); $i++)
-                                                            <option value="{{ $hour_option_2->copy()->format('H:i') }}" @if($this_trainer['h_end'] == $hour_option_2->copy()->format('H:i')) selected @endif>{{ $hour_option_2->copy()->format('H:i') }}</option>
-                                                            @php $hour_option_2->addMinutes($this_trainer_field_set['m_during_client']); @endphp
-                                                        @endfor
-                                                    @endif
-                                                </select>
-                                            </div>
-                                        </section>
-                                    </div>
-                                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
-                                        @php
-                                            $week = ['Lunedì' => 1,'Martedì' => 2,'Mercoledì' => 3,'Giovedì' => 4,'Venerdì' => 5,'Sabato' => 6,'Domenica' => 7, ]
-                                        @endphp     
-                                        @foreach ($week as $kw => $v) 
-                                            <input type="checkbox" class="btn-check"
-                                                name="set_trainer[day_w][]" id="check{{$kw}}"
-                                                @if($this_trainer !== [] && in_array($v, $this_trainer['day_w'])) checked @endif
-                                                value="{{$v}}"
-                                                autocomplete="off" 
-                                                >
-                                            <label class="btn btn-outline-dark" for="check{{$kw}}">{{$kw}}</label>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                </div>
-                @error('set_trainer.h_end')
-                    <div class="text-danger">{{ $message }}</div>
-                @enderror
-
-            </div>
-
-            <h2>Istruttori del {{config('c.APP_NAME')}}</h2>
-            <div class="new_players">
-                @foreach ($trainers as $r)
-                    <div class="res_item set_item">
-                        <div class="left">
-                            <div class="time_slot">#{{$r->nickname}}</div>
-                            <div class="date">{{$r->name}} {{$r->surname}}</div>
-                        </div>
-                        <div class="player_center">
-                            <div class="line">
-                                <div class="donut-wrapper" style="--percent: {{ $r->level / 5 * 100}}">
-                                    <p>
-                                        {{ $r->level }}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="line">
-                                @if ($r->sex == 'm')
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing man" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M6 6.75v8.5a.75.75 0 0 0 1.5 0V10.5a.5.5 0 0 1 1 0v4.75a.75.75 0 0 0 1.5 0v-8.5a.25.25 0 1 1 .5 0v2.5a.75.75 0 0 0 1.5 0V6.5a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2.75a.75.75 0 0 0 1.5 0v-2.5a.25.25 0 0 1 .5 0"/></svg>
-                                @else
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-standing-dres girl" viewBox="0 0 16 16"><path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m-.5 12.25V12h1v3.25a.75.75 0 0 0 1.5 0V12h1l-1-5v-.215a.285.285 0 0 1 .56-.078l.793 2.777a.711.711 0 1 0 1.364-.405l-1.065-3.461A3 3 0 0 0 8.784 3.5H7.216a3 3 0 0 0-2.868 2.118L3.283 9.079a.711.711 0 1 0 1.365.405l.793-2.777a.285.285 0 0 1 .56.078V7l-1 5h1v3.25a.75.75 0 0 0 1.5 0Z"/></svg>
-                                @endif
-                                {{-- <p>{{$r->sex == 'm' ? 'UOMO': 'DONNA'}}</p> --}}
-                            </div>
-                        </div>
-                        <div class="actions">
-                            <div class="flag" >
-                                <svg style="fill: {{$r->flag}} !important;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-flag-fill" viewBox="0 0 16 16">
-                                    <path d="M14.778.085A.5.5 0 0 1 15 .5V8a.5.5 0 0 1-.314.464L14.5 8l.186.464-.003.001-.006.003-.023.009a12 12 0 0 1-.397.15c-.264.095-.631.223-1.047.35-.816.252-1.879.523-2.71.523-.847 0-1.548-.28-2.158-.525l-.028-.01C7.68 8.71 7.14 8.5 6.5 8.5c-.7 0-1.638.23-2.437.477A20 20 0 0 0 3 9.342V15.5a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 1 0v.282c.226-.079.496-.17.79-.26C4.606.272 5.67 0 6.5 0c.84 0 1.524.277 2.121.519l.043.018C9.286.788 9.828 1 10.5 1c.7 0 1.638-.23 2.437-.477a20 20 0 0 0 1.349-.476l.019-.007.004-.002h.001"/>
-                                </svg>
-                            </div>
-                        </div>
-                        
-                    </div>
-                @endforeach
-            </div>
-            <a  href="{{route('admin.players.trainer_register')}}" class="ml-auto my_btn_4 mb-4  mt-4">
-                Registra un Istruttore
-            </a>
-            <button type="submit" class="my_btn_1  w-75 m-auto">Aggiorna</button> 
-
-        </form>
+@if (session('message'))
+    <div class="ui-flash" role="alert">
+        @include('admin.partials.ui-icon', ['name' => 'check-circle-fill', 'size' => 20])
+        <span>{{ session('message') }}</span>
+        <button type="button" class="ui-flash__close" data-ui-dismiss aria-label="Chiudi avviso">
+            @include('admin.partials.ui-icon', ['name' => 'x-lg', 'size' => 14])
+        </button>
     </div>
-</div>
+@endif
 
+@if ($errors->any())
+    <div class="ui-flash ui-flash--error" role="alert">
+        @include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 20])
+        <ul>@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+    </div>
+@endif
 
+<header class="ui-head">
+    <div class="ui-head__title">
+        <h1>Impostazioni</h1>
+        <div class="ui-head__count">
+            <span>Campi configurati <b>{{ count($field_set) }}</b></span>
+            <span>Istruttori <b>{{ count($trainers) }}</b></span>
+        </div>
+    </div>
+</header>
+
+<form class="ui-form" action="{{ route('admin.settings.updateAll') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+
+    <div class="ui-form__main">
+
+        <section class="ui-panel">
+            <div class="ui-panel__head"><h2>Prenotazioni online</h2></div>
+
+            <div class="ui-chips__area" role="radiogroup" aria-label="Stato del servizio di prenotazione">
+                <label class="ui-chips__item">
+                    <input type="radio" name="status_service" value="2" @checked($settings['Servizio di Prenotazione Online']['status'] == 2)>
+                    <span>Attive</span>
+                </label>
+                <label class="ui-chips__item">
+                    <input type="radio" name="status_service" value="0" @checked($settings['Servizio di Prenotazione Online']['status'] == 0)>
+                    <span>Sospese</span>
+                </label>
+            </div>
+            <p class="ui-hint">Da sospese, il sito non accetta più prenotazioni dai clienti.</p>
+
+            <div class="ui-fields ui-fields--2">
+                <div class="ui-field">
+                    <label for="max_delay_default">Ore minime per annullare</label>
+                    <input type="number" name="max_delay_default" id="max_delay_default" min="0"
+                           value="{{ $property_adv['max_delay_default'] }}">
+                    <p class="ui-hint">Sotto questa soglia il cliente non può più disdire da solo.</p>
+                </div>
+                <div class="ui-field">
+                    <label for="delay_trainer">Ore per liberare il campo</label>
+                    <input type="number" name="delay_trainer" id="delay_trainer" min="0"
+                           value="{{ $property_adv['delay_trainer'] ?? '' }}">
+                    <p class="ui-hint">Dopo quante ore uno slot non confermato torna prenotabile.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="ui-panel">
+            <div class="ui-panel__head"><h2>Ristorante affiliato</h2></div>
+
+            <div class="ui-chips__area" role="radiogroup" aria-label="Servizio cena">
+                <label class="ui-chips__item">
+                    <input type="radio" name="dinner_status" value="2" @checked(isset($settings['Impostazioni cena']) && $settings['Impostazioni cena']['status'] == 2)>
+                    <span>Attivo</span>
+                </label>
+                <label class="ui-chips__item">
+                    <input type="radio" name="dinner_status" value="0" @checked(! isset($settings['Impostazioni cena']) || $settings['Impostazioni cena']['status'] == 0)>
+                    <span>Non attivo</span>
+                </label>
+            </div>
+            <p class="ui-hint">Con il servizio attivo, chi prenota il campo può aggiungere la cena.</p>
+
+            <div class="ui-field">
+                <label for="user_mail">Email del ristoratore</label>
+                <input type="email" name="user_mail" id="user_mail" value="{{ $cena['user_mail'] ?? '' }}">
+                <p class="ui-hint">Riceve qui le prenotazioni della cena.</p>
+            </div>
+        </section>
+
+        <section class="ui-panel">
+            <div class="ui-panel__head"><h2>Ferie</h2></div>
+
+            <div class="ui-chips__area" role="radiogroup" aria-label="Periodo di ferie">
+                <label class="ui-chips__item">
+                    <input type="radio" name="ferie_status" value="0" @checked($settings['Periodo di Ferie']['status'] == 0)>
+                    <span>Aperti</span>
+                </label>
+                <label class="ui-chips__item">
+                    <input type="radio" name="ferie_status" value="1" @checked($settings['Periodo di Ferie']['status'] == 1)>
+                    <span>In ferie</span>
+                </label>
+            </div>
+
+            <div class="ui-fields ui-fields--2">
+                <div class="ui-field">
+                    <label for="from">Dal</label>
+                    <input type="date" name="from" id="from" value="{{ $ferie['from'] ?: '' }}">
+                </div>
+                <div class="ui-field">
+                    <label for="to">Al</label>
+                    <input type="date" name="to" id="to" value="{{ $ferie['to'] ?: '' }}">
+                </div>
+            </div>
+        </section>
+
+        {{-- ============ Campi ============ --}}
+        <section class="ui-section">
+            <div class="ui-section__head">
+                <h2>Campi</h2>
+                <div class="ui-section__meta">
+                    <button type="button" class="ui-btn" id="addFieldBtn">
+                        @include('admin.partials.ui-icon', ['name' => 'plus-lg', 'size' => 16])
+                        <span>Nuovo campo</span>
+                    </button>
+                </div>
+            </div>
+
+            @foreach ($field_set as $k => $f)
+                <section class="ui-panel">
+                    <div class="ui-panel__head">
+                        <h2>{{ $k }}</h2>
+                        <span class="ui-panel__note">{{ $f['type'] }}</span>
+                    </div>
+
+                    <input type="hidden" name="field_set[{{ $k }}][name_field]" value="{{ $k }}">
+                    <input type="hidden" name="field_set[{{ $k }}][type]" value="{{ $f['type'] }}">
+
+                    <div class="ui-fields ui-fields--2">
+                        <div class="ui-field">
+                            <label for="h_start_{{ $loop->index }}">Apertura</label>
+                            <input type="text" id="h_start_{{ $loop->index }}" name="field_set[{{ $k }}][h_start]" value="{{ $f['h_start'] }}">
+                        </div>
+                        <div class="ui-field">
+                            <label for="n_slot_{{ $loop->index }}">Numero di slot</label>
+                            <input type="text" id="n_slot_{{ $loop->index }}" name="field_set[{{ $k }}][n_slot]" value="{{ $f['n_slot'] }}">
+                        </div>
+                        <div class="ui-field">
+                            <label for="m_during_{{ $loop->index }}">Durata minima (min)</label>
+                            <input type="text" id="m_during_{{ $loop->index }}" name="field_set[{{ $k }}][m_during]" value="{{ $f['m_during'] }}">
+                            <p class="ui-hint">È l'unità di misura dello slot in tutto il gestionale.</p>
+                        </div>
+                        <div class="ui-field">
+                            <label for="m_during_client_{{ $loop->index }}">Durata slot cliente (min)</label>
+                            <input type="text" id="m_during_client_{{ $loop->index }}" name="field_set[{{ $k }}][m_during_client]" value="{{ $f['m_during_client'] }}">
+                        </div>
+                    </div>
+
+                    <div class="ui-field">
+                        <label>Giorni di chiusura</label>
+                        <div class="ui-chips__area">
+                            @foreach ($week as $kw => $v)
+                                <label class="ui-chips__item">
+                                    <input type="checkbox" name="field_set[{{ $k }}][closed_days][]"
+                                           value="{{ $v }}" @checked(in_array($v, $f['closed_days']))>
+                                    <span>{{ $kw }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </section>
+            @endforeach
+
+            {{-- Qui il JS appende i campi nuovi, con lo stesso impianto dei pannelli sopra --}}
+            <div id="container" style="display:grid; gap:18px;"></div>
+        </section>
+
+        @if (auth()->user()->role == 'trainer')
+            <section class="ui-panel">
+                <div class="ui-panel__head"><h2>I tuoi orari da istruttore</h2></div>
+
+                <div class="ui-field">
+                    <label>Campo su cui lavori</label>
+                    <div class="ui-chips__area" role="radiogroup" aria-label="Campo dell'istruttore">
+                        @foreach ($field_set as $k => $f)
+                            <label class="ui-chips__item">
+                                <input type="radio" name="set_trainer[field]" value="{{ $k }}"
+                                       @checked($this_trainer !== [] && $this_trainer['field'] == $k)
+                                       data-h_start="{{ $f['h_start'] }}"
+                                       data-n_slot="{{ $f['n_slot'] }}"
+                                       data-m_during_client="{{ $f['m_during_client'] }}">
+                                <span>{{ $k }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="ui-fields ui-fields--2">
+                    <div class="ui-field">
+                        <label for="h_start_trainer">Inizio</label>
+                        <select id="h_start_trainer" name="set_trainer[h_start]">
+                            @if ($this_trainer !== [])
+                                @php $hour_option_1 = Carbon\Carbon::createFromFormat('H:i', $this_trainer_field_set['h_start']); @endphp
+                                @for ($i = 0; $i < $this_trainer_field_set['n_slot']; $i++)
+                                    <option value="{{ $hour_option_1->copy()->format('H:i') }}" @selected($this_trainer['h_start'] == $hour_option_1->copy()->format('H:i'))>{{ $hour_option_1->copy()->format('H:i') }}</option>
+                                    @php $hour_option_1->addMinutes($this_trainer_field_set['m_during_client']); @endphp
+                                @endfor
+                            @endif
+                        </select>
+                    </div>
+                    <div class="ui-field">
+                        <label for="h_end_trainer">Fine</label>
+                        <select id="h_end_trainer" name="set_trainer[h_end]">
+                            @if ($this_trainer !== [])
+                                @php $hour_option_2 = Carbon\Carbon::createFromFormat('H:i', $this_trainer_field_set['h_start'])->addMinutes($this_trainer_field_set['m_during_client']); @endphp
+                                @for ($i = 0; $i < ($this_trainer_field_set['n_slot'] - 1); $i++)
+                                    <option value="{{ $hour_option_2->copy()->format('H:i') }}" @selected($this_trainer['h_end'] == $hour_option_2->copy()->format('H:i'))>{{ $hour_option_2->copy()->format('H:i') }}</option>
+                                    @php $hour_option_2->addMinutes($this_trainer_field_set['m_during_client']); @endphp
+                                @endfor
+                            @endif
+                        </select>
+                        @error('set_trainer.h_end') <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="ui-field">
+                    <label>Giorni in cui lavori</label>
+                    <div class="ui-chips__area">
+                        @foreach ($week as $kw => $v)
+                            <label class="ui-chips__item">
+                                <input type="checkbox" name="set_trainer[day_w][]" value="{{ $v }}"
+                                       @checked($this_trainer !== [] && in_array($v, $this_trainer['day_w']))>
+                                <span>{{ $kw }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
+    </div>
+
+    <aside class="ui-form__side">
+        <section class="ui-panel">
+            <div class="ui-panel__head"><h2>Contatti e social</h2></div>
+            <div class="ui-field">
+                <label for="phone">Telefono</label>
+                <input type="text" name="phone" id="phone" value="{{ $property_contatti['phone'] ?? '' }}">
+            </div>
+            <div class="ui-field">
+                <label for="email">Email</label>
+                <input type="text" name="email" id="email" value="{{ $property_contatti['email'] ?? '' }}">
+            </div>
+            <div class="ui-field">
+                <label for="whatsapp">WhatsApp</label>
+                <input type="text" name="whatsapp" id="whatsapp" placeholder="+39001110000" value="{{ $property_contatti['whatsapp'] ?? '' }}">
+            </div>
+            <div class="ui-field">
+                <label for="instagram">Instagram</label>
+                <input type="text" name="instagram" id="instagram" placeholder="Link del profilo" value="{{ $property_contatti['instagram'] ?? '' }}">
+            </div>
+            <div class="ui-field">
+                <label for="facebook">Facebook</label>
+                <input type="text" name="facebook" id="facebook" placeholder="Link della pagina" value="{{ $property_contatti['facebook'] ?? '' }}">
+            </div>
+            <div class="ui-field">
+                <label for="tiktok">TikTok</label>
+                <input type="text" name="tiktok" id="tiktok" placeholder="Link del profilo" value="{{ $property_contatti['tiktok'] ?? '' }}">
+            </div>
+            <div class="ui-field">
+                <label for="youtube">YouTube</label>
+                <input type="text" name="youtube" id="youtube" placeholder="Link del canale" value="{{ $property_contatti['youtube'] ?? '' }}">
+            </div>
+        </section>
+
+        <section class="ui-panel">
+            <div class="ui-panel__head">
+                <h2>Istruttori</h2>
+                <span class="ui-panel__note">{{ count($trainers) }}</span>
+            </div>
+            @forelse ($trainers as $r)
+                <div class="ui-name ui-name--media">
+                    <span class="ui-avatar" aria-hidden="true" style="color: {{ $r->flag ?? 'inherit' }}">
+                        {{ strtoupper(substr($r->name, 0, 1).substr($r->surname, 0, 1)) }}
+                    </span>
+                    <div class="ui-name__body">
+                        <a href="{{ route('admin.players.show', $r) }}">#{{ $r->nickname }}</a>
+                        <div class="ui-name__meta">
+                            <span>{{ $r->name }} {{ $r->surname }}</span>
+                            <span class="ui-code">liv {{ $r->level }}</span>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <p class="ui-hint">Nessun istruttore registrato.</p>
+            @endforelse
+
+            <a class="ui-btn" href="{{ route('admin.players.trainer_register') }}">
+                @include('admin.partials.ui-icon', ['name' => 'plus-lg', 'size' => 16])
+                <span>Registra un istruttore</span>
+            </a>
+        </section>
+    </aside>
+
+    <div class="ui-savebar" style="grid-column: 1 / -1;">
+        <span class="ui-savebar__note">Le impostazioni valgono per il sito clienti e per il calendario.</span>
+        <div class="ui-savebar__actions">
+            <button class="ui-btn ui-btn--primary" type="submit">Salva impostazioni</button>
+        </div>
+    </div>
+</form>
+
+@endsection
+
+@section('scripts')
 <script>
-
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-ui-dismiss]').forEach((b) => {
+        b.addEventListener('click', () => b.closest('.ui-flash')?.remove());
+    });
+
+    // ---------- Nuovo campo ----------
     const container = document.getElementById('container');
     const addBtn = document.getElementById('addFieldBtn');
+    const settimana = { 'Lunedì': 1, 'Martedì': 2, 'Mercoledì': 3, 'Giovedì': 4, 'Venerdì': 5, 'Sabato': 6, 'Domenica': 7 };
     let counter = 0;
 
-    addBtn.addEventListener('click', () => {
+    addBtn?.addEventListener('click', () => {
         counter++;
+        const chiave = 'NewField_' + counter;
 
-        // Crea la section principale
-        let counter_name = 'NewField_' + counter;
-
-        const section = document.createElement('section');
-
-
-        // Funzione per creare un gruppo label + input
-        const createInputGroup = (labelText, name, type, placeholder = '') => {
-            const id = `${name}_${counter}`;
-
-            const div = document.createElement('div');
-            div.classList.add('my_input_group');
-
-            const label = document.createElement('label');
-            label.setAttribute('for', id);
-            label.classList.add('input-group-text');
-            label.textContent = labelText;
-
-            const input = document.createElement('input');
-            input.type = type;
-            input.name = `field_set[${counter_name}][${name}]`;
-            input.id = id;
-            input.placeholder = placeholder;
-            input.classList.add('form-control');
-
-            div.append(label, input);
-            return div;
+        const campo = (etichetta, nome, tipo, placeholder = '', aiuto = '') => {
+            const id = nome + '_new_' + counter;
+            const wrap = document.createElement('div');
+            wrap.className = 'ui-field';
+            wrap.innerHTML = `
+                <label for="${id}">${etichetta}</label>
+                <input type="${tipo}" id="${id}" name="field_set[${chiave}][${nome}]" placeholder="${placeholder}">
+                ${aiuto ? `<p class="ui-hint">${aiuto}</p>` : ''}`;
+            return wrap;
         };
-        // Funzione per creare un gruppo label + select
-        const createSelectGroup = (labelText, name, options, selectedValue) => {
-            const id = `${name}_${counter}`;
 
-            const div = document.createElement('div');
-            div.classList.add('my_input_group');
-
-            const label = document.createElement('label');
-            label.setAttribute('for', id);
-            label.classList.add('input-group-text');
-            label.textContent = labelText;
-
-            const select = document.createElement('select');
-            select.name = `field_set[${counter_name}][${name}]`;
-            select.classList.add('form-control');
-            select.id = id;
-
-            options.forEach(opt => {
-                const option = document.createElement('option');
-                option.value = opt.toLowerCase();
-                option.textContent = opt;
-                if (opt.toLowerCase() === selectedValue.toLowerCase()) {
-                    option.selected = true;
-                }
-                select.appendChild(option);
-            });
-
-            div.append(label, select);
-            return div;
+        const sport = () => {
+            const id = 'type_new_' + counter;
+            const wrap = document.createElement('div');
+            wrap.className = 'ui-field';
+            wrap.innerHTML = `
+                <label for="${id}">Sport</label>
+                <select id="${id}" name="field_set[${chiave}][type]">
+                    ${['Padel', 'Calcio', 'Tennis', 'Basket'].map((s) => `<option value="${s.toLowerCase()}">${s}</option>`).join('')}
+                </select>`;
+            return wrap;
         };
- // ✅ Funzione per creare il gruppo dei checkbox "giorni chiusura"
-        const createDaysGroup = () => {
-            const days = {
-                'Lunedì': 1,
-                'Martedì': 2,
-                'Mercoledì': 3,
-                'Giovedì': 4,
-                'Venerdì': 5,
-                'Sabato': 6,
-                'Domenica': 7,
-            };
 
-            const div = document.createElement('div');
-            div.classList.add('btn-group', 'mt-2');
-            div.setAttribute('role', 'group');
-            div.setAttribute('aria-label', 'Giorni di chiusura');
-
-            Object.entries(days).forEach(([dayName, dayValue]) => {
-                const input = document.createElement('input');
-                input.type = 'checkbox';
-                input.classList.add('btn-check');
-                input.name = `field_set[${counter_name}][closed_days][]`;
-                input.id = `btncheck_${counter}_${dayValue}_${dayName}`;
-                input.value = dayValue;
-
-                const label = document.createElement('label');
-                label.classList.add('btn', 'btn-outline-danger');
-                label.setAttribute('for', `btncheck_${counter}_${dayValue}_${dayName}`);
-                label.textContent = dayName;
-
-                div.append(input, label);
-            });
-
-            return div;
+        const giorni = () => {
+            const wrap = document.createElement('div');
+            wrap.className = 'ui-field';
+            wrap.innerHTML = `<label>Giorni di chiusura</label>
+                <div class="ui-chips__area">
+                    ${Object.entries(settimana).map(([nome, valore]) => `
+                        <label class="ui-chips__item">
+                            <input type="checkbox" name="field_set[${chiave}][closed_days][]" value="${valore}">
+                            <span>${nome}</span>
+                        </label>`).join('')}
+                </div>`;
+            return wrap;
         };
-        // Crea i tre campi
-        const campoGroup = createInputGroup('Campo', 'name_field', 'text', 'Inserisci nome campo');
-        const h_start = createInputGroup('Apertura', 'h_start', 'time', '');
-        const durataGroup = createInputGroup('Durata minima', 'm_during', 'number', 'Tempo in minuti');
-        const durataClientGroup = createInputGroup('Durata slot cliente', 'm_during_client', 'number', 'Tempo in minuti');
-        const numeroGroup = createInputGroup('N° slot', 'n_slot', 'number', '0');
-        const sportGroup = createSelectGroup('Sport', 'type', ['Padel', 'Calcio', 'Tennis', 'Basket'], 'Padel');
-        const daysGroup = createDaysGroup(); // ✅ nuovo gruppo di checkbox
 
-        // Bottone rimuovi
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
-        <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/>
-        </svg>`;
-        removeBtn.classList.add('my_btn_4', 'null', 'delete');
-        removeBtn.addEventListener('click', () => section.remove());
-        
-        // //duplica
-        // const duplicateBtn = document.createElement('button');
-        // duplicateBtn.type = 'button';
-        // duplicateBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-copy" viewBox="0 0 16 16">
-        //     <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
-        // </svg>`;
-        // duplicateBtn.classList.add('my_btn_4', 'duplicate-btn');
-        // duplicateBtn.addEventListener('click', () => {
-        //     // Clona l'intera sezione
-        //     const clone = section.cloneNode(true);
+        const panel = document.createElement('section');
+        panel.className = 'ui-panel';
+        panel.innerHTML = '<div class="ui-panel__head"><h2>Nuovo campo</h2></div>';
 
-        //     // Rimuovi il vecchio bottone di duplicazione dal clone
-        //     const oldDuplicate = clone.querySelector('.duplicate-btn');
-        //     if (oldDuplicate) oldDuplicate.remove();
-
-        //     const inputs = clone.querySelectorAll('input, select, label');
-        //     inputs.forEach(el => {
-        //         if (el.id) el.id = el.id.replace(/_\d+$/, `_${counter}`);
-                
-        //         if (el.name) {
-        //             // Trova e sostituisce solo il primo valore tra ['...']
-        //             el.name = el.name.replace(/\['([^']+)'\]/, `['campo${counter}']`);
-        //         }
-
-        //         if (el.htmlFor) el.htmlFor = el.htmlFor.replace(/_\d+$/, `_${counter}`);
-        //     });
-
-
-        //     const removeBtnClone = clone.querySelector('.delete');
-        //     if (removeBtnClone) {
-        //         removeBtnClone.addEventListener('click', () => clone.remove());
-        //     }
-
-        //     const cont_act = document.createElement('div');
-        //     cont_act.classList.add('cont_act');
-        //     cont_act.append(removeBtnClone );
-        //     clone.append(cont_act);
-
-        //     // Inserisce il clone subito dopo la sezione originale
-        //     section.insertAdjacentElement('afterend', clone);
-        // });
-
-                
-        const cont_act = document.createElement('div');
-        cont_act.classList.add('cont_act');
-        cont_act.append(removeBtn)
-        // Aggiunge tutto alla section
-        section.append(
-            campoGroup,
-            sportGroup,
-            h_start,
-            durataGroup,
-            durataClientGroup,
-            numeroGroup,
-            daysGroup,
-            cont_act,
+        const griglia = document.createElement('div');
+        griglia.className = 'ui-fields ui-fields--2';
+        griglia.append(
+            campo('Nome del campo', 'name_field', 'text', 'Es. Campo 3'),
+            sport(),
+            campo('Apertura', 'h_start', 'time'),
+            campo('Numero di slot', 'n_slot', 'number', '0'),
+            campo('Durata minima (min)', 'm_during', 'number', 'Minuti', 'È l\'unità di misura dello slot.'),
+            campo('Durata slot cliente (min)', 'm_during_client', 'number', 'Minuti')
         );
 
-        // Inserisce la section nel container
-        container.appendChild(section);
+        const azioni = document.createElement('div');
+        const rimuovi = document.createElement('button');
+        rimuovi.type = 'button';
+        rimuovi.className = 'ui-action ui-action--danger';
+        rimuovi.textContent = 'Rimuovi questo campo';
+        rimuovi.addEventListener('click', () => panel.remove());
+        azioni.appendChild(rimuovi);
+
+        panel.append(griglia, giorni(), azioni);
+        container.appendChild(panel);
+        panel.querySelector('input')?.focus();
     });
 
-    const buttons_delete = document.querySelectorAll('.delete');
-
-    buttons_delete.forEach(button => {
-        button.addEventListener('click', function() {
-            // Trova la sezione genitore più vicina
-            const section = this.closest('section');
-
-            // Effetto dissolvenza
-            section.style.transition = 'opacity 0.3s ease';
-            section.style.opacity = '0';
-
-            setTimeout(() => {
-                section.remove(); // rimuove completamente dal DOM
-            }, 400);
-        });
-    });
-
+    // ---------- Orari istruttore ----------
     const radios = document.querySelectorAll('input[name="set_trainer[field]"]');
-    const startSelect = document.getElementById("h_start_trainer");
-    const endSelect = document.getElementById("h_end_trainer");
+    const startSelect = document.getElementById('h_start_trainer');
+    const endSelect = document.getElementById('h_end_trainer');
+
+    function addMinutes(time, minutes) {
+        const [h, m] = time.split(':').map(Number);
+        const date = new Date();
+        date.setHours(h, m + minutes);
+        return date.toTimeString().substring(0, 5);
+    }
 
     function generateOptions(hStart, nSlot, duration) {
-
-        // Pulizia select
-        startSelect.innerHTML = "";
-        endSelect.innerHTML = "";
+        startSelect.innerHTML = '';
+        endSelect.innerHTML = '';
 
         const slots = [];
         let current = hStart;
-
-        // Generazione slot orari
         for (let i = 0; i < nSlot; i++) {
             slots.push(current);
             current = addMinutes(current, duration);
         }
 
-        // Popola START
-        slots.forEach(t => {
-            let opt = document.createElement("option");
+        slots.forEach((t) => {
+            const opt = document.createElement('option');
             opt.value = t;
             opt.textContent = t;
             startSelect.appendChild(opt);
         });
 
-        // Popola END (lo slot successivo)
+        // La fine parte dallo slot successivo al primo
         for (let i = 1; i < slots.length; i++) {
-            let opt = document.createElement("option");
+            const opt = document.createElement('option');
             opt.value = slots[i];
             opt.textContent = slots[i];
             endSelect.appendChild(opt);
         }
     }
 
-    function addMinutes(time, minutes) {
-        let [h, m] = time.split(":").map(Number);
-        let date = new Date();
-        date.setHours(h, m + minutes);
-        return date.toTimeString().substring(0, 5);
-    }
-
-    radios.forEach(radio => {
-        radio.addEventListener("change", function () {
-
+    radios.forEach((radio) => {
+        radio.addEventListener('change', function () {
             const hStart = this.dataset.h_start;
             const nSlot = parseInt(this.dataset.n_slot);
             const duration = parseInt(this.dataset.m_during_client);
-
-            if (!hStart || !nSlot || !duration) return;
-
+            if (!hStart || !nSlot || !duration || !startSelect || !endSelect) return;
             generateOptions(hStart, nSlot, duration);
         });
     });
-
-    
 });
 </script>
-
 @endsection
-

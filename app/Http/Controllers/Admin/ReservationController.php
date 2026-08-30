@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Mail\confermaOrdineAdmin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
@@ -198,18 +199,27 @@ class ReservationController extends Controller
 
     public function index()
     {
-        $reservations = Reservation::orderBy('date_slot', 'desc')->get();
+        // Le impostazioni e i giocatori vengono letti una volta sola:
+        // prima erano interrogati dentro al ciclo, una query per riga.
         $field_set = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'];
-        
+
+        $reservations = Reservation::with('players:id,name,surname,nickname,level')
+            ->orderBy('date_slot', 'desc')
+            ->get();
+
+        $owners = Player::whereIn('id', $reservations->pluck('booking_subject')->unique()->filter())
+            ->get(['id', 'name', 'surname'])
+            ->keyBy('id');
+
         foreach ($reservations as $r) {
-            $player = Player::find($r->booking_subject);
-            $r->booking_subject_name = $player->name ?? '';
-            $r->booking_subject_surname = $player->surname ?? '';
-            $r->m_during = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'][$r->field]['m_during'];
+            $owner = $owners->get($r->booking_subject);
+            $r->booking_subject_name = $owner->name ?? '';
+            $r->booking_subject_surname = $owner->surname ?? '';
+            $r->m_during = $field_set[$r->field]['m_during'] ?? 30;
         }
+
         $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
-        
-        //dd($dinner_off);
+
         return view('admin.Reservations.index', compact('reservations', 'field_set', 'dinner_off'));
     }
 
@@ -246,7 +256,16 @@ class ReservationController extends Controller
         $reservation->booking_subject_name = $player->name ?? '';
         $reservation->booking_subject_surname = $player->surname ?? '';
         $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
-        return view('admin.Reservations.show', compact('reservation' ,'m_during','dinner_off'));
+
+        // Elenco per la select "aggiungi partecipante": esclude chi c'è già.
+        $joined_ids = $reservation->players->pluck('id');
+        $available_players = Player::whereNotIn('id', $joined_ids)
+            ->orderBy('nickname')
+            ->get(['id', 'nickname', 'name', 'surname', 'level']);
+
+        return view('admin.Reservations.show', compact(
+            'reservation', 'm_during', 'dinner_off', 'available_players'
+        ));
     }
 
     /**
@@ -305,5 +324,70 @@ class ReservationController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    // ==========================================================
+    // Gestione degli iscritti a una partita aperta
+    // ==========================================================
+
+    /**
+     * Aggiunge un partecipante dalla scheda della prenotazione.
+     * Il gestore può superare i posti disponibili: la validazione sui
+     * posti riguarda solo le iscrizioni fatte dai clienti.
+     */
+    public function addParticipant(Request $request, $id)
+    {
+        $reservation = Reservation::findOrFail($id);
+        $request->validate(['player_id' => 'required|exists:players,id']);
+
+        $playerId = (int) $request->input('player_id');
+
+        $existing = DB::table('player_reservation')
+            ->where('reservation_id', $reservation->id)
+            ->where('player_id', $playerId)
+            ->first();
+
+        if ($existing) {
+            DB::table('player_reservation')
+                ->where('reservation_id', $reservation->id)
+                ->where('player_id', $playerId)
+                ->update(['join_status' => 'accepted', 'joined_at' => now()]);
+        } else {
+            DB::table('player_reservation')->insert([
+                'reservation_id' => $reservation->id,
+                'player_id' => $playerId,
+                'join_status' => 'accepted',
+                'joined_at' => now(),
+                'is_owner' => $playerId === (int) $reservation->booking_subject,
+            ]);
+        }
+
+        return back()->with('message', 'Partecipante aggiunto alla prenotazione');
+    }
+
+    /**
+     * Rimuove un partecipante. La riga viene eliminata: il gestore
+     * sta correggendo l'elenco, non registrando una disdetta.
+     */
+    public function removeParticipant($id, $playerId)
+    {
+        $reservation = Reservation::findOrFail($id);
+
+        DB::table('player_reservation')
+            ->where('reservation_id', $reservation->id)
+            ->where('player_id', $playerId)
+            ->delete();
+
+        return back()->with('message', 'Partecipante rimosso dalla prenotazione');
+    }
+
+    /** Toglie la prenotazione dall'elenco delle partite aperte. */
+    public function closeOpen($id)
+    {
+        $reservation = Reservation::findOrFail($id);
+        $reservation->is_open = false;
+        $reservation->save();
+
+        return back()->with('message', 'La partita non è più fra quelle aperte');
     }
 }

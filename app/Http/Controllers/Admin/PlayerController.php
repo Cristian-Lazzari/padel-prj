@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\User;
 use App\Models\Player;
 use App\Models\Reservation;
+use App\Services\AvatarService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -25,6 +26,13 @@ class PlayerController extends Controller
         'level'      => 'required|numeric|min:1|max:5',
         'sex'        => 'required',
         'certificate'=> 'nullable|file|mimes:pdf,jpg,jpeg,png,gif,webp,svg,bmp,tiff|max:1024',
+        'hand'       => 'nullable|in:dx,sx',
+        'preferred_position' => 'nullable|in:dritto,rovescio,indifferente',
+        'city'       => 'nullable|string|max:60',
+        'bio'        => 'nullable|string|max:500',
+        'birth_date' => 'nullable|date|before:today',
+        'certificate_expires_at' => 'nullable|date',
+        'img'        => 'nullable|file|mimes:jpg,jpeg,png,webp|max:4096',
     ];
     private $validations = [
         'nickname'   => 'required|string|min:2|unique:players,nickname',
@@ -35,6 +43,13 @@ class PlayerController extends Controller
         'level'      => 'required|numeric|min:1|max:5',
         'sex'        => 'required',
         'certificate'=> 'nullable|file|mimes:pdf,jpg,jpeg,png,gif,webp,svg,bmp,tiff|max:1024',
+        'hand'       => 'nullable|in:dx,sx',
+        'preferred_position' => 'nullable|in:dritto,rovescio,indifferente',
+        'city'       => 'nullable|string|max:60',
+        'bio'        => 'nullable|string|max:500',
+        'birth_date' => 'nullable|date|before:today',
+        'certificate_expires_at' => 'nullable|date',
+        'img'        => 'nullable|file|mimes:jpg,jpeg,png,webp|max:4096',
     ];
     private $validations_1 = [
         'nickname'   => 'required|string|min:2',
@@ -45,6 +60,13 @@ class PlayerController extends Controller
         'level'      => 'required|numeric|min:1|max:5',
         'sex'        => 'required',
         'certificate'=> 'nullable|file|mimes:pdf,jpg,jpeg,png,gif,webp,svg,bmp,tiff|max:1024',
+        'hand'       => 'nullable|in:dx,sx',
+        'preferred_position' => 'nullable|in:dritto,rovescio,indifferente',
+        'city'       => 'nullable|string|max:60',
+        'bio'        => 'nullable|string|max:500',
+        'birth_date' => 'nullable|date|before:today',
+        'certificate_expires_at' => 'nullable|date',
+        'img'        => 'nullable|file|mimes:jpg,jpeg,png,webp|max:4096',
     ];
     public function index()
     {
@@ -105,10 +127,10 @@ class PlayerController extends Controller
         $player->level = $data['level'];
         $player->sex = $data['sex'];
         
-        if (isset($data['cretificate'])) {
-            $cretificatePath = Storage::put('public/uploads', $data['cretificate']);
-            $player->cretificate = $cretificatePath;
-        } 
+        $this->fillProfileFields($player, $data);
+        $this->storeCertificate($request, $player);
+        $this->storeAvatar($request, $player);
+
         $player->save();
 
         if (isset($data['add_new'])) {
@@ -157,13 +179,16 @@ class PlayerController extends Controller
         $player->note = $data['note'];
         $player->sex = $data['sex'];
         
-        if (isset($data['cretificate'])) {
-            if($player->cretificate){
-                Storage::delete($player->cretificate);
-            }
-            $cretificatePath = Storage::put('public/uploads', $data['cretificate']);
-            $player->cretificate = $cretificatePath;
-        } 
+        $this->fillProfileFields($player, $data);
+        $this->storeCertificate($request, $player);
+
+        if ($request->boolean('remove_img')) {
+            $player->deleteImgFile();
+            $player->img = null;
+        } else {
+            $this->storeAvatar($request, $player);
+        }
+
         $player->update();
 
         $message = 'Il giocatore "' . $data['nickname'] . '" è stato modificato correttamente';
@@ -177,9 +202,50 @@ class PlayerController extends Controller
         
         // stacca tutte le associazioni con le reservations
         $player->reservations()->detach();
+        $player->deleteImgFile();
         $player->delete();
 
         $m = 'Il giocatore "' . $player->nickname . '" è stato eliminato correttamente';
         return to_route('admin.players.index')->with('message', $m);      
+    }
+
+    /**
+     * Valorizza i campi profilo facoltativi condivisi fra store e update.
+     */
+    private function fillProfileFields(Player $player, array $data)
+    {
+        foreach (['hand', 'preferred_position', 'city', 'bio', 'birth_date', 'certificate_expires_at'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $player->{$field} = $data[$field] !== '' ? $data[$field] : null;
+            }
+        }
+    }
+
+    /**
+     * Salva il certificato medico sul disco pubblico, sostituendo il precedente.
+     */
+    private function storeCertificate(Request $request, Player $player)
+    {
+        if (! $request->hasFile('certificate')) {
+            return;
+        }
+
+        if ($player->certificate) {
+            Storage::disk('public')->delete($player->certificate);
+        }
+
+        $player->certificate = $request->file('certificate')->store('certificates', 'public');
+    }
+
+    /**
+     * Salva la foto profilo riusando lo stesso servizio dell'area cliente.
+     */
+    private function storeAvatar(Request $request, Player $player)
+    {
+        if (! $request->hasFile('img')) {
+            return;
+        }
+
+        $player->img = app(AvatarService::class)->store($request->file('img'), $player);
     }
 }
