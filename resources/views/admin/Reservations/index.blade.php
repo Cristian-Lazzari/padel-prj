@@ -23,22 +23,25 @@
 @endif
 
 @php
-    $annullate = $reservations->where('status', 0)->count();
-    $aperte    = $reservations->where('is_open', true)->count();
+    /* Filtri e ordinamento stanno nell'indirizzo, non nel browser: l'elenco
+       arriva già filtrato dal server, una pagina per volta. Prima si mandavano
+       giù tutte le prenotazioni dell'archivio e si nascondevano col javascript. */
+    $filtrato = $q !== '' || $status !== 'all' || $open;
 @endphp
 
 <header class="ui-head">
     <div class="ui-head__title">
         <h1>Prenotazioni</h1>
-        @if ($reservations->isNotEmpty())
-            <div class="ui-head__count">
-                <span data-ui-count-all>In tutto <b>{{ $reservations->count() }}</b></span>
-                <span data-ui-count-shown hidden>Mostrate <b>0</b> di {{ $reservations->count() }}</span>
-                @if ($aperte)
-                    <span>Partite aperte <b>{{ $aperte }}</b></span>
-                @endif
-            </div>
-        @endif
+        <div class="ui-head__count">
+            @if ($filtrato)
+                <span>Trovate <b>{{ $reservations->total() }}</b></span>
+            @else
+                <span>In tutto <b>{{ $reservations->total() }}</b></span>
+            @endif
+            @if ($counts['aperte'])
+                <span>Partite aperte <b>{{ $counts['aperte'] }}</b></span>
+            @endif
+        </div>
     </div>
     <div class="ui-head__actions">
         <a class="ui-btn" href="{{ route('admin.dashboard') }}">
@@ -48,30 +51,50 @@
     </div>
 </header>
 
-@if ($reservations->isNotEmpty())
-    <div class="ui-filters">
-        <div class="ui-search">
-            @include('admin.partials.ui-icon', ['name' => 'search', 'size' => 16])
-            <label class="ui-vh" for="searchInput">Cerca per nome di chi ha prenotato o per campo</label>
-            <input type="search" id="searchInput" placeholder="Cerca nome o campo..." autocomplete="off">
-        </div>
+<form class="ui-filters" method="GET" action="{{ route('admin.reservations.index') }}" id="filtri">
+    {{-- Stato, "solo aperte" e ordinamento viaggiano nascosti: li cambiano i
+         pulsanti qui sotto, che poi mandano il modulo. --}}
+    <input type="hidden" name="status" value="{{ $status }}">
+    <input type="hidden" name="open" value="{{ $open ? '1' : '0' }}">
 
-        <button type="button" class="ui-chip is-on" data-ui-status="all" aria-pressed="true">Tutte<span class="ui-chip__count">{{ $reservations->count() }}</span></button>
-        <button type="button" class="ui-chip" data-ui-status="confirmed" aria-pressed="false">Confermate<span class="ui-chip__count">{{ $reservations->count() - $annullate }}</span></button>
-        @if ($annullate)
-            <button type="button" class="ui-chip" data-ui-status="cancelled" aria-pressed="false">Annullate<span class="ui-chip__count">{{ $annullate }}</span></button>
-        @endif
-        @if ($aperte)
-            <button type="button" class="ui-chip" data-ui-open="open" aria-pressed="false">Solo partite aperte<span class="ui-chip__count">{{ $aperte }}</span></button>
-        @endif
-
-        {{-- L'ordinamento è sulla data di prenotazione, come nella versione precedente --}}
-        <button type="button" class="ui-chip" id="sortToggle" aria-pressed="false" title="Ordina per data di prenotazione">
-            @include('admin.partials.ui-icon', ['name' => 'sort-down-alt', 'size' => 14])
-            <span>Prenotate di recente</span>
-        </button>
+    <div class="ui-search">
+        @include('admin.partials.ui-icon', ['name' => 'search', 'size' => 16])
+        <label class="ui-vh" for="searchInput">Cerca per nome di chi ha prenotato o per campo</label>
+        <input type="search" id="searchInput" name="q" value="{{ $q }}"
+               placeholder="Cerca nome o campo..." autocomplete="off">
     </div>
-@endif
+
+    <button type="button" class="ui-chip {{ $status === 'all' ? 'is-on' : '' }}" data-ui-set="status" data-ui-value="all"
+            aria-pressed="{{ $status === 'all' ? 'true' : 'false' }}">Tutte<span class="ui-chip__count">{{ $counts['tutte'] }}</span></button>
+    <button type="button" class="ui-chip {{ $status === 'confirmed' ? 'is-on' : '' }}" data-ui-set="status" data-ui-value="confirmed"
+            aria-pressed="{{ $status === 'confirmed' ? 'true' : 'false' }}">Confermate<span class="ui-chip__count">{{ $counts['confermate'] }}</span></button>
+    <button type="button" class="ui-chip {{ $status === 'cancelled' ? 'is-on' : '' }}" data-ui-set="status" data-ui-value="cancelled"
+            aria-pressed="{{ $status === 'cancelled' ? 'true' : 'false' }}">Annullate<span class="ui-chip__count">{{ $counts['annullate'] }}</span></button>
+    <button type="button" class="ui-chip {{ $open ? 'is-on' : '' }}" data-ui-set="open" data-ui-value="{{ $open ? '0' : '1' }}"
+            aria-pressed="{{ $open ? 'true' : 'false' }}">Solo partite aperte<span class="ui-chip__count">{{ $counts['aperte'] }}</span></button>
+
+    <div class="ui-perpage">
+        <label for="sortSelect">Ordina</label>
+        <select id="sortSelect" name="sort" style="min-width:190px;">
+            <option value="slot_desc"    @selected($sort === 'slot_desc')>Dalla più recente</option>
+            <option value="slot_asc"     @selected($sort === 'slot_asc')>Dalla più lontana</option>
+            <option value="created_desc" @selected($sort === 'created_desc')>Prenotate di recente</option>
+            <option value="created_asc"  @selected($sort === 'created_asc')>Prenotate per prime</option>
+        </select>
+    </div>
+
+    <div class="ui-perpage">
+        <label for="perPage">Per pagina</label>
+        <select id="perPage" name="per_page">
+            @foreach ($per_page_opts as $n)
+                <option value="{{ $n }}" @selected($per_page === $n)>{{ $n }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    {{-- Senza javascript i filtri funzionano lo stesso: resta un pulsante --}}
+    <noscript><button type="submit" class="ui-btn">Applica</button></noscript>
+</form>
 
 <div class="ui-list" role="table" aria-label="Elenco delle prenotazioni" id="reservations-list">
     @if ($reservations->isNotEmpty())
@@ -95,14 +118,10 @@
             $dinner    = json_decode($r->dinner, true);
             $cena      = $dinner_off && ($dinner['status'] ?? false);
             $nome      = trim($r->booking_subject_name.' '.$r->booking_subject_surname) ?: 'Senza intestatario';
+            $iscritti  = (int) $r->players_count;
         @endphp
 
-        <article class="ui-row {{ $annullata ? 'ui-row--muted' : '' }}" role="row"
-                 data-created="{{ $r->created_at }}"
-                 data-slot="{{ $r->date_slot }}"
-                 data-open="{{ $r->is_open ? '1' : '0' }}"
-                 data-status="{{ $annullata ? 'cancelled' : 'confirmed' }}"
-                 data-name="{{ Str::lower($nome.' '.$r->field) }}">
+        <article class="ui-row {{ $annullata ? 'ui-row--muted' : '' }}" role="row">
 
             <div class="ui-cell" data-label="Quando" role="cell">
                 <strong>{{ $data }}</strong>
@@ -149,7 +168,6 @@
                 <span>{{ $r->duration * $m_during }} min</span>
             </div>
 
-            @php $iscritti = count($r->players); @endphp
             <div class="ui-meter {{ $r->is_open || $iscritti ? '' : 'ui-meter--empty' }}" data-label="Giocatori" role="cell">
                 @if ($r->is_open && $r->slots_total)
                     <div class="ui-meter__value">{{ $r->slots_taken }}<small>/{{ $r->slots_total }}</small></div>
@@ -208,24 +226,28 @@
             </div>
         @endif
     @empty
-        <div class="ui-empty">
-            <span class="ui-empty__icon">@include('admin.partials.ui-icon', ['name' => 'card-checklist', 'size' => 25])</span>
-            <h2>Nessuna prenotazione</h2>
-            <p>Quando qualcuno prenota dal sito la trovi qui. Puoi crearne una a mano dal calendario, scegliendo giorno, campo e orario.</p>
-            <a class="ui-btn ui-btn--primary" href="{{ route('admin.dashboard') }}">
-                @include('admin.partials.ui-icon', ['name' => 'calendar2-week', 'size' => 16])
-                <span>Vai al calendario</span>
-            </a>
-        </div>
+        @if ($filtrato)
+            <div class="ui-empty">
+                <span class="ui-empty__icon">@include('admin.partials.ui-icon', ['name' => 'search', 'size' => 25])</span>
+                <h2>Nessuna prenotazione con questi filtri</h2>
+                <p>Prova a cambiare stato o a cercare un altro nome.</p>
+                <a class="ui-btn" href="{{ route('admin.reservations.index', ['per_page' => $per_page]) }}">Azzera i filtri</a>
+            </div>
+        @else
+            <div class="ui-empty">
+                <span class="ui-empty__icon">@include('admin.partials.ui-icon', ['name' => 'card-checklist', 'size' => 25])</span>
+                <h2>Nessuna prenotazione</h2>
+                <p>Quando qualcuno prenota dal sito la trovi qui. Puoi crearne una a mano dal calendario, scegliendo giorno, campo e orario.</p>
+                <a class="ui-btn ui-btn--primary" href="{{ route('admin.dashboard') }}">
+                    @include('admin.partials.ui-icon', ['name' => 'calendar2-week', 'size' => 16])
+                    <span>Vai al calendario</span>
+                </a>
+            </div>
+        @endif
     @endforelse
 </div>
 
-<div class="ui-empty" id="noResults" hidden>
-    <span class="ui-empty__icon">@include('admin.partials.ui-icon', ['name' => 'search', 'size' => 25])</span>
-    <h2>Nessuna prenotazione con questi filtri</h2>
-    <p>Prova a cambiare stato o a cercare un altro nome.</p>
-    <button type="button" class="ui-btn" data-ui-reset>Azzera i filtri</button>
-</div>
+{{ $reservations->links('admin.partials.ui-pager') }}
 
 @endsection
 
@@ -236,92 +258,30 @@ document.addEventListener('DOMContentLoaded', () => {
         b.addEventListener('click', () => b.closest('.ui-flash')?.remove());
     });
 
-    const list   = document.getElementById('reservations-list');
+    const filtri = document.getElementById('filtri');
+    if (!filtri) return;
+
+    // I pulsanti scrivono nel campo nascosto e mandano il modulo: l'elenco
+    // arriva filtrato dal server, così i numeri e le pagine restano veri.
+    filtri.querySelectorAll('[data-ui-set]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            filtri.querySelector(`input[name="${btn.dataset.uiSet}"]`).value = btn.dataset.uiValue;
+            filtri.submit();
+        });
+    });
+
+    ['sortSelect', 'perPage'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('change', () => filtri.submit());
+    });
+
+    // La ricerca aspetta che si smetta di scrivere: una richiesta per parola,
+    // non una per tasto.
     const search = document.getElementById('searchInput');
-    if (!list || !search) return;
-
-    const rows       = Array.from(list.querySelectorAll('.ui-row'));
-    const statusChips= Array.from(document.querySelectorAll('[data-ui-status]'));
-    const openChip   = document.querySelector('[data-ui-open]');
-    const sortToggle = document.getElementById('sortToggle');
-    const empty      = document.getElementById('noResults');
-    const countAll   = document.querySelector('[data-ui-count-all]');
-    const countShown = document.querySelector('[data-ui-count-shown]');
-
-    let status = 'all';
-    let soloAperte = false;
-    let ordine = 'desc';
-
-    function apply() {
-        const term = (search.value || '').toLowerCase().trim();
-        let shown = 0;
-
-        rows.forEach((row) => {
-            const ok = (!term || row.dataset.name.includes(term))
-                    && (status === 'all' || row.dataset.status === status)
-                    && (!soloAperte || row.dataset.open === '1');
-            row.hidden = !ok;
-            if (ok) shown++;
-        });
-
-        list.hidden = rows.length > 0 && shown === 0;
-        if (empty) empty.hidden = !(rows.length > 0 && shown === 0);
-
-        const filtrato = shown !== rows.length;
-        if (countAll)   countAll.hidden = filtrato;
-        if (countShown) {
-            countShown.hidden = !filtrato;
-            countShown.querySelector('b').textContent = shown;
-        }
-
-        // Riordino solo le righe visibili, per data di prenotazione
-        rows.filter((r) => !r.hidden)
-            .sort((a, b) => {
-                const d = new Date(a.dataset.created) - new Date(b.dataset.created);
-                return ordine === 'asc' ? d : -d;
-            })
-            .forEach((r) => list.appendChild(r));
-    }
-
-    search.addEventListener('input', apply);
-
-    statusChips.forEach((chip) => {
-        chip.addEventListener('click', () => {
-            status = chip.dataset.uiStatus;
-            statusChips.forEach((c) => {
-                const on = c === chip;
-                c.classList.toggle('is-on', on);
-                c.setAttribute('aria-pressed', on ? 'true' : 'false');
-            });
-            apply();
-        });
+    let attesa = null;
+    search?.addEventListener('input', () => {
+        clearTimeout(attesa);
+        attesa = setTimeout(() => filtri.submit(), 450);
     });
-
-    openChip?.addEventListener('click', () => {
-        soloAperte = !soloAperte;
-        openChip.classList.toggle('is-on', soloAperte);
-        openChip.setAttribute('aria-pressed', soloAperte ? 'true' : 'false');
-        apply();
-    });
-
-    sortToggle?.addEventListener('click', () => {
-        ordine = ordine === 'desc' ? 'asc' : 'desc';
-        sortToggle.classList.toggle('is-on', ordine === 'asc');
-        sortToggle.setAttribute('aria-pressed', ordine === 'asc' ? 'true' : 'false');
-        sortToggle.querySelector('span').textContent = ordine === 'asc' ? 'Prenotate per prime' : 'Prenotate di recente';
-        apply();
-    });
-
-    document.querySelector('[data-ui-reset]')?.addEventListener('click', () => {
-        search.value = '';
-        soloAperte = false;
-        openChip?.classList.remove('is-on');
-        openChip?.setAttribute('aria-pressed', 'false');
-        statusChips[0]?.click();
-        search.focus();
-    });
-
-    apply();
 });
 </script>
 @endsection

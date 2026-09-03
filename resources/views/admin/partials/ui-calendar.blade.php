@@ -36,6 +36,7 @@
 .cal__nav{ display: flex; gap: 8px; }
 /* Stessa icona per i due versi: quella indietro è la stessa ruotata */
 .cal__nav button:first-child svg{ transform: rotate(180deg); }
+.cal__nav button[disabled]{ opacity: .35; pointer-events: none; }
 
 .cal__dow{
     display: grid;
@@ -158,27 +159,47 @@
 }
 .cal__grid input[type="checkbox"]:focus-visible + .cal__day{ outline: 2px solid var(--c2); outline-offset: 2px; }
 
-/* Puntini della carosello di Bootstrap, ridisegnati */
-.ui-page .carousel-indicators{
-    position: static;
-    margin: 0 0 10px;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 6px;
+/* ---------- Un mese alla volta ----------
+   La griglia si ricarica da sola quando si cambia mese: quello che segue è
+   il velo che copre solo lei, non tutta la pagina. */
+.cal__body{ position: relative; min-height: 120px; }
+.cal__body.is-loading .cal__grid{ opacity: .35; pointer-events: none; }
+.cal__grid{ transition: opacity .15s ease; }
+
+.cal__loading{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: var(--ui-r-row);
+    background: color-mix(in srgb, var(--ui-surface) 62%, transparent);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ui-ink-soft);
 }
-/* !important: il foglio globale disegna gli indicatori con !important su
-   dimensioni, bordo e fondo, e senza rilanciare vincerebbe lui. */
-.ui-page .carousel-indicators [data-bs-target]{
-    width: 8px !important;
-    height: 8px !important;
-    margin: 0;
-    border: 0 !important;
-    border-radius: 50% !important;
-    background-color: rgba(216, 221, 232, .12) !important;
-    opacity: 1;
-    text-indent: 0;
+.cal__loading[hidden]{ display: none; }
+.cal__spin{
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(216, 221, 232, .18);
+    border-top-color: var(--ui-accent);
+    animation: cal-spin .7s linear infinite;
 }
-.ui-page .carousel-indicators .active{ background-color: #0eb792 !important; }
+@keyframes cal-spin{ to{ transform: rotate(360deg); } }
+
+/* Il salto diretto a un mese: alternativa alle frecce quando è lontano */
+.cal__pick{ display: flex; justify-content: flex-start; }
+.cal__pick select{
+    width: auto;
+    min-width: 190px;
+    min-height: 40px !important;
+    padding: 8px 14px !important;
+    font-size: 13.5px !important;
+    text-transform: capitalize;
+}
 
 /* ---------- Legenda ----------
    Vale per il mese e per le fasce: stesse icone, stessi colori nei due posti. */
@@ -416,6 +437,7 @@
 
 @media (prefers-reduced-motion: reduce){
     .cal__day, .ui-page .fields .field .time label, .ui-page .fields .field .time a{ transition: none; }
+    .cal__spin{ animation: none; }
 }
 </style>
 @endonce

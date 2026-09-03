@@ -9,70 +9,21 @@
 @section('contents')
 
 @php
-    $currentDay   = date('d');
-    $currentMonth = date('m');
-    $currentYear  = date('Y');
     $mesi = ['', 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
              'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
     $giorni = ['lun' => 'edì', 'mar' => 'tedì', 'mer' => 'coledì', 'gio' => 'vedì',
                'ven' => 'erdì', 'sab' => 'ato', 'dom' => 'enica'];
 
-    /* Tornei per giorno: un torneo occupa tutti i giorni fra inizio e fine, e i
-       campi che ha dichiarato. Serve al segno sul mese e alla banda del giorno. */
-    $tourneiPerGiorno = [];
-    foreach ($tournaments as $t) {
-        $dati = [
-            'nome'      => $t->name,
-            'url'       => route('admin.tournaments.show', $t),
-            'stato'     => $t->statusLabel(),
-            'statoKey'  => $t->status,
-            'campi'     => $t->fieldsLabel(),
-            'ora'       => $t->starts_at?->format('H:i'),
-            'formula'   => $t->formatLabel(),
-            'iscritte'  => (int) $t->confirmed_registrations_count,
-            'posti'     => (int) $t->teams_max,
-            'attesa'    => (int) $t->waitlist_registrations_count,
-            'aperto'    => $t->registration_open,
-            'chiusura'  => $t->registration_closes_at?->format('d/m H:i'),
-        ];
+    $meseCorrente = $mesi[$m['month']].' '.$m['year'];
 
-        foreach ($t->occupiedDays() as $giorno) {
-            $tourneiPerGiorno[$giorno][] = $dati;
-        }
-    }
-
-    /* I tipi di prenotazione: un'icona e un colore soli, usati nel riquadro del
-       giorno, nella legenda e nelle fasce orarie. Le icone si disegnano una volta
-       e non a ogni cella: il calendario ha centinaia di giorni e un @include per
-       ciascuno costerebbe caro. */
-    $tipi = [
-        'match'      => ['icona' => 'circle-fill',      'uno' => 'prenotazione su campo', 'tanti' => 'prenotazioni su campo', 'legenda' => 'Campo prenotato'],
-        'lesson'     => ['icona' => 'mortarboard-fill', 'uno' => 'lezione',               'tanti' => 'lezioni',               'legenda' => 'Lezione'],
-        'tournament' => ['icona' => 'trophy-fill',      'uno' => 'partita di torneo',     'tanti' => 'partite di torneo',     'legenda' => 'Partita di torneo'],
-        'dinner'     => ['icona' => 'cup-hot-fill',     'uno' => 'cena',                  'tanti' => 'cene',                  'legenda' => 'Cena'],
-    ];
-
-    $segni = [];
-    foreach ($tipi as $chiave => $tipo) {
-        $segni[$chiave] = view('admin.partials.ui-icon', ['name' => $tipo['icona'], 'size' => 11])->render();
-    }
-
-    /* La cena la usano solo alcuni circoli: se non compare mai, la sua voce di
+    /* La cena la usano solo alcuni circoli: se è spenta, la sua voce di
        legenda sarebbe una riga che non spiega niente. */
-    $ceneInUso = false;
-    foreach ($year as $m) {
-        foreach ($m['days'] as $d) {
-            if ($d['reserved_dinner'] > 0) { $ceneInUso = true; break 2; }
-        }
-    }
-
-    /* Bootstrap mostra solo la slide con .active: se il mese corrente non è tra
-       quelli caricati, senza questo ripiego il calendario resterebbe vuoto. */
-    $meseAperto = null;
-    foreach ($year as $i => $m) {
-        if ($currentMonth == $m['month'] && $currentYear == $m['year']) { $meseAperto = $i; break; }
-    }
-    $meseAperto ??= 0;
+    $tipiLegenda = [
+        'match'      => ['icona' => 'circle-fill',      'legenda' => 'Campo prenotato'],
+        'lesson'     => ['icona' => 'mortarboard-fill', 'legenda' => 'Lezione'],
+        'tournament' => ['icona' => 'trophy-fill',      'legenda' => 'Partita di torneo'],
+        'dinner'     => ['icona' => 'cup-hot-fill',     'legenda' => 'Cena'],
+    ];
 @endphp
 
 <nav class="ui-crumbs" aria-label="Percorso">
@@ -120,89 +71,53 @@
     </div>
 </header>
 
-{{-- ============ Il mese ============ --}}
-<section class="cal">
-    <div id="carouselExampleIndicators" class="carousel slide">
-        <div class="carousel-indicators">
-            @foreach ($year as $i => $m)
-                <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="{{ $i }}"
-                    @if ($i === $meseAperto) class="active" aria-current="true" @endif
-                    aria-label="{{ $mesi[$m['month']].' '.$m['year'] }}"></button>
-            @endforeach
+{{-- ============ Il mese ============ ---
+     Si carica un mese alla volta: le frecce e il selettore chiedono il mese
+     successivo al server e sostituiscono solo la griglia, con la rotellina
+     sopra al calendario e non su tutta la pagina. --}}
+<section class="cal" id="calendarShell"
+         data-month-url="{{ route('admin.calendar.month') }}"
+         data-year="{{ $m['year'] }}" data-month="{{ $m['month'] }}">
+
+    <div class="cal__head">
+        <h2 class="cal__month" id="calLabel">{{ $meseCorrente }}</h2>
+        <div class="cal__nav">
+            <button class="ui-action ui-action--icon" type="button" id="calPrev"
+                    data-year="{{ $prev_year }}" data-month="{{ $prev_month }}"
+                    @disabled(! $has_prev) aria-label="Mese precedente">
+                @include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 15])
+            </button>
+            <button class="ui-action ui-action--icon" type="button" id="calNext"
+                    data-year="{{ $next_year }}" data-month="{{ $next_month }}"
+                    @disabled(! $has_next) aria-label="Mese successivo">
+                @include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 15])
+            </button>
         </div>
+    </div>
 
-        <div id="calendar" class="carousel-inner">
-            @foreach ($year as $i => $m)
-                <div class="carousel-item @if ($i === $meseAperto) active @endif">
-                    <div class="cal__head">
-                        <h2 class="cal__month">{{ $mesi[$m['month']] }} {{ $m['year'] }}</h2>
-                        <div class="cal__nav">
-                            <button class="ui-action ui-action--icon" type="button"
-                                    data-bs-target="#carouselExampleIndicators" data-bs-slide="prev" aria-label="Mese precedente">
-                                @include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 15])
-                            </button>
-                            <button class="ui-action ui-action--icon" type="button"
-                                    data-bs-target="#carouselExampleIndicators" data-bs-slide="next" aria-label="Mese successivo">
-                                @include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 15])
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="cal__dow" aria-hidden="true">
-                        @foreach ($giorni as $breve => $resto)
-                            <span>{{ $breve }}<i>{{ $resto }}</i></span>
-                        @endforeach
-                    </div>
-
-                    <div class="cal__grid">
-                        @foreach ($m['days'] as $d)
-                            @php
-                                $giornata = $tourneiPerGiorno[$d['date']] ?? [];
-
-                                /* Quello che dice il lettore di schermo: gli stessi numeri
-                                   che si vedono, a parole. Niente title da scoprire col mouse. */
-                                $voce = [];
-                                foreach ($tipi as $chiave => $tipo) {
-                                    $quanti = (int) $d['reserved_'.$chiave];
-                                    if ($quanti > 0) {
-                                        $voce[] = $quanti.' '.($quanti === 1 ? $tipo['uno'] : $tipo['tanti']);
-                                    }
-                                }
-                                if ($giornata) {
-                                    $voce[] = 'giornata di torneo: '.collect($giornata)->pluck('nome')->implode(', ');
-                                }
-                                if (! $d['status']) {
-                                    $voce[] = 'circolo chiuso';
-                                }
-                            @endphp
-                            <button type="button" data-day='@json($d)'
-                                    class="cal__day @if ($currentMonth == $m['month'] && $currentYear == $m['year'] && $currentDay == $d['day']) current @endif @if (! $d['status']) day_off @endif"
-                                    style="grid-column-start: {{ $d['day_w'] }}"
-                                    aria-label="{{ $d['day'] }} {{ $mesi[$m['month']] }}{{ $voce ? ' — '.implode(', ', $voce) : ', niente in programma' }}"
-                                    @if ($voce) title="{{ implode(' · ', $voce) }}" @endif>
-                                {{-- Fascia in cima: il torneo occupa la giornata intera, non una fascia
-                                     oraria, e il blu è lo stesso delle sue partite più sotto --}}
-                                @if ($giornata)
-                                    <span class="cal__band" aria-hidden="true"></span>
-                                @endif
-
-                                <p class="p_day">{{ $d['day'] }}</p>
-
-                                @if ($d['reserved_match'] + $d['reserved_lesson'] + $d['reserved_tournament'] + $d['reserved_dinner'] > 0)
-                                    <span class="cal__marks" aria-hidden="true">
-                                        @foreach ($tipi as $chiave => $tipo)
-                                            @continue($d['reserved_'.$chiave] < 1)
-                                            <span class="cal__mark cal__mark--{{ $chiave }}">
-                                                {!! $segni[$chiave] !!}<b>{{ $d['reserved_'.$chiave] }}</b>
-                                            </span>
-                                        @endforeach
-                                    </span>
-                                @endif
-                            </button>
-                        @endforeach
-                    </div>
-                </div>
+    <div class="cal__pick">
+        <label class="ui-vh" for="calJump">Vai a un mese</label>
+        <select id="calJump">
+            @foreach ($months as $opt)
+                <option value="{{ $opt['year'] }}-{{ $opt['month'] }}"
+                        @selected($opt['year'] == $m['year'] && $opt['month'] == $m['month'])>{{ $opt['label'] }}</option>
             @endforeach
+        </select>
+    </div>
+
+    <div class="cal__dow" aria-hidden="true">
+        @foreach ($giorni as $breve => $resto)
+            <span>{{ $breve }}<i>{{ $resto }}</i></span>
+        @endforeach
+    </div>
+
+    {{-- Solo questo pezzo cambia quando si cambia mese --}}
+    <div class="cal__body" id="calBody" aria-busy="false" aria-live="polite">
+        @include('admin.partials.cal-month', ['m' => $m, 'tourneiPerGiorno' => $tourneiPerGiorno, 'dinner_off' => $dinner_off])
+
+        <div class="cal__loading" hidden>
+            <span class="cal__spin" aria-hidden="true"></span>
+            <span>Carico il mese…</span>
         </div>
     </div>
 
@@ -211,8 +126,8 @@
     <div class="cal__legend">
         <span class="cal__legend__title">Legenda</span>
 
-        @foreach ($tipi as $chiave => $tipo)
-            @continue($chiave === 'dinner' && ! $ceneInUso)
+        @foreach ($tipiLegenda as $chiave => $tipo)
+            @continue($chiave === 'dinner' && ! $dinner_off)
             <span class="cal__key cal__key--{{ $chiave }}">
                 @include('admin.partials.ui-icon', ['name' => $tipo['icona'], 'size' => 13])
                 <span>{{ $tipo['legenda'] }}</span>
@@ -309,7 +224,7 @@
 </form>
 
 {{-- ============ Blocca giorni ============ --}}
-<form action="{{ route('admin.settings.cancelDates') }}" method="POST">
+<form action="{{ route('admin.settings.cancelDates') }}" method="POST" id="dayOffForm">
     @csrf
     <div class="modal fade ui-modal" id="bloccaGiorni" tabindex="-1" aria-labelledby="bloccaGiorniLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -317,55 +232,43 @@
                 <div class="modal-body">
                     <h2 id="bloccaGiorniLabel" style="font-size:19px;font-weight:700;margin-bottom:6px;">Giorni di chiusura</h2>
                     <p class="ui-hint" style="margin-bottom:16px;">
-                        I giorni segnati in rosso non sono prenotabili dal sito. Ritoccali e conferma.
+                        I giorni segnati in rosso non sono prenotabili dal sito. Cambia mese con le frecce:
+                        le scelte fatte sugli altri mesi restano, si salvano tutte insieme.
                     </p>
 
-                    <div id="c2" class="carousel slide">
-                        <div class="carousel-indicators">
-                            @foreach ($year as $i => $m)
-                                <button type="button" data-bs-target="#c2" data-bs-slide-to="{{ $i }}"
-                                    @if ($i === $meseAperto) class="active" aria-current="true" @endif
-                                    aria-label="{{ $mesi[$m['month']].' '.$m['year'] }}"></button>
+                    <div class="cal" id="dayOffShell" data-year="{{ $m['year'] }}" data-month="{{ $m['month'] }}">
+                        <div class="cal__head">
+                            <h3 class="cal__month" id="offLabel">{{ $meseCorrente }}</h3>
+                            <div class="cal__nav">
+                                <button class="ui-action ui-action--icon" type="button" id="offPrev"
+                                        data-year="{{ $prev_year }}" data-month="{{ $prev_month }}"
+                                        @disabled(! $has_prev) aria-label="Mese precedente">
+                                    @include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 15])
+                                </button>
+                                <button class="ui-action ui-action--icon" type="button" id="offNext"
+                                        data-year="{{ $next_year }}" data-month="{{ $next_month }}"
+                                        @disabled(! $has_next) aria-label="Mese successivo">
+                                    @include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 15])
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="cal__dow" aria-hidden="true">
+                            @foreach ($giorni as $breve => $resto)
+                                <span>{{ $breve }}<i>{{ $resto }}</i></span>
                             @endforeach
                         </div>
 
-                        <div class="carousel-inner">
-                            @foreach ($year as $i => $m)
-                                <div class="carousel-item @if ($i === $meseAperto) active @endif">
-                                    <div class="cal__head">
-                                        <h3 class="cal__month">{{ $mesi[$m['month']] }} {{ $m['year'] }}</h3>
-                                        <div class="cal__nav">
-                                            <button class="ui-action ui-action--icon" type="button"
-                                                    data-bs-target="#c2" data-bs-slide="prev" aria-label="Mese precedente">
-                                                @include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 15])
-                                            </button>
-                                            <button class="ui-action ui-action--icon" type="button"
-                                                    data-bs-target="#c2" data-bs-slide="next" aria-label="Mese successivo">
-                                                @include('admin.partials.ui-icon', ['name' => 'chevron-right', 'size' => 15])
-                                            </button>
-                                        </div>
-                                    </div>
+                        <div class="cal__body" id="offBody" aria-busy="false">
+                            @include('admin.partials.cal-month-off', ['m' => $m])
 
-                                    <div class="cal__dow" aria-hidden="true">
-                                        @foreach ($giorni as $breve => $resto)
-                                            <span>{{ $breve }}<i>{{ $resto }}</i></span>
-                                        @endforeach
-                                    </div>
-
-                                    <div class="cal__grid">
-                                        @foreach ($m['days'] as $d)
-                                            <input type="checkbox" name="day_off[]" id="off_{{ $d['date'] }}" value="{{ $d['date'] }}"
-                                                   @checked(! $d['status'])>
-                                            <label for="off_{{ $d['date'] }}"
-                                                   class="cal__day @if ($currentMonth == $m['month'] && $currentYear == $m['year'] && $currentDay == $d['day']) current @endif"
-                                                   style="grid-column-start: {{ $d['day_w'] }}">
-                                                <p class="p_day">{{ $d['day'] }}</p>
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endforeach
+                            <div class="cal__loading" hidden>
+                                <span class="cal__spin" aria-hidden="true"></span>
+                                <span>Carico il mese…</span>
+                            </div>
                         </div>
+
+                        <p class="ui-hint" id="offCount"></p>
                     </div>
                 </div>
 
@@ -403,182 +306,309 @@ document.addEventListener('DOMContentLoaded', () => {
         tournament: 'Partita di torneo',
     };
 
+    const ROLE    = '{{ auth()->user()->role }}';
+    const USER_ID = {{ auth()->user()->id }};
+
     // Stato globale delle selezioni: { data: { campo: [orari] } }
     const selectedSlots = {};
 
     const bookingForm    = document.getElementById('bookingForm');
     const slotsContainer = document.getElementById('slots');
-    const dayButtons     = document.querySelectorAll('#calendar .cal__day');
 
-    dayButtons.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            // Salva le selezioni del giorno corrente prima di cambiare
-            saveCurrentDaySelections();
+    const shell    = document.getElementById('calendarShell');
+    const calBody  = document.getElementById('calBody');
+    const calLabel = document.getElementById('calLabel');
+    const calPrev  = document.getElementById('calPrev');
+    const calNext  = document.getElementById('calNext');
+    const calJump  = document.getElementById('calJump');
+    const MONTH_URL = shell.dataset.monthUrl;
 
-            dayButtons.forEach((e) => e.classList.remove('selected'));
-            const day = JSON.parse(btn.dataset.day);
-            btn.classList.add('selected');
+    // Gli stessi comandi, dentro la finestra "Blocca giorni"
+    const offShell = document.getElementById('dayOffShell');
+    const offBody  = document.getElementById('offBody');
+    const offLabel = document.getElementById('offLabel');
+    const offPrev  = document.getElementById('offPrev');
+    const offNext  = document.getElementById('offNext');
+    const offCount = document.getElementById('offCount');
+    const dayOffForm = document.getElementById('dayOffForm');
 
-            mostraTornei(day.date);
+    // ---------- Cambio mese ----------
+    // Il mese arriva dal server già disegnato: la pagina non si ricarica e la
+    // rotellina copre solo il calendario. I mesi già visti restano in memoria,
+    // così tornare indietro è immediato.
+    const cache = new Map();
+    let caricando = false;
 
-            slotsContainer.innerHTML = `
-                <div class="fields" id="fields"></div>
-                <div style="display:flex; justify-content:center; margin-top:20px;">
-                    <button id="unique-btn" type="button" class="ui-btn ui-btn--primary" style="display:none;"
-                            data-bs-toggle="modal" data-bs-target="#exampleModal">Prenota</button>
-                </div>`;
+    function chiave(y, mm) { return y + '-' + mm; }
 
-            const fieldsContainer = document.getElementById('fields');
+    /* Il velo copre solo la griglia. Le frecce non si disabilitano qui: il loro
+       stato dice se il mese prima o dopo esiste, e riaccenderle a fine
+       caricamento farebbe uscire dal periodo consentito. Durante l'attesa
+       basta la classe, e i comandi ignorano i clic. */
+    function attesa(body, on) {
+        body.querySelector('.cal__loading').hidden = !on;
+        body.setAttribute('aria-busy', on ? 'true' : 'false');
+        body.classList.toggle('is-loading', on);
+        caricando = on;
+    }
 
-            Object.entries(day.fields).forEach(([fieldName, fieldData]) => {
-                // Un campo chiuso quel giorno arriva come array vuoto, senza chiave
-                // "times": senza il valore di scorta qui sotto il ciclo esplode e
-                // i campi successivi non vengono più disegnati.
-                const { times = [], match } = fieldData;
+    function applica(dati, target) {
+        const body  = target === 'off' ? offBody  : calBody;
+        const label = target === 'off' ? offLabel : calLabel;
+        const prev  = target === 'off' ? offPrev  : calPrev;
+        const next  = target === 'off' ? offNext  : calNext;
+        const host  = target === 'off' ? offShell : shell;
 
-                const title = document.createElement('h4');
-                title.textContent = fieldName;
-                if (match !== undefined) {
-                    const span = document.createElement('span');
-                    span.textContent = match + ' prenotate';
-                    title.appendChild(span);
-                }
-                fieldsContainer.appendChild(title);
+        // Prima di ridisegnare, tengo le fasce spuntate del mese che se ne va
+        if (target !== 'off') saveCurrentDaySelections();
 
-                const fieldDiv = document.createElement('div');
-                fieldDiv.classList.add('field');
-                fieldDiv.dataset.field = fieldName;
+        const loading = body.querySelector('.cal__loading');
+        body.innerHTML = target === 'off' ? dati.offGrid : dati.grid;
+        if (loading) body.appendChild(loading);
 
-                if (times.length > 0) {
-                    times.forEach((slot) => {
-                        const safeTime = String(slot.time).replace(/[^a-z0-9]/gi, '_');
-                        const inputId = `i_${safeTime}_${fieldName}`;
-                        const timeDiv = document.createElement('div');
-                        timeDiv.classList.add('time');
+        label.textContent = dati.label;
+        host.dataset.year  = dati.year;
+        host.dataset.month = dati.month;
 
-                        if (slot.status == 1) {
-                            timeDiv.classList.add('trainer_slot');
-                            timeDiv.style.setProperty('--flag', slot.flag);
-                        }
+        prev.dataset.year = dati.prev_year;  prev.dataset.month = dati.prev_month;
+        next.dataset.year = dati.next_year;  next.dataset.month = dati.next_month;
+        prev.disabled = !dati.has_prev;
+        next.disabled = !dati.has_next;
 
-                        const role = '{{ auth()->user()->role }}';
-                        const userId = {{ auth()->user()->id }};
+        if (target === 'off') {
+            segnaGiorniChiusi();
+        } else {
+            if (calJump) calJump.value = dati.year + '-' + dati.month;
+            // Il giorno aperto sotto al calendario può stare nel mese appena
+            // caricato: se c'è lo rimetto in evidenza.
+            const aperto = document.querySelector('#calBody .cal__day.selected');
+            if (!aperto && giornoAperto) {
+                const btn = trovaGiorno(giornoAperto);
+                if (btn) btn.classList.add('selected');
+            }
+        }
+    }
 
-                        if (slot.status == 2) {
-                            // Il tipo decide icona, tinta e parola: le tre cose insieme,
-                            // perché il colore da solo non basta a nessuno
-                            const tipo = slot.lesson == 1 ? 'lesson' : (slot.lesson == 2 ? 'tournament' : 'match');
+    async function caricaMese(y, mm, target) {
+        if (caricando) return;
 
-                            if (tipo === 'lesson') {
-                                timeDiv.classList.add('lesson');
-                                timeDiv.style.setProperty('--flag', slot.flag);
-                            } else if (tipo === 'tournament') {
-                                timeDiv.classList.add('booked', 'trophy');
-                            } else {
-                                timeDiv.classList.add('booked');
-                            }
-                            timeDiv.classList.add(`bk_${slot.d > 3 ? '3' : slot.d}`);
-                            // Campo fisso: si distingue dalle prenotazioni normali
-                            if (slot.fixed) timeDiv.classList.add('fixed_slot');
+        const k = chiave(y, mm);
+        const body = target === 'off' ? offBody : calBody;
 
-                            const link = document.createElement('a');
-                            link.href = `/admin/reservations/${slot.id}`;
-                            link.title = `${NOMI[tipo]}${slot.fixed ? ' (campo fisso)' : ''} · ${slot.time} · ${slot.booking_subject}`;
+        if (cache.has(k)) { applica(cache.get(k), target); return; }
 
-                            const segno = document.createElement('span');
-                            segno.classList.add('slot_icon');
-                            segno.innerHTML = ICONE[tipo];
-                            link.appendChild(segno);
+        attesa(body, true);
 
-                            const spanTime = document.createElement('span');
-                            spanTime.classList.add('time_b');
-                            spanTime.textContent = slot.time;
+        try {
+            const url = `${MONTH_URL}?year=${encodeURIComponent(y)}&month=${encodeURIComponent(mm)}`;
+            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error(res.status);
+            const dati = await res.json();
+            cache.set(chiave(dati.year, dati.month), dati);
+            applica(dati, target);
+        } catch (e) {
+            const avviso = document.createElement('p');
+            avviso.className = 'ui-hint';
+            avviso.textContent = 'Non sono riuscito a caricare il mese. Riprova.';
+            body.prepend(avviso);
+            setTimeout(() => avviso.remove(), 4000);
+        } finally {
+            attesa(body, false);
+        }
+    }
 
-                            const spanSubj = document.createElement('span');
-                            spanSubj.classList.add('booking_subject');
-                            spanSubj.textContent = `#${slot.booking_subject}`;
-
-                            link.appendChild(spanTime);
-                            link.appendChild(spanSubj);
-
-                            // Il campo fisso porta il suo segno di ricorrenza accanto al nome
-                            if (slot.fixed) {
-                                const ricorre = document.createElement('span');
-                                ricorre.classList.add('slot_icon', 'slot_icon--fixed');
-                                ricorre.innerHTML = ICONE.fixed;
-                                link.appendChild(ricorre);
-                            }
-
-                            // La parola resta, oltre all'icona: è il canale che non
-                            // dipende né dal colore né dalla forma.
-                            const tag = document.createElement('em');
-                            tag.classList.add('slot_tag');
-                            tag.textContent = tipo === 'lesson' ? 'lezione' : (tipo === 'tournament' ? 'torneo' : 'campo');
-                            link.appendChild(tag);
-
-                            timeDiv.appendChild(link);
-
-                        } else if ((role == 'admin' || slot.trainer_id.includes(userId) && slot.status == 1) || slot.status == 0) {
-                            const input = document.createElement('input');
-                            input.type = 'checkbox';
-                            input.classList.add('slot-checkbox');
-                            input.value = `${day.date}/${slot.time}/${fieldName}`;
-                            input.id = inputId;
-
-                            const label = document.createElement('label');
-                            label.htmlFor = inputId;
-                            if (!slot.s) label.classList.add('middle');
-                            label.textContent = slot.time;
-
-                            timeDiv.appendChild(input);
-                            timeDiv.appendChild(label);
-
-                            input.addEventListener('change', () => {
-                                const currentDayBtn = document.querySelector('#calendar .cal__day.selected');
-                                if (!currentDayBtn) return;
-                                const currentDate = JSON.parse(currentDayBtn.dataset.day).date;
-
-                                if (!selectedSlots[currentDate]) selectedSlots[currentDate] = {};
-                                if (!selectedSlots[currentDate][fieldName]) selectedSlots[currentDate][fieldName] = [];
-
-                                const arr = selectedSlots[currentDate][fieldName];
-
-                                if (input.checked) {
-                                    if (!arr.includes(slot.time)) arr.push(slot.time);
-                                } else {
-                                    const index = arr.indexOf(slot.time);
-                                    if (index > -1) arr.splice(index, 1);
-                                    if (arr.length === 0) delete selectedSlots[currentDate][fieldName];
-                                    if (Object.keys(selectedSlots[currentDate]).length === 0) delete selectedSlots[currentDate];
-                                }
-
-                                checkCheckboxes();
-                            });
-
-                        } else {
-                            const label = document.createElement('label');
-                            label.htmlFor = inputId;
-                            if (!slot.s) label.classList.add('middle');
-                            label.textContent = slot.time;
-                            timeDiv.appendChild(label);
-                        }
-
-                        fieldDiv.appendChild(timeDiv);
-                    });
-                } else {
-                    const p = document.createElement('p');
-                    p.classList.add('null_p');
-                    p.textContent = 'Campo non disponibile in questa data';
-                    fieldDiv.appendChild(p);
-                }
-
-                fieldsContainer.appendChild(fieldDiv);
-            });
-
-            restoreSelections(day.date);
-            checkCheckboxes();
-        });
+    calPrev?.addEventListener('click', () => caricaMese(calPrev.dataset.year, calPrev.dataset.month));
+    calNext?.addEventListener('click', () => caricaMese(calNext.dataset.year, calNext.dataset.month));
+    calJump?.addEventListener('change', () => {
+        const [y, mm] = calJump.value.split('-');
+        caricaMese(y, mm);
     });
+
+    // ---------- Il giorno scelto ----------
+    // Delega sul contenitore: i riquadri cambiano a ogni mese caricato, e
+    // riagganciare un listener per ciascuno sarebbe lavoro sprecato.
+    let giornoAperto = null;
+
+    function trovaGiorno(data) {
+        return Array.from(calBody.querySelectorAll('.cal__day'))
+            .find((b) => JSON.parse(b.dataset.day).date === data) || null;
+    }
+
+    calBody.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('.cal__day');
+        if (!btn || !calBody.contains(btn)) return;
+
+        // Salva le selezioni del giorno corrente prima di cambiare
+        saveCurrentDaySelections();
+
+        calBody.querySelectorAll('.cal__day').forEach((e) => e.classList.remove('selected'));
+        const day = JSON.parse(btn.dataset.day);
+        btn.classList.add('selected');
+        giornoAperto = day.date;
+
+        mostraTornei(day.date);
+        disegnaFasce(day);
+    });
+
+    function disegnaFasce(day) {
+        slotsContainer.innerHTML = `
+            <div class="fields" id="fields"></div>
+            <div style="display:flex; justify-content:center; margin-top:20px;">
+                <button id="unique-btn" type="button" class="ui-btn ui-btn--primary" style="display:none;"
+                        data-bs-toggle="modal" data-bs-target="#exampleModal">Prenota</button>
+            </div>`;
+
+        const fieldsContainer = document.getElementById('fields');
+
+        Object.entries(day.fields).forEach(([fieldName, fieldData]) => {
+            // Un campo chiuso quel giorno arriva come array vuoto, senza chiave
+            // "times": senza il valore di scorta qui sotto il ciclo esplode e
+            // i campi successivi non vengono più disegnati.
+            const { times = [], match } = fieldData;
+
+            const title = document.createElement('h4');
+            title.textContent = fieldName;
+            if (match !== undefined) {
+                const span = document.createElement('span');
+                span.textContent = match + ' prenotate';
+                title.appendChild(span);
+            }
+            fieldsContainer.appendChild(title);
+
+            const fieldDiv = document.createElement('div');
+            fieldDiv.classList.add('field');
+            fieldDiv.dataset.field = fieldName;
+
+            if (times.length > 0) {
+                times.forEach((slot) => {
+                    // Le fasce arrivano senza le chiavi che valgono zero: qui si
+                    // rimettono i valori di partenza, una volta sola.
+                    const stato   = slot.status || 0;
+                    const maestri = slot.trainer_id || [];
+                    const intera  = slot.s || 0;
+
+                    const safeTime = String(slot.time).replace(/[^a-z0-9]/gi, '_');
+                    const inputId = `i_${safeTime}_${fieldName}`;
+                    const timeDiv = document.createElement('div');
+                    timeDiv.classList.add('time');
+
+                    if (stato == 1) {
+                        timeDiv.classList.add('trainer_slot');
+                        timeDiv.style.setProperty('--flag', slot.flag);
+                    }
+
+                    if (stato == 2) {
+                        // Il tipo decide icona, tinta e parola: le tre cose insieme,
+                        // perché il colore da solo non basta a nessuno
+                        const tipo = slot.lesson == 1 ? 'lesson' : (slot.lesson == 2 ? 'tournament' : 'match');
+
+                        if (tipo === 'lesson') {
+                            timeDiv.classList.add('lesson');
+                            timeDiv.style.setProperty('--flag', slot.flag);
+                        } else if (tipo === 'tournament') {
+                            timeDiv.classList.add('booked', 'trophy');
+                        } else {
+                            timeDiv.classList.add('booked');
+                        }
+                        timeDiv.classList.add(`bk_${slot.d > 3 ? '3' : slot.d}`);
+                        // Campo fisso: si distingue dalle prenotazioni normali
+                        if (slot.fixed) timeDiv.classList.add('fixed_slot');
+
+                        const link = document.createElement('a');
+                        link.href = `/admin/reservations/${slot.id}`;
+                        link.title = `${NOMI[tipo]}${slot.fixed ? ' (campo fisso)' : ''} · ${slot.time} · ${slot.booking_subject}`;
+
+                        const segno = document.createElement('span');
+                        segno.classList.add('slot_icon');
+                        segno.innerHTML = ICONE[tipo];
+                        link.appendChild(segno);
+
+                        const spanTime = document.createElement('span');
+                        spanTime.classList.add('time_b');
+                        spanTime.textContent = slot.time;
+
+                        const spanSubj = document.createElement('span');
+                        spanSubj.classList.add('booking_subject');
+                        spanSubj.textContent = `#${slot.booking_subject}`;
+
+                        link.appendChild(spanTime);
+                        link.appendChild(spanSubj);
+
+                        // Il campo fisso porta il suo segno di ricorrenza accanto al nome
+                        if (slot.fixed) {
+                            const ricorre = document.createElement('span');
+                            ricorre.classList.add('slot_icon', 'slot_icon--fixed');
+                            ricorre.innerHTML = ICONE.fixed;
+                            link.appendChild(ricorre);
+                        }
+
+                        // La parola resta, oltre all'icona: è il canale che non
+                        // dipende né dal colore né dalla forma.
+                        const tag = document.createElement('em');
+                        tag.classList.add('slot_tag');
+                        tag.textContent = tipo === 'lesson' ? 'lezione' : (tipo === 'tournament' ? 'torneo' : 'campo');
+                        link.appendChild(tag);
+
+                        timeDiv.appendChild(link);
+
+                    } else if ((ROLE == 'admin' || maestri.includes(USER_ID) && stato == 1) || stato == 0) {
+                        const input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.classList.add('slot-checkbox');
+                        input.value = `${day.date}/${slot.time}/${fieldName}`;
+                        input.id = inputId;
+
+                        const label = document.createElement('label');
+                        label.htmlFor = inputId;
+                        if (!intera) label.classList.add('middle');
+                        label.textContent = slot.time;
+
+                        timeDiv.appendChild(input);
+                        timeDiv.appendChild(label);
+
+                        input.addEventListener('change', () => {
+                            const currentDate = day.date;
+
+                            if (!selectedSlots[currentDate]) selectedSlots[currentDate] = {};
+                            if (!selectedSlots[currentDate][fieldName]) selectedSlots[currentDate][fieldName] = [];
+
+                            const arr = selectedSlots[currentDate][fieldName];
+
+                            if (input.checked) {
+                                if (!arr.includes(slot.time)) arr.push(slot.time);
+                            } else {
+                                const index = arr.indexOf(slot.time);
+                                if (index > -1) arr.splice(index, 1);
+                                if (arr.length === 0) delete selectedSlots[currentDate][fieldName];
+                                if (Object.keys(selectedSlots[currentDate]).length === 0) delete selectedSlots[currentDate];
+                            }
+
+                            checkCheckboxes();
+                        });
+
+                    } else {
+                        const label = document.createElement('label');
+                        label.htmlFor = inputId;
+                        if (!intera) label.classList.add('middle');
+                        label.textContent = slot.time;
+                        timeDiv.appendChild(label);
+                    }
+
+                    fieldDiv.appendChild(timeDiv);
+                });
+            } else {
+                const p = document.createElement('p');
+                p.classList.add('null_p');
+                p.textContent = 'Campo non disponibile in questa data';
+                fieldDiv.appendChild(p);
+            }
+
+            fieldsContainer.appendChild(fieldDiv);
+        });
+
+        restoreSelections(day.date);
+        checkCheckboxes();
+    }
 
     // ---------- Tornei del giorno ----------
     const banda = document.getElementById('tournamentBand');
@@ -628,10 +658,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function saveCurrentDaySelections() {
-        const activeBtn = document.querySelector('#calendar .cal__day.selected');
-        if (!activeBtn) return;
+        if (!giornoAperto) return;
 
-        const { date } = JSON.parse(activeBtn.dataset.day);
+        const date = giornoAperto;
         selectedSlots[date] = {};
 
         document.querySelectorAll('#fields .field').forEach((fieldDiv) => {
@@ -677,6 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Al submit aggiungo un campo nascosto per ogni fascia selezionata
     bookingForm.addEventListener('submit', () => {
+        saveCurrentDaySelections();
         bookingForm.querySelectorAll('.dynamic-slot').forEach((e) => e.remove());
 
         Object.entries(selectedSlots).forEach(([date, fields]) => {
@@ -696,6 +726,52 @@ document.addEventListener('DOMContentLoaded', () => {
     // All'apertura la banda mostra già i tornei di oggi: la fascia oraria
     // richiede un clic, ma "oggi c'è un torneo" si deve vedere subito.
     mostraTornei('{{ now()->format('Y-m-d') }}');
+
+    // ---------- Blocca giorni ----------
+    // I giorni chiusi stanno tutti qui dentro, non nelle caselle a schermo: il
+    // salvataggio riscrive l'elenco intero, quindi va rimandato intero anche
+    // quando si è visto un mese solo.
+    const chiusi = new Set(@json($day_off));
+
+    function segnaGiorniChiusi() {
+        offBody.querySelectorAll('[data-ui-dayoff]').forEach((cb) => {
+            cb.checked = chiusi.has(cb.dataset.uiDayoff);
+        });
+        aggiornaConteggio();
+    }
+
+    function aggiornaConteggio() {
+        if (!offCount) return;
+        const n = chiusi.size;
+        offCount.textContent = n === 0
+            ? 'Nessun giorno chiuso.'
+            : (n === 1 ? '1 giorno chiuso in tutto il calendario.' : n + ' giorni chiusi in tutto il calendario.');
+    }
+
+    offBody.addEventListener('change', (ev) => {
+        const cb = ev.target.closest('[data-ui-dayoff]');
+        if (!cb) return;
+        if (cb.checked) chiusi.add(cb.dataset.uiDayoff);
+        else chiusi.delete(cb.dataset.uiDayoff);
+        aggiornaConteggio();
+    });
+
+    offPrev?.addEventListener('click', () => caricaMese(offPrev.dataset.year, offPrev.dataset.month, 'off'));
+    offNext?.addEventListener('click', () => caricaMese(offNext.dataset.year, offNext.dataset.month, 'off'));
+
+    dayOffForm.addEventListener('submit', () => {
+        dayOffForm.querySelectorAll('.dynamic-off').forEach((e) => e.remove());
+        chiusi.forEach((data) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'day_off[]';
+            input.value = data;
+            input.classList.add('dynamic-off');
+            dayOffForm.appendChild(input);
+        });
+    });
+
+    aggiornaConteggio();
 
     // Ricerca dei giocatori nella finestra di conferma
     const searchInput = document.getElementById('playerSearch');

@@ -198,30 +198,103 @@ class ReservationController extends Controller
 
 
 
-    public function index()
+    /** Quante righe per pagina si possono chiedere. La prima è quella di partenza. */
+    public const PER_PAGE = [25, 50, 100, 200];
+
+    public function index(Request $request)
     {
         // Le impostazioni e i giocatori vengono letti una volta sola:
         // prima erano interrogati dentro al ciclo, una query per riga.
-        $field_set = Setting::fieldSet();
-
-        $reservations = Reservation::with('players:id,name,surname,nickname,level')
-            ->orderBy('date_slot', 'desc')
-            ->get();
-
-        $owners = Player::whereIn('id', $reservations->pluck('booking_subject')->unique()->filter())
-            ->get(['id', 'name', 'surname'])
-            ->keyBy('id');
-
-        foreach ($reservations as $r) {
-            $owner = $owners->get($r->booking_subject);
-            $r->booking_subject_name = $owner->name ?? '';
-            $r->booking_subject_surname = $owner->surname ?? '';
-            $r->m_during = $field_set[$r->field]['m_during'] ?? 30;
-        }
-
+        $field_set  = Setting::fieldSet();
         $dinner_off = Setting::flag('Impostazioni cena');
 
-        return view('admin.Reservations.index', compact('reservations', 'field_set', 'dinner_off'));
+        $per_page = (int) $request->input('per_page');
+        if (! in_array($per_page, self::PER_PAGE, true)) {
+            $per_page = self::PER_PAGE[0];
+        }
+
+        $q      = trim((string) $request->input('q', ''));
+        $status = in_array($request->input('status'), ['confirmed', 'cancelled'], true)
+            ? $request->input('status')
+            : 'all';
+        $open = $request->boolean('open');
+        $sort = in_array($request->input('sort'), ['slot_asc', 'created_desc', 'created_asc'], true)
+            ? $request->input('sort')
+            : 'slot_desc';
+
+        // La ricerca vale anche per i numeri sui filtri: "Confermate 12" deve
+        // dire dodici fra quelle trovate, non dodici in tutto l'archivio.
+        $trovate = Reservation::query()->when($q !== '', function ($query) use ($q) {
+            $query->where(function ($w) use ($q) {
+                $w->where('field', 'like', '%'.$q.'%')
+                  ->orWhereHas('owner', function ($o) use ($q) {
+                      $o->where('name', 'like', '%'.$q.'%')
+                        ->orWhere('surname', 'like', '%'.$q.'%')
+                        ->orWhere('nickname', 'like', '%'.$q.'%');
+                  });
+            });
+        });
+
+        // Un solo giro in banca dati per i tre numeri dei filtri.
+        $conteggi = (clone $trovate)->selectRaw(
+            'count(*) as tutte,'
+            .' sum(case when status = 0 then 1 else 0 end) as annullate,'
+            .' sum(case when is_open = 1 then 1 else 0 end) as aperte'
+        )->first();
+
+        $counts = [
+            'tutte'      => (int) ($conteggi->tutte ?? 0),
+            'annullate'  => (int) ($conteggi->annullate ?? 0),
+            'aperte'     => (int) ($conteggi->aperte ?? 0),
+        ];
+        $counts['confermate'] = $counts['tutte'] - $counts['annullate'];
+
+        $query = (clone $trovate)
+            // I giocatori servivano solo per contarli: due withCount al posto
+            // di caricare tutte le righe della tabella pivot.
+            ->withCount(['players', 'acceptedPlayers'])
+            ->with('owner:id,name,surname');
+
+        if ($status === 'confirmed') {
+            $query->where('status', '!=', 0);
+        } elseif ($status === 'cancelled') {
+            $query->where('status', 0);
+        }
+
+        if ($open) {
+            $query->where('is_open', true);
+        }
+
+        // date_slot è una stringa 'Y-m-d H:i': ordinarla come testo dà lo stesso
+        // ordine delle date e non impedisce l'uso dell'indice.
+        match ($sort) {
+            'slot_asc'     => $query->orderBy('date_slot', 'asc'),
+            'created_desc' => $query->orderBy('created_at', 'desc'),
+            'created_asc'  => $query->orderBy('created_at', 'asc'),
+            default        => $query->orderBy('date_slot', 'desc'),
+        };
+
+        $reservations = $query->paginate($per_page)->withQueryString();
+
+        // La durata in minuti la calcola la vista dal field_set: qui basta
+        // il nome dell'intestatario, che arriva dalla relazione già caricata.
+        foreach ($reservations as $r) {
+            $r->booking_subject_name = $r->owner->name ?? '';
+            $r->booking_subject_surname = $r->owner->surname ?? '';
+        }
+
+        return view('admin.Reservations.index', [
+            'reservations'   => $reservations,
+            'field_set'      => $field_set,
+            'dinner_off'     => $dinner_off,
+            'counts'         => $counts,
+            'per_page'       => $per_page,
+            'per_page_opts'  => self::PER_PAGE,
+            'q'              => $q,
+            'status'         => $status,
+            'open'           => $open,
+            'sort'           => $sort,
+        ]);
     }
 
 

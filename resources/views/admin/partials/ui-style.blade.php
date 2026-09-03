@@ -972,6 +972,58 @@ body.ui-body{
 .ui-modal .modal-header{ border: 0; padding: 22px 26px 0; }
 
 /* =========================================================================
+   13b. PAGINE DI UN ELENCO
+   ========================================================================= */
+.ui-pager{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+}
+.ui-pager__info{ font-size: 13px; color: var(--ui-ink-soft); }
+.ui-pager__info b{ color: var(--ui-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ui-pager__nav{ display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+/* Stessa icona per i due versi: quella indietro è la stessa ruotata */
+.ui-pager__nav > :first-child svg{ transform: rotate(180deg); }
+.ui-pager__nav .is-off{ opacity: .3; pointer-events: none; }
+
+.ui-pager__page{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: var(--ui-r-row);
+    background: var(--ui-surface-2);
+    font-size: 13.5px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--ui-ink-soft);
+    transition: background .15s ease, color .15s ease;
+}
+a.ui-pager__page:hover{ background: var(--ui-accent-dim); color: var(--ui-accent); }
+.ui-pager__page.is-on{ background: var(--ui-accent); color: var(--c1); font-weight: 700; }
+.ui-pager__gap{ padding: 0 4px; color: var(--ui-ink-soft); }
+
+/* Il numero di righe per pagina, accanto ai filtri */
+.ui-perpage{ display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ui-ink-soft); }
+.ui-perpage select{
+    width: auto;
+    min-width: 78px;
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    font-size: 13.5px !important;
+}
+
+@media (max-width: 620px){
+    .ui-pager{ justify-content: center; }
+    .ui-pager__info{ width: 100%; text-align: center; }
+}
+
+/* =========================================================================
    14. MOVIMENTO RIDOTTO
    ========================================================================= */
 @media (prefers-reduced-motion: reduce){

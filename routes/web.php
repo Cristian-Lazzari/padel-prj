@@ -31,6 +31,8 @@ Route::middleware(['auth', 'verified'])
     ->group(function () {
 
         Route::get('/',           [AdminPageController::class, 'admin'])->name('dashboard'); //calendar
+        // Il calendario carica un mese alla volta: le frecce chiedono qui il successivo
+        Route::get('/calendar/month', [AdminPageController::class, 'month'])->name('calendar.month');
         // /reservations
         // /players
         Route::get('/settings',            [SettingController::class, 'index'])->name('settings');
