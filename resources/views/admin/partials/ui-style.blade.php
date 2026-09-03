@@ -885,6 +885,18 @@ body.ui-body{
 }
 .ui-savebar__note{ font-size: 13px; color: var(--ui-ink-soft); }
 .ui-savebar__actions{ display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Variante in colonna: apre una colonna laterale, azioni prima della nota */
+.ui-savebar--stack{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 0;
+    border-top: 0;
+}
+.ui-savebar--stack .ui-savebar__actions{ order: -1; }
+.ui-savebar--stack .ui-savebar__actions .ui-btn{ flex: 1 1 auto; justify-content: center; }
+
 @media (max-width: 500px){
     .ui-savebar__actions{ width: 100%; }
     .ui-savebar__actions .ui-btn{ flex: 1 1 auto; }

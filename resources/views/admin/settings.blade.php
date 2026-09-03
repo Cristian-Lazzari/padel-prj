@@ -280,6 +280,13 @@
     </div>
 
     <aside class="ui-form__side">
+        <div class="ui-savebar ui-savebar--stack">
+            <span class="ui-savebar__note">Le impostazioni valgono per il sito clienti e per il calendario.</span>
+            <div class="ui-savebar__actions">
+                <button class="ui-btn ui-btn--primary" type="submit">Salva impostazioni</button>
+            </div>
+        </div>
+
         <section class="ui-panel">
             <div class="ui-panel__head"><h2>Contatti e social</h2></div>
             <div class="ui-field">
@@ -341,12 +348,6 @@
         </section>
     </aside>
 
-    <div class="ui-savebar" style="grid-column: 1 / -1;">
-        <span class="ui-savebar__note">Le impostazioni valgono per il sito clienti e per il calendario.</span>
-        <div class="ui-savebar__actions">
-            <button class="ui-btn ui-btn--primary" type="submit">Salva impostazioni</button>
-        </div>
-    </div>
 </form>
 
 @endsection
