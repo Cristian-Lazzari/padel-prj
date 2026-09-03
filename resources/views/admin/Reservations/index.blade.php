@@ -123,7 +123,8 @@
                     @elseif ($r->lesson == 0)
                         <span class="ui-pill">Partita</span>
                     @else
-                        <span class="ui-pill">Torneo</span>
+                        {{-- Non è il torneo: è una partita che ne fa parte --}}
+                        <span class="ui-pill">Partita di torneo</span>
                     @endif
 
                     @if ($r->is_open)

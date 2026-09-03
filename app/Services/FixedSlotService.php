@@ -18,11 +18,20 @@ use Illuminate\Support\Facades\Log;
  * in prenotazione, calendario admin, elenco prenotazioni) che leggono tutti
  * quella tabella: materializzando, tutti li vedono occupati senza toccare
  * l'algoritmo di disponibilità.
+ *
+ * Quando si genera: tutte in una volta, nel momento in cui il campo fisso
+ * viene creato o modificato. Non c'è nessun comando schedulato che allunga
+ * un orizzonte: quello che vedi in calendario è tutto quello che esiste,
+ * dal primo all'ultimo giorno di validità.
  */
 class FixedSlotService
 {
-    /** Quante settimane in avanti materializzare a ogni esecuzione. */
-    public const HORIZON_WEEKS = 8;
+    /**
+     * Quanti mesi coprire quando un campo fisso non ha una data di fine.
+     * Dai moduli la fine è obbligatoria: serve solo alle righe più vecchie,
+     * create quando il campo poteva essere a tempo indeterminato.
+     */
+    public const MESI_SENZA_FINE = 12;
 
     /**
      * Date in cui il campo fisso ricorre nella finestra indicata.
@@ -55,32 +64,6 @@ class FixedSlotService
         }
 
         return $dates;
-    }
-
-    /**
-     * Crea le prenotazioni mancanti per tutti i campi fissi attivi.
-     *
-     * @return array{created:int, skipped:int, conflicts:array}
-     */
-    public function materializeAll(?Carbon $from = null, ?Carbon $to = null): array
-    {
-        $from = $from ?: Carbon::today();
-        $to = $to ?: Carbon::today()->addWeeks(self::HORIZON_WEEKS);
-
-        $slots = FixedSlot::active()->with('exceptions')->get();
-
-        $created = 0;
-        $skipped = 0;
-        $conflicts = [];
-
-        foreach ($slots as $slot) {
-            $result = $this->materializeSlot($slot, $from, $to);
-            $created += $result['created'];
-            $skipped += $result['skipped'];
-            $conflicts = array_merge($conflicts, $result['conflicts']);
-        }
-
-        return compact('created', 'skipped', 'conflicts');
     }
 
     /**
@@ -198,8 +181,8 @@ class FixedSlotService
     }
 
     /**
-     * Rigenera da zero le occorrenze future di un campo fisso.
-     * Usato dopo ogni modifica dal back office.
+     * Rigenera da zero le occorrenze future di un campo fisso, per tutto il
+     * periodo di validità. Si chiama a ogni scrittura dal back office.
      */
     public function refresh(FixedSlot $slot): array
     {
@@ -209,19 +192,38 @@ class FixedSlotService
             return ['created' => 0, 'skipped' => 0, 'conflicts' => []];
         }
 
-        return $this->materializeSlot(
-            $slot->fresh('exceptions'),
-            Carbon::today(),
-            Carbon::today()->addWeeks(self::HORIZON_WEEKS)
-        );
+        [$from, $to] = $this->window($slot);
+
+        return $this->materializeSlot($slot->fresh('exceptions'), $from, $to);
+    }
+
+    /**
+     * Finestra da coprire: dal più tardo fra oggi e l'inizio validità, fino
+     * alla fine validità. Il passato non si rigenera, resta storico.
+     *
+     * @return array{0:Carbon, 1:Carbon}
+     */
+    public function window(FixedSlot $slot): array
+    {
+        $from = Carbon::today();
+
+        if ($slot->valid_from && $slot->valid_from->gt($from)) {
+            $from = $slot->valid_from->copy()->startOfDay();
+        }
+
+        $to = $slot->valid_to
+            ? $slot->valid_to->copy()->endOfDay()
+            : $from->copy()->addMonths(self::MESI_SENZA_FINE)->endOfDay();
+
+        return [$from, $to];
     }
 
     /**
      * Campo fisso attivo che occupa lo slot richiesto.
      *
-     * Rete di sicurezza sul percorso di scrittura: fra due esecuzioni del
-     * comando schedulato un cliente potrebbe prenotare un'occorrenza non
-     * ancora materializzata.
+     * Rete di sicurezza sul percorso di scrittura: se un'occorrenza non è
+     * stata generata (per esempio perché lo slot era già occupato quel
+     * giorno), il campo fisso vale comunque e la prenotazione va rifiutata.
      */
     public function conflictingSlot(string $field, string $dateSlot, int $duration): ?FixedSlot
     {
@@ -264,13 +266,9 @@ class FixedSlotService
     /** Prossime date del campo fisso, per l'area cliente. */
     public function nextDates(FixedSlot $slot, int $count = 5): array
     {
-        $dates = $this->occurrences(
-            $slot,
-            Carbon::today(),
-            Carbon::today()->addWeeks(self::HORIZON_WEEKS * 2)
-        );
+        [$from, $to] = $this->window($slot);
 
-        return array_slice($dates, 0, $count);
+        return array_slice($this->occurrences($slot, $from, $to), 0, $count);
     }
 
     // ==========================================================

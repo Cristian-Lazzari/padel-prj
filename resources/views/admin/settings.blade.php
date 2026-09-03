@@ -169,17 +169,30 @@
                             <input type="text" id="h_start_{{ $loop->index }}" name="field_set[{{ $k }}][h_start]" value="{{ $f['h_start'] }}">
                         </div>
                         <div class="ui-field">
-                            <label for="n_slot_{{ $loop->index }}">Numero di slot</label>
+                            <label for="n_slot_{{ $loop->index }}">Numero di fasce</label>
                             <input type="text" id="n_slot_{{ $loop->index }}" name="field_set[{{ $k }}][n_slot]" value="{{ $f['n_slot'] }}">
+                            @php
+                                $chiusura = \Carbon\Carbon::createFromTimeString($f['h_start'])
+                                    ->addMinutes((int) $f['m_during_client'] * (int) $f['n_slot']);
+                            @endphp
+                            <p class="ui-hint">Apertura + fascia × numero fasce: il campo chiude alle <b>{{ $chiusura->format('H:i') }}</b>.</p>
                         </div>
                         <div class="ui-field">
                             <label for="m_during_{{ $loop->index }}">Durata minima (min)</label>
                             <input type="text" id="m_during_{{ $loop->index }}" name="field_set[{{ $k }}][m_during]" value="{{ $f['m_during'] }}">
-                            <p class="ui-hint">È l'unità di misura dello slot in tutto il gestionale.</p>
+                            <p class="ui-hint">
+                                È il passo della griglia: da qui partono sia le fasce del calendario
+                                sia gli orari che il cliente può scegliere.
+                            </p>
                         </div>
                         <div class="ui-field">
-                            <label for="m_during_client_{{ $loop->index }}">Durata slot cliente (min)</label>
+                            <label for="m_during_client_{{ $loop->index }}">Durata fascia (min)</label>
                             <input type="text" id="m_during_client_{{ $loop->index }}" name="field_set[{{ $k }}][m_during_client]" value="{{ $f['m_during_client'] }}">
+                            <p class="ui-hint">
+                                Serve solo a calcolare l'orario di chiusura, qui sotto.
+                                Il cliente non prenota più a fasce: parte da qualsiasi orario libero
+                                della griglia e gioca sempre un'ora e mezza.
+                            </p>
                         </div>
                     </div>
 
@@ -402,9 +415,9 @@ document.addEventListener('DOMContentLoaded', () => {
             campo('Nome del campo', 'name_field', 'text', 'Es. Campo 3'),
             sport(),
             campo('Apertura', 'h_start', 'time'),
-            campo('Numero di slot', 'n_slot', 'number', '0'),
-            campo('Durata minima (min)', 'm_during', 'number', 'Minuti', 'È l\'unità di misura dello slot.'),
-            campo('Durata slot cliente (min)', 'm_during_client', 'number', 'Minuti')
+            campo('Numero di fasce', 'n_slot', 'number', '0'),
+            campo('Durata minima (min)', 'm_during', 'number', 'Minuti', 'Il passo della griglia degli orari.'),
+            campo('Durata fascia (min)', 'm_during_client', 'number', 'Minuti', 'Fascia × numero fasce = orario di chiusura.')
         );
 
         const azioni = document.createElement('div');

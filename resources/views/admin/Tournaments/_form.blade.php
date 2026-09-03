@@ -80,6 +80,39 @@
     </section>
 
     <section class="ui-panel">
+        <div class="ui-panel__head">
+            <h2>Campi impegnati</h2>
+            <span class="ui-panel__note">obbligatorio</span>
+        </div>
+
+        @php $campiScelti = old('fields', $tournament->occupiedFields()); @endphp
+        <div class="ui-field">
+            <label>Quali campi occupa <b>*</b></label>
+            <p class="ui-hint">
+                Due tornei possono stare negli stessi giorni solo se usano campi diversi:
+                uno sui campi 1 e 2, l'altro sui campi 3 e 4. Se i campi si sovrappongono
+                il salvataggio viene bloccato.
+            </p>
+            <div class="ui-chips__area">
+                @forelse ($field_set as $chiave => $campo)
+                    <label class="ui-chips__item">
+                        <input type="checkbox" name="fields[]" value="{{ $chiave }}"
+                               @checked(in_array($chiave, (array) $campiScelti, true))>
+                        <span>{{ $chiave }}<small>{{ $campo['type'] ?? '' }}</small></span>
+                    </label>
+                @empty
+                    <p class="ui-hint">Nessun campo configurato: aggiungine uno dalle impostazioni.</p>
+                @endforelse
+            </div>
+            @error('fields') <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
+            @foreach ($errors->get('fields') as $i => $message)
+                @continue($i === 0)
+                <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p>
+            @endforeach
+        </div>
+    </section>
+
+    <section class="ui-panel">
         <div class="ui-panel__head"><h2>Testi</h2></div>
         <div class="ui-field">
             <label for="description">Descrizione</label>

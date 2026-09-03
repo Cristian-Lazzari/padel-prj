@@ -147,10 +147,10 @@ class PlayerController extends Controller
         $player = Player::with(['reservations' => function ($query) {
             $query->orderBy('date_slot', 'desc'); // più recente → più vecchia
         }])->find($id);
-        $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
+        $dinner_off = Setting::flag('Impostazioni cena');
         $player_reservations = Reservation::where('booking_subject',$id)->with('players')->orderBy('date_slot', 'desc')->get();
 
-        $field_set = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'];
+        $field_set = Setting::fieldSet();
 
         return view('admin.Players.show', compact('player', 'player_reservations', 'dinner_off', 'field_set'));
     }

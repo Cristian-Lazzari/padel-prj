@@ -14,7 +14,7 @@ class SettingController extends Controller
     public function index(){
         $setting = Setting::all()->keyBy('name');
         $field_arr=[];
-        $field_set = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'];
+        $field_set = Setting::fieldSet();
         foreach ($field_set as $k => $f) {
             $field_arr[] = $f['type'];
         }

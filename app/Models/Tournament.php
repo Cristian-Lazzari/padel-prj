@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +24,7 @@ class Tournament extends Model
         'name', 'slug', 'description', 'regulation', 'cover', 'type', 'format',
         'level_min', 'level_max', 'teams_max', 'is_pair', 'price',
         'starts_at', 'ends_at', 'registration_opens_at', 'registration_closes_at',
-        'status', 'location', 'note',
+        'status', 'location', 'note', 'fields',
     ];
 
     protected $casts = [
@@ -36,6 +37,7 @@ class Tournament extends Model
         'ends_at' => 'datetime',
         'registration_opens_at' => 'datetime',
         'registration_closes_at' => 'datetime',
+        'fields' => 'array',
     ];
 
     /**
@@ -96,6 +98,112 @@ class Tournament extends Model
                 $q->whereNull('registration_closes_at')
                   ->orWhere('registration_closes_at', '>=', now());
             });
+    }
+
+    /**
+     * Tornei che occupano il calendario in un intervallo di date.
+     * Gli annullati non occupano niente.
+     */
+    public function scopeInPeriod(Builder $query, $from, $to): Builder
+    {
+        return $query->where('status', '!=', 'cancelled')
+            ->whereDate('starts_at', '<=', $to)
+            ->where(function ($q) use ($from) {
+                // Senza data di fine il torneo dura il solo giorno di inizio
+                $q->whereDate('ends_at', '>=', $from)
+                  ->orWhere(function ($q2) use ($from) {
+                      $q2->whereNull('ends_at')->whereDate('starts_at', '>=', $from);
+                  });
+            });
+    }
+
+    // ==========================================================
+    // Campi impegnati
+    // ==========================================================
+
+    /** Ultimo giorno occupato: senza ends_at è lo stesso giorno di inizio. */
+    public function lastDay(): ?Carbon
+    {
+        if ($this->ends_at) {
+            return $this->ends_at->copy()->endOfDay();
+        }
+
+        return $this->starts_at ? $this->starts_at->copy()->endOfDay() : null;
+    }
+
+    /** Elenco dei giorni occupati, in formato Y-m-d. */
+    public function occupiedDays(): array
+    {
+        if (! $this->starts_at) {
+            return [];
+        }
+
+        $giorni = [];
+        $cursore = $this->starts_at->copy()->startOfDay();
+        $fine = $this->lastDay();
+
+        // Un tetto di sicurezza: un torneo più lungo di due mesi è un errore di dati
+        for ($i = 0; $i < 62 && $cursore->lte($fine); $i++) {
+            $giorni[] = $cursore->format('Y-m-d');
+            $cursore->addDay();
+        }
+
+        return $giorni;
+    }
+
+    public function occupiedFields(): array
+    {
+        return array_values(array_filter((array) ($this->fields ?? [])));
+    }
+
+    public function fieldsLabel(): string
+    {
+        $campi = $this->occupiedFields();
+
+        return $campi ? implode(', ', $campi) : 'Campi da assegnare';
+    }
+
+    /** True se i due tornei si pestano i piedi: stesse date e almeno un campo in comune. */
+    public function clashesWith(self $altro): bool
+    {
+        $comuni = array_intersect($this->occupiedFields(), $altro->occupiedFields());
+
+        if (! $comuni || ! $this->starts_at || ! $altro->starts_at) {
+            return false;
+        }
+
+        return $this->starts_at->copy()->startOfDay()->lte($altro->lastDay())
+            && $altro->starts_at->copy()->startOfDay()->lte($this->lastDay());
+    }
+
+    /**
+     * Tornei già in calendario che occuperebbero gli stessi campi negli stessi
+     * giorni. $ignoreId serve in modifica, per non litigare con se stesso.
+     */
+    public static function clashes(array $fields, $startsAt, $endsAt, ?int $ignoreId = null)
+    {
+        $fields = array_values(array_filter($fields));
+
+        if (! $fields || ! $startsAt) {
+            return collect();
+        }
+
+        $sonda = new self([
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+            'fields' => $fields,
+        ]);
+
+        return self::query()
+            ->where('status', '!=', 'cancelled')
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->whereNotNull('fields')
+            // Prefiltro sulle date in SQL, l'intersezione dei campi in PHP:
+            // i campi sono un JSON e il confronto varia troppo tra i motori.
+            ->whereDate('starts_at', '<=', $sonda->lastDay())
+            ->get()
+            ->filter(fn (self $t) => $t->clashesWith($sonda))
+            ->values();
     }
 
     // ==========================================================

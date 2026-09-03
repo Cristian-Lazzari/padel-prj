@@ -12,10 +12,8 @@ class Kernel extends ConsoleKernel
     {
         //$schedule->job(new \App\Jobs\DeletePending)->evertMinute();
 
-        // Mantiene popolato l'orizzonte delle prenotazioni dei campi fissi.
-        $schedule->command('fixed-slots:materialize')
-            ->dailyAt('04:15')
-            ->withoutOverlapping();
+        // I campi fissi non hanno bisogno di uno schedulato: le prenotazioni
+        // vengono create tutte quando il campo fisso viene salvato.
 
         // Porta a "expired" gli annunci della bacheca oltre la scadenza.
         $schedule->command('listings:expire')

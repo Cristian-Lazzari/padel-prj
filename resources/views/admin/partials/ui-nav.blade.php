@@ -13,6 +13,7 @@
         ['route' => 'admin.players.index',     'match' => 'admin.players.*',      'label' => 'Giocatori',    'icon' => 'people-fill'],
         ['route' => 'admin.fixed-slots.index', 'match' => 'admin.fixed-slots.*',  'label' => 'Campi fissi',  'icon' => 'arrow-repeat'],
         ['route' => 'admin.listings.index',    'match' => 'admin.listings.*',     'label' => 'Bacheca',      'icon' => 'shop'],
+        ['route' => 'admin.statistics',        'match' => 'admin.statistics*',   'label' => 'Statistiche',  'icon' => 'bar-chart'],
         ['route' => 'admin.settings',          'match' => 'admin.settings*',      'label' => 'Impostazioni', 'icon' => 'gear-wide-connected'],
         ['route' => 'admin.mailer.index',      'match' => 'admin.mailer.*',       'label' => 'Comunicazioni','icon' => 'envelope-at'],
         ['route' => 'admin.profile.edit',      'match' => 'admin.profile.*',      'label' => auth()->user()?->name ?? 'Profilo', 'icon' => 'person-badge'],

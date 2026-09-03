@@ -113,6 +113,7 @@
                     @if (in_array($t->status, \App\Models\Tournament::PUBLIC_STATUSES, true))
                         <span class="ui-pill ui-pill--accent">Sul sito</span>
                     @endif
+                    <span class="ui-code">{{ $t->fieldsLabel() }}</span>
                     @if ($t->location)
                         <span>{{ $t->location }}</span>
                     @endif

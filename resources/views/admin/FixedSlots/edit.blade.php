@@ -21,7 +21,7 @@
 
 <div class="ui-flash ui-flash--warn" role="alert">
     @include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 20])
-    <span>Salvando, le occorrenze future vengono rigenerate: le prenotazioni già create per questo campo fisso saranno ricreate con i nuovi dati.</span>
+    <span>Salvando, le prenotazioni future di questo campo fisso vengono cancellate e ricreate con i nuovi dati, fino alla data di fine validità. Quelle già passate restano in archivio.</span>
 </div>
 
 <header class="ui-head">

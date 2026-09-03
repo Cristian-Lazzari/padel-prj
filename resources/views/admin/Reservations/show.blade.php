@@ -11,7 +11,8 @@
     $ora_fine = $datetime->copy()->addMinutes($m_during * $reservation->duration)->format('H:i');
 
     $dinner = json_decode($reservation->dinner, true);
-    $tipo   = [0 => 'Partita', 1 => 'Lezione', 2 => 'Torneo'][$reservation->lesson ?? 0] ?? 'Partita';
+    $tipo   = [0 => 'Partita', 1 => 'Lezione', 2 => 'Partita di torneo'][$reservation->lesson ?? 0] ?? 'Partita';
+    $torneo = ($tournament_match ?? null)?->tournament;
     $annullata = $reservation->status == 0;
     $intestatario = trim($reservation->booking_subject_name.' '.$reservation->booking_subject_surname);
 @endphp
@@ -40,8 +41,11 @@
 
 <header class="ui-head">
     <div class="ui-head__title">
-        <h1>{{ $tipo }} di {{ $intestatario ?: 'ospite' }}</h1>
+        <h1>{{ $tipo }} · {{ $intestatario ?: 'ospite' }}</h1>
         <div class="ui-head__count">
+            @if ($torneo)
+                <span class="ui-pill ui-pill--accent">Torneo {{ $torneo->name }}</span>
+            @endif
             <span>{{ ucfirst($data) }}</span>
             <span>{{ $ora }} → {{ $ora_fine }}</span>
             <span>Campo <b>{{ $reservation->field }}</b></span>
@@ -94,10 +98,10 @@
             </section>
         @endif
 
-        <section class="ui-panel">
-            <div class="ui-panel__head">
+        <section class="ui-section">
+            <div class="ui-section__head">
                 <h2>Giocatori</h2>
-                <span class="ui-panel__note">{{ $reservation->players->count() }} in elenco</span>
+                <div class="ui-section__meta"><span class="ui-pill">{{ $reservation->players->count() }} in elenco</span></div>
             </div>
 
             @forelse ($reservation->players as $p)
@@ -142,7 +146,7 @@
                 <p class="ui-hint">Nessun giocatore associato a questa prenotazione.</p>
             @endforelse
 
-            <form class="ui-field" action="{{ route('admin.reservations.participants.store', $reservation->id) }}" method="post">
+            <form class="ui-panel" action="{{ route('admin.reservations.participants.store', $reservation->id) }}" method="post">
                 @csrf
                 <label for="player_id">Aggiungi un partecipante</label>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -195,6 +199,22 @@
                     </div>
                 @endif
             </div>
+
+            @if ($torneo)
+                <div class="ui-fact">
+                    <span>Fa parte del torneo</span>
+                    <strong><a href="{{ route('admin.tournaments.show', $torneo) }}">{{ $torneo->name }}</a></strong>
+                    <small>
+                        {{ $tournament_match->round ?: 'incontro' }}
+                        @if ($tournament_match->group_name) · girone {{ $tournament_match->group_name }} @endif
+                    </small>
+                </div>
+            @elseif ($reservation->lesson == 2)
+                <p class="ui-hint">
+                    Segnata come partita di torneo, ma non è agganciata a nessun incontro:
+                    puoi collegarla dalla scheda del torneo, nel calendario incontri.
+                </p>
+            @endif
 
             @if (! $annullata)
                 <button class="ui-btn ui-btn--danger" type="button" data-bs-toggle="modal" data-bs-target="#annullaPrenotazione">

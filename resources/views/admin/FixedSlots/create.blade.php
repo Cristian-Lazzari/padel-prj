@@ -22,7 +22,7 @@
 <header class="ui-head">
     <div class="ui-head__title">
         <h1>Nuovo campo fisso</h1>
-        <div class="ui-head__count"><span>Le prenotazioni future si generano da sole ogni notte</span></div>
+        <div class="ui-head__count"><span>Al salvataggio le prenotazioni finiscono subito in calendario, fino alla data di fine</span></div>
     </div>
     <div class="ui-head__actions">
         <a class="ui-btn" href="{{ route('admin.fixed-slots.index') }}">
@@ -37,7 +37,7 @@
     @include('admin.FixedSlots._form')
 
     <div class="ui-savebar" style="grid-column: 1 / -1;">
-        <span class="ui-savebar__note">Se il campo risulta già prenotato in qualche data, quelle occorrenze non vengono generate.</span>
+        <span class="ui-savebar__note">Nelle date in cui il campo è già prenotato da altri, la ricorrenza viene saltata e te lo diciamo.</span>
         <div class="ui-savebar__actions">
             <a class="ui-btn" href="{{ route('admin.fixed-slots.index') }}">Annulla</a>
             <button class="ui-btn ui-btn--primary" type="submit">Crea campo fisso</button>

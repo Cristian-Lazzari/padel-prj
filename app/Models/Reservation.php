@@ -19,6 +19,13 @@ class Reservation extends Model
     public const CATEGORIES = ['match', 'lesson', 'tournament'];
 
     /**
+     * Quanto dura una prenotazione fatta dal cliente: un blocco unico di
+     * un'ora e mezza. Non esistono più "slot cliente": l'orario di partenza
+     * è libero sulla griglia del campo, la durata è sempre questa.
+     */
+    public const CLIENT_MINUTES = 90;
+
+    /**
      * Espressione SQL che converte date_slot (varchar 'Y-m-d H:i') in datetime.
      * Serve in ogni confronto temporale perché la colonna non è un DATETIME.
      */
@@ -84,6 +91,12 @@ class Reservation extends Model
     }
 
     /** Sotto-query con il numero di iscritti confermati. */
+    /** Quante fasce del campo servono per coprire la prenotazione del cliente. */
+    public static function clientSlots(int $mDuring): int
+    {
+        return (int) max(1, ceil(self::CLIENT_MINUTES / max(1, $mDuring)));
+    }
+
     public static function acceptedCountSql(): string
     {
         return "select count(*) from player_reservation pr

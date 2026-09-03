@@ -41,6 +41,19 @@
     --ui-mute-dim:   rgba(216, 221, 232, .12);
     --ui-rule:       rgba(216, 221, 232, .1);
 
+    /* Tavolozza dei dati: le stesse cinque tinte per i grafici delle Statistiche
+       e per i segni del Calendario, così "lezione" è arancio dappertutto.
+       Non sono scelte a occhio: contrasto >= 3:1 sul fondo (#090333) e sulla
+       superficie dei pannelli (#140f3d), e coppie vicine distinguibili anche
+       con daltonismo. Se cambiano, vanno rivalidate. */
+    --viz-1: #0ca67f;   /* verde acqua: il colore del marchio, un gradino più scuro */
+    --viz-2: #db6f2c;   /* arancio */
+    --viz-3: #6688e8;   /* blu */
+    --viz-4: #c94a76;   /* magenta */
+    --viz-5: #b58b1c;   /* ocra */
+    /* La superficie su cui poggiano: serve agli anelli e ai distacchi */
+    --viz-surface: #140f3d;
+
     --ui-r-row: 20px;
     --ui-r-box: 28px;
     --ui-pill:  999px;

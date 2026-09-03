@@ -29,6 +29,13 @@ class SettingsTableSeeder extends Seeder
                     ]
                 ],
                 [
+                    'name' => 'Impostazioni cena',
+                    'status' => 0,
+                    'property' => [
+                        'user_mail' => '',
+                    ]
+                ],
+                [
                     'name' => 'Contatti',
                     'property' => [
                         'phone' => '3271622244',
@@ -81,7 +88,6 @@ class SettingsTableSeeder extends Seeder
         foreach ($settings as $s) {
             $string = json_encode($s['property'], true);  
             $s['property'] = $string;
-            dump( $s['name']);
             // Creazione della voce di impostazione
             Setting::create($s);
         }

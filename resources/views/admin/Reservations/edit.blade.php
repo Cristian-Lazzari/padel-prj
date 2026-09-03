@@ -58,7 +58,7 @@
                     <select name="lesson" id="lesson">
                         <option value="0" @selected(! $reservation->lesson || $reservation->lesson == 0)>Partita</option>
                         <option value="1" @selected($reservation->lesson == 1)>Lezione</option>
-                        <option value="2" @selected($reservation->lesson == 2)>Torneo</option>
+                        <option value="2" @selected($reservation->lesson == 2)>Partita di torneo</option>
                     </select>
                 </div>
                 <div class="ui-field">

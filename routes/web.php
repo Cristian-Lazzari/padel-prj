@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\MailerController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\StatisticController;
 use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\FixedSlotController;
@@ -33,6 +34,7 @@ Route::middleware(['auth', 'verified'])
         // /reservations
         // /players
         Route::get('/settings',            [SettingController::class, 'index'])->name('settings');
+        Route::get('/statistics',          [StatisticController::class, 'index'])->name('statistics');
 
         Route::get('/mailer/index',         [MailerController::class, 'mailer'])->name('mailer.index');
         Route::get('/mailer/send_mail',     [MailerController::class, 'send_mail'])->name('mailer.send_mail');

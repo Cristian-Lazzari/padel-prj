@@ -98,10 +98,12 @@
         </section>
 
         @php $prenotate = $player_reservations; @endphp
-        <section class="ui-panel">
-            <div class="ui-panel__head">
+        {{-- Sezione e non pannello: le righe sono già una superficie, un
+             contenitore attorno sarebbe una scatola dentro una scatola. --}}
+        <section class="ui-section">
+            <div class="ui-section__head">
                 <h2>Prenotazioni fatte da lui</h2>
-                <span class="ui-panel__note">{{ count($prenotate) }}</span>
+                <div class="ui-section__meta"><span class="ui-pill">{{ count($prenotate) }}</span></div>
             </div>
             @if (count($prenotate))
                 <div class="ui-list" role="table" aria-label="Prenotazioni intestate a {{ $player->nickname }}"
@@ -120,10 +122,10 @@
             @endif
         </section>
 
-        <section class="ui-panel">
-            <div class="ui-panel__head">
+        <section class="ui-section">
+            <div class="ui-section__head">
                 <h2>Partite giocate</h2>
-                <span class="ui-panel__note">{{ count($player->reservations) }}</span>
+                <div class="ui-section__meta"><span class="ui-pill">{{ count($player->reservations) }}</span></div>
             </div>
             @if (count($player->reservations))
                 <div class="ui-list" role="table" aria-label="Partite giocate da {{ $player->nickname }}"

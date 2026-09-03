@@ -174,27 +174,28 @@
         {{-- ============ Prossime occorrenze ============ --}}
         <section class="ui-section">
             <div class="ui-section__head">
-                <h2>Prossime occorrenze</h2>
-                <div class="ui-section__meta"><span class="ui-pill ui-pill--accent">{{ $upcoming->count() }} in programma</span></div>
+                <h2>Date in calendario</h2>
+                <div class="ui-section__meta"><span class="ui-pill ui-pill--accent">{{ $upcoming->count() }} da qui alla fine</span></div>
             </div>
 
             @if ($upcoming->count())
                 <details class="ui-data" open>
                     <summary>
-                        <span>Calendario delle prossime date</span>
+                        <span>Tutte le date del campo fisso</span>
                         @include('admin.partials.ui-icon', ['name' => 'chevron-down', 'size' => 16])
                     </summary>
                     <div class="ui-data__scroll">
                         <table>
                             <thead>
-                                <tr><th>Data</th><th>Orario</th><th>In calendario</th></tr>
+                                <tr><th>Data</th><th>Orario</th><th>Prenotazione</th></tr>
                             </thead>
                             <tbody>
                                 @foreach ($upcoming as $u)
                                     <tr>
                                         <td>{{ $u['date']->locale('it')->translatedFormat('D j M Y') }}</td>
                                         <td>{{ $fixedSlot->start_time }} – {{ $fixedSlot->endTime($minutes) }}</td>
-                                        <td>{{ $u['materialized'] ? 'Sì' : 'Da generare' }}</td>
+                                        {{-- Se manca, quel giorno il campo era già occupato da qualcun altro --}}
+                                        <td>{{ $u['materialized'] ? 'In calendario' : 'Non creata: campo occupato' }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -202,11 +203,12 @@
                     </div>
                 </details>
                 <p class="ui-hint">
-                    Le occorrenze vengono generate ogni notte dal comando <code>fixed-slots:materialize</code>,
-                    con un orizzonte di {{ \App\Services\FixedSlotService::HORIZON_WEEKS }} settimane.
+                    Sono tutte le date che restano, fino al
+                    {{ $fixedSlot->valid_to?->format('d/m/Y') ?: 'termine della validità' }}:
+                    le prenotazioni sono già in calendario, create quando hai salvato il campo fisso.
                 </p>
             @else
-                <p class="ui-hint">Nessuna occorrenza in programma nelle prossime settimane.</p>
+                <p class="ui-hint">Nessuna data in programma: la validità è finita, oppure ogni ricorrenza ha un'eccezione.</p>
             @endif
         </section>
     </div>

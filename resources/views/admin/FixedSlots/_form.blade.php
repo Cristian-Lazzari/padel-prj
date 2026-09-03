@@ -75,10 +75,14 @@
             @error('valid_from') <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
         </div>
         <div class="ui-field">
-            <label for="valid_to">Valido fino al</label>
+            <label for="valid_to">Valido fino al <b>*</b></label>
             <input type="date" name="valid_to" id="valid_to"
-                   value="{{ old('valid_to', optional($slot->valid_to)->format('Y-m-d')) }}">
-            <p class="ui-hint">Lascia vuoto per un accordo a tempo indeterminato.</p>
+                   value="{{ old('valid_to', optional($slot->valid_to)->format('Y-m-d')) }}" required>
+            <p class="ui-hint">
+                Le prenotazioni vengono create tutte adesso, da qui a questa data:
+                serve quindi una fine. Per rinnovare l'accordo basta spostarla in avanti
+                e salvare. Al massimo due anni.
+            </p>
             @error('valid_to') <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
         </div>
         <div class="ui-field">

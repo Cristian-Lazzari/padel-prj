@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Player;
 use App\Models\Setting;
 use App\Models\Reservation;
+use App\Models\Tournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -28,7 +29,15 @@ class PageController extends Controller
         $oldestCarbon = Carbon::parse($oldestDate);
         $year = $this->get_date($oldestCarbon);
 
-        return view('admin.dashboard', compact('year','players'));
+        // I tornei veri e propri: occupano giorni interi e campi, e nel calendario
+        // stanno sopra le fasce orarie, non dentro (le partite di torneo restano
+        // prenotazioni con lesson = 2).
+        $tournaments = Tournament::where('status', '!=', 'cancelled')
+            ->withCount(['confirmedRegistrations', 'waitlistRegistrations'])
+            ->orderBy('starts_at')
+            ->get();
+
+        return view('admin.dashboard', compact('year', 'players', 'tournaments'));
 
     }
     private function get_res($now, $field_set){
@@ -69,9 +78,9 @@ class PageController extends Controller
     private function get_date($oldestCarbon){
    
         $now = $oldestCarbon;
-        $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
-        $field_set = $adv['field_set'];
-        $trainer_set = $adv['trainer_set'];
+        $adv = Setting::props('advanced');
+        $field_set = $adv['field_set'] ?? [];
+        $trainer_set = $adv['trainer_set'] ?? [];
        
         $reserved = $this->get_res($now, $field_set);
 

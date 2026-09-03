@@ -20,7 +20,7 @@
 
     <div class="ui-name" role="cell">
         <a href="{{ route('admin.reservations.show', $r) }}">
-            {{ [0 => 'Partita', 1 => 'Lezione', 2 => 'Torneo'][$r->lesson ?? 0] ?? 'Partita' }} sul {{ $r->field }}
+            {{ [0 => 'Partita', 1 => 'Lezione', 2 => 'Partita di torneo'][$r->lesson ?? 0] ?? 'Partita' }} sul {{ $r->field }}
         </a>
         <div class="ui-name__meta">
             @if ($annullata)

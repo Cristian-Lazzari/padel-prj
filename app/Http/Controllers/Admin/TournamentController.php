@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Models\Reservation;
+use App\Models\Setting;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Models\TournamentRegistration;
@@ -15,6 +16,8 @@ use App\Services\TournamentStandings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Gestione dei tornei dal back office: anagrafica, iscritti,
@@ -33,6 +36,46 @@ class TournamentController extends Controller
         private TournamentNotifier $notifier,
         private ImageResizer $resizer
     ) {
+    }
+
+    /** I campi configurati in impostazioni: le chiavi di field_set. */
+    private function fieldSet(): array
+    {
+        return Setting::fieldSet();
+    }
+
+    /**
+     * Due tornei possono stare negli stessi giorni solo su campi diversi.
+     * Blocca il salvataggio spiegando con chi e su quali campi si accavalla.
+     */
+    private function guardAgainstClashes(array $data, ?Tournament $tournament = null): void
+    {
+        $clashes = Tournament::clashes(
+            $data['fields'],
+            $data['starts_at'],
+            $data['ends_at'] ?? null,
+            $tournament?->id
+        );
+
+        if ($clashes->isEmpty()) {
+            return;
+        }
+
+        $messaggi = $clashes->map(function (Tournament $t) use ($data) {
+            $comuni = implode(', ', array_intersect($t->occupiedFields(), $data['fields']));
+            $dal = $t->starts_at?->format('d/m/Y');
+            $al = $t->ends_at?->format('d/m/Y');
+
+            return '"'.$t->name.'" occupa già '.$comuni.' '
+                .($al && $al !== $dal ? 'dal '.$dal.' al '.$al : 'il '.$dal).'.';
+        })->all();
+
+        throw ValidationException::withMessages([
+            'fields' => array_merge(
+                ['In queste date i campi scelti sono già impegnati da un altro torneo.'],
+                $messaggi
+            ),
+        ]);
     }
 
     private function rules(?Tournament $tournament = null): array
@@ -54,6 +97,8 @@ class TournamentController extends Controller
             'registration_closes_at' => 'nullable|date|after_or_equal:registration_opens_at',
             'status' => 'required|in:'.implode(',', Tournament::STATUSES),
             'location' => 'nullable|string|max:255',
+            'fields' => 'required|array|min:1',
+            'fields.*' => ['required', 'string', Rule::in(array_keys($this->fieldSet()))],
             'note' => 'nullable|string|max:2000',
             'cover' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:6144',
         ];
@@ -86,12 +131,16 @@ class TournamentController extends Controller
             'type' => 'Padel',
         ]);
 
-        return view('admin.Tournaments.create', compact('tournament'));
+        return view('admin.Tournaments.create', [
+            'tournament' => $tournament,
+            'field_set' => $this->fieldSet(),
+        ]);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate($this->rules());
+        $this->guardAgainstClashes($data);
 
         $tournament = new Tournament();
         $this->fill($tournament, $data, $request);
@@ -136,12 +185,16 @@ class TournamentController extends Controller
 
     public function edit(Tournament $tournament)
     {
-        return view('admin.Tournaments.edit', compact('tournament'));
+        return view('admin.Tournaments.edit', [
+            'tournament' => $tournament,
+            'field_set' => $this->fieldSet(),
+        ]);
     }
 
     public function update(Request $request, Tournament $tournament)
     {
         $data = $request->validate($this->rules($tournament));
+        $this->guardAgainstClashes($data, $tournament);
 
         $this->fill($tournament, $data, $request);
 
@@ -351,6 +404,7 @@ class TournamentController extends Controller
             'status' => $data['status'],
             'location' => $data['location'] ?? null,
             'note' => $data['note'] ?? null,
+            'fields' => array_values($data['fields']),
         ]);
 
         if ($request->hasFile('cover')) {

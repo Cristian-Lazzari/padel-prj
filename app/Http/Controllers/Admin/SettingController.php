@@ -20,6 +20,13 @@ class SettingController extends Controller
         $trainers = [];
         foreach ($users as $u) {
             $player = Player::find($u->playerId);
+
+            // Un'utenza che punta a un giocatore cancellato non deve far
+            // esplodere l'intera pagina delle impostazioni.
+            if (! $player) {
+                continue;
+            }
+
             $player->flag = $u->flag;
             $trainers[] = $player;
         }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 use App\Models\Player;
 use App\Models\Setting;
+use App\Models\TournamentMatch;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use App\Mail\confermaOrdineAdmin;
@@ -24,8 +25,8 @@ class ReservationController extends Controller
         $match->status = 0;
         $match->update();
 
-        $contact = json_decode(Setting::where('name', 'Contatti')->first()->property, 1);
-        $advanced = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
+        $contact = Setting::props('Contatti');
+        $advanced = Setting::props('advanced');
 
         $bodymail = [
             'to' => 'user',
@@ -62,7 +63,7 @@ class ReservationController extends Controller
     public function createFromD(Request $request){
         $data = $request->all();
         //dd($data);
-        $adv = json_decode(Setting::where('name', 'advanced')->first()->property, 1);
+        $adv = Setting::props('advanced');
         if($data['type_res'] == 'multipla'){
             $times = $data['times'];
             $grouped = [];
@@ -201,7 +202,7 @@ class ReservationController extends Controller
     {
         // Le impostazioni e i giocatori vengono letti una volta sola:
         // prima erano interrogati dentro al ciclo, una query per riga.
-        $field_set = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'];
+        $field_set = Setting::fieldSet();
 
         $reservations = Reservation::with('players:id,name,surname,nickname,level')
             ->orderBy('date_slot', 'desc')
@@ -218,7 +219,7 @@ class ReservationController extends Controller
             $r->m_during = $field_set[$r->field]['m_during'] ?? 30;
         }
 
-        $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
+        $dinner_off = Setting::flag('Impostazioni cena');
 
         return view('admin.Reservations.index', compact('reservations', 'field_set', 'dinner_off'));
     }
@@ -249,13 +250,14 @@ class ReservationController extends Controller
     public function show($id)
     {
         $reservation = Reservation::where('id',$id)->with('players')->first();
-        $m_during = json_decode(Setting::where('name', 'advanced')->first()->property, 1)['field_set'][$reservation->field]['m_during'];
+        // Il campo potrebbe non essere più in configurazione: 30' è il valore base
+        $m_during = Setting::fieldSet()[$reservation->field]['m_during'] ?? 30;
         
         
         $player = Player::find($reservation->booking_subject);
         $reservation->booking_subject_name = $player->name ?? '';
         $reservation->booking_subject_surname = $player->surname ?? '';
-        $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
+        $dinner_off = Setting::flag('Impostazioni cena');
 
         // Elenco per la select "aggiungi partecipante": esclude chi c'è già.
         $joined_ids = $reservation->players->pluck('id');
@@ -263,8 +265,14 @@ class ReservationController extends Controller
             ->orderBy('nickname')
             ->get(['id', 'nickname', 'name', 'surname', 'level']);
 
+        // Se questa prenotazione è lo slot di un incontro di torneo, il dettaglio
+        // deve dirlo: "partita di torneo" è un tipo, il torneo è un'altra cosa.
+        $tournament_match = TournamentMatch::with('tournament')
+            ->where('reservation_id', $reservation->id)
+            ->first();
+
         return view('admin.Reservations.show', compact(
-            'reservation', 'm_during', 'dinner_off', 'available_players'
+            'reservation', 'm_during', 'dinner_off', 'available_players', 'tournament_match'
         ));
     }
 
@@ -281,7 +289,7 @@ class ReservationController extends Controller
         $player = Player::find($reservation->booking_subject);
         $reservation->booking_subject_name = $player->name ?? '';
         $reservation->booking_subject_surname = $player->surname ?? '';
-        $dinner_off = Setting::where('name', 'Impostazioni cena')->first()->status;
+        $dinner_off = Setting::flag('Impostazioni cena');
         return view('admin.Reservations.edit', compact('reservation','players', 'dinner_off'));
     }
 

@@ -80,6 +80,11 @@
         <small>Si salda in struttura</small>
     </div>
     <div class="ui-fact">
+        <span>Campi impegnati</span>
+        <strong>{{ $tournament->fieldsLabel() }}</strong>
+        <small>{{ count($tournament->occupiedFields()) }} su cui non si prenota altro</small>
+    </div>
+    <div class="ui-fact">
         <span>Iscrizioni</span>
         <strong>{{ $tournament->registration_opens_at?->format('d/m H:i') ?: 'Sempre' }} → {{ $tournament->registration_closes_at?->format('d/m H:i') ?: 'inizio' }}</strong>
         <small>{{ $tournament->location ?: 'Luogo non indicato' }}</small>

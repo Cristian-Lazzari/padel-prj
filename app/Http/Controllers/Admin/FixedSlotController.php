@@ -31,7 +31,11 @@ class FixedSlotController extends Controller
             'start_time' => 'required|date_format:H:i',
             'duration' => 'required|integer|min:1|max:12',
             'valid_from' => 'required|date',
-            'valid_to' => 'nullable|date|after_or_equal:valid_from',
+            // Obbligatoria: le prenotazioni si creano tutte adesso, quindi
+            // serve sapere fin dove arrivare. Il tetto evita che una data
+            // sbagliata generi migliaia di righe.
+            'valid_to' => 'required|date|after_or_equal:valid_from|before_or_equal:'
+                .now()->addYears(2)->format('Y-m-d'),
             'status' => 'required|in:active,suspended,ended',
             'price' => 'nullable|numeric|min:0|max:99999',
             'note' => 'nullable|string|max:1000',
@@ -77,7 +81,7 @@ class FixedSlotController extends Controller
         $result = $this->slots->refresh($slot);
 
         return to_route('admin.fixed-slots.show', $slot)
-            ->with('message', 'Campo fisso creato: '.$result['created'].' occorrenze generate.')
+            ->with('message', 'Campo fisso creato: '.$result['created'].' prenotazioni inserite in calendario.')
             ->with('conflicts', $result['conflicts']);
     }
 
@@ -92,11 +96,12 @@ class FixedSlotController extends Controller
         // Gli slot già generati si leggono con una query sola, non una per riga.
         $materialized = $fixedSlot->reservations()->pluck('date_slot')->flip();
 
-        $upcoming = collect($this->slots->occurrences(
-            $fixedSlot,
-            now()->startOfDay(),
-            now()->startOfDay()->addWeeks(FixedSlotService::HORIZON_WEEKS)
-        ))->map(fn ($date) => [
+        // Tutte le occorrenze che restano, fino alla fine della validità:
+        // non c'è più un orizzonte, quindi l'elenco è completo.
+        [$from, $to] = $this->slots->window($fixedSlot);
+
+        $upcoming = collect($this->slots->occurrences($fixedSlot, $from, $to))
+            ->map(fn ($date) => [
             'date' => $date,
             'materialized' => $materialized->has($date->format('Y-m-d').' '.$fixedSlot->start_time),
         ]);
@@ -123,7 +128,7 @@ class FixedSlotController extends Controller
         $result = $this->slots->refresh($fixedSlot);
 
         return to_route('admin.fixed-slots.show', $fixedSlot)
-            ->with('message', 'Campo fisso aggiornato: '.$result['created'].' occorrenze rigenerate.')
+            ->with('message', 'Campo fisso aggiornato: '.$result['created'].' prenotazioni ricreate in calendario.')
             ->with('conflicts', $result['conflicts']);
     }
 
@@ -154,7 +159,7 @@ class FixedSlotController extends Controller
         $result = $this->slots->refresh($fixedSlot);
 
         $message = [
-            'active' => 'Campo fisso riattivato: '.$result['created'].' occorrenze rigenerate.',
+            'active' => 'Campo fisso riattivato: '.$result['created'].' prenotazioni ricreate in calendario.',
             'suspended' => 'Campo fisso sospeso: le occorrenze future sono state liberate.',
             'ended' => 'Campo fisso chiuso: le occorrenze future sono state liberate.',
         ][$fixedSlot->status];
