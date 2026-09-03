@@ -872,26 +872,20 @@ body.ui-body{
 .ui-chips__item input:focus-visible + span{ outline: 2px solid var(--c2); outline-offset: 2px; }
 .ui-chips__empty{ font-size: 13px; color: var(--ui-ink-soft); }
 
-/* Barra di salvataggio: ancorata sopra la navigazione che galleggia */
+/* Barra di salvataggio: statica, chiude il flusso della pagina senza sfondo proprio */
 .ui-savebar{
-    position: sticky;
-    bottom: calc(86px + env(safe-area-inset-bottom));
-    z-index: 90;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
-    padding: 14px 20px;
-    border-radius: var(--ui-r-box);
-    background: rgba(9, 3, 51, .92);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, .28);
+    padding: 18px 0 0;
+    border-top: 1px solid var(--ui-rule);
+    background: transparent;
 }
 .ui-savebar__note{ font-size: 13px; color: var(--ui-ink-soft); }
 .ui-savebar__actions{ display: flex; gap: 10px; flex-wrap: wrap; }
 @media (max-width: 500px){
-    .ui-savebar{ bottom: calc(70px + env(safe-area-inset-bottom)); }
     .ui-savebar__actions{ width: 100%; }
     .ui-savebar__actions .ui-btn{ flex: 1 1 auto; }
 }
