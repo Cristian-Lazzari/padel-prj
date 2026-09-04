@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Models\Setting;
 use App\Models\Tournament;
+use App\Services\FieldSchedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -323,11 +324,21 @@ class StatisticController extends Controller
         $last  = null;
 
         foreach ($fieldSet as $field) {
-            $start = (int) substr((string) ($field['h_start'] ?? '09:00'), 0, 2);
-            $end   = (int) ceil($start + ((int) ($field['m_during_client'] ?? 30) * (int) ($field['n_slot'] ?? 0)) / 60);
+            // Gli orari cambiano da un giorno all'altro: si prende l'arco
+            // più largo, dal primo ad aprire all'ultimo a chiudere.
+            foreach ([1, 2, 3, 4, 5, 6, 7] as $weekday) {
+                $hours = FieldSchedule::hours($field, $weekday);
 
-            $first = $first === null ? $start : min($first, $start);
-            $last  = $last === null ? $end : max($last, $end);
+                if (! $hours) {
+                    continue;
+                }
+
+                $start = (int) substr($hours['h_start'], 0, 2);
+                $end   = (int) ceil(FieldSchedule::minutes($field, $weekday) / 60) + $start;
+
+                $first = $first === null ? $start : min($first, $start);
+                $last  = $last === null ? $end : max($last, $end);
+            }
         }
 
         foreach ($found as $hour) {
@@ -402,10 +413,13 @@ class StatisticController extends Controller
 
             if ($i !== null && ! in_array($date, $dayOff)) {
                 foreach ($fieldSet as $key => $field) {
-                    if (in_array($cursor->format('N'), $field['closed_days'] ?? [])) {
+                    // Ogni giorno ha il suo orario: i minuti aperti sono i suoi.
+                    $open = FieldSchedule::minutes($field, $cursor);
+
+                    if ($open < 1) {
                         continue;
                     }
-                    $open = (int) ($field['m_during_client'] ?? 30) * (int) ($field['n_slot'] ?? 0);
+
                     $capacity[$key][$i] = ($capacity[$key][$i] ?? 0) + $open;
                 }
             }

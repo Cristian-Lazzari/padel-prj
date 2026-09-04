@@ -8,7 +8,8 @@
     if (! isset($grids[$field_selected])) {
         $field_selected = array_key_first($grids);
     }
-    $points = $grids[$field_selected]['points'] ?? [];
+    $weekday_selected = (int) old('weekday', $slot->weekday);
+    $points = $grids[$field_selected]['days'][$weekday_selected] ?? [];
     $step = $grids[$field_selected]['step'] ?? 30;
 
     $start_current = substr((string) old('start_time', $slot->start_time), 0, 5);
@@ -74,7 +75,8 @@
                         <option value="{{ $t }}" @selected($t === $start_current)>{{ $t }}</option>
                     @endforeach
                 </select>
-                <p class="ui-hint">Gli orari sono quelli del campo, uno ogni {{ $step }} minuti.</p>
+                <p class="ui-hint" data-ui-chiuso @if ($points) hidden @endif>Il campo è chiuso in questo giorno: scegline un altro o cambia gli orari in impostazioni.</p>
+                <p class="ui-hint" data-ui-passo @if (! $points) hidden @endif>Gli orari sono quelli del campo in questo giorno, uno ogni {{ $step }} minuti.</p>
                 @error('start_time') <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
             </div>
             <div class="ui-field">
@@ -168,14 +170,19 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
     const griglie = @json($grids);
     const campo = document.getElementById('field');
+    const giorno = document.getElementById('weekday');
     const inizio = document.getElementById('start_time');
     const fine = document.getElementById('end_time');
     const nota = document.querySelector('[data-ui-durata]');
-    if (!campo || !inizio || !fine) return;
+    const avvisoChiuso = document.querySelector('[data-ui-chiuso]');
+    const notaPasso = document.querySelector('[data-ui-passo]');
+    if (!campo || !giorno || !inizio || !fine) return;
 
     let indiceInizio = -1; // serve a conservare la durata quando si sposta l'inizio
 
-    const punti = () => (griglie[campo.value] || {}).points || [];
+    // Gli orari dipendono dal campo e dal giorno: un campo può aprire alle
+    // 08:00 il lunedì, alle 15:00 il sabato e restare chiuso la domenica.
+    const punti = () => ((griglie[campo.value] || {}).days || {})[giorno.value] || [];
     const passo = () => (griglie[campo.value] || {}).step || 30;
 
     function riempi(select, orari, preferito) {
@@ -191,13 +198,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function scriviDurata() {
+        const chiuso = punti().length < 2;
+        if (avvisoChiuso) avvisoChiuso.hidden = !chiuso;
+        if (notaPasso) notaPasso.hidden = chiuso;
+
         if (!nota) return;
 
         const p = punti();
         const fasce = p.indexOf(fine.value) - p.indexOf(inizio.value);
 
         if (fasce <= 0) {
-            nota.textContent = "L'elenco arriva fino alla chiusura del campo: oltre non si va.";
+            nota.textContent = chiuso
+                ? ''
+                : "L'elenco arriva fino alla chiusura del campo: oltre non si va.";
             return;
         }
 
@@ -226,6 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     campo.addEventListener('change', aggiornaTutto);
+    giorno.addEventListener('change', aggiornaTutto);
 
     inizio.addEventListener('change', () => {
         // Spostando l'inizio si tiene la stessa durata, se ci sta ancora.

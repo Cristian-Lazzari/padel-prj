@@ -79,7 +79,7 @@ class ReservationController extends Controller
                 // Recupero configurazione campo
                 $type = '-';
                 $slot = 0;
-                foreach ($adv['field_set'] as $fKey => $value) {
+                foreach (Setting::fieldSet() as $fKey => $value) {
                     if ($fKey == $field) {
                         $type = $value['type'];
                         $slot = $value['m_during'];
@@ -123,14 +123,14 @@ class ReservationController extends Controller
             $time = explode('/', $times[0])[1];
             $date = explode('/', $times[0])[0];
             
-            foreach ($adv['field_set'] as $key => $value) {
+            foreach (Setting::fieldSet() as $key => $value) {
                 if($key == $field){
                     $type = $value['type'];
                     $slot = $value['m_during'];
                     break;
                 }
             }
-            $field_set = $adv['field_set'];
+            $field_set = Setting::fieldSet();
             foreach ($times as $t) {
                 $tm = explode('/', $t)[1];
                 if($field !== explode('/', $t)[2]){

@@ -440,13 +440,7 @@ class OpenMatchController extends Controller
      */
     private function fieldSet(): array
     {
-        $setting = Setting::where('name', 'advanced')->first();
-
-        if (! $setting) {
-            return [];
-        }
-
-        return json_decode($setting->property, true)['field_set'] ?? [];
+        return Setting::fieldSet();
     }
 
     /** Ricarica la prenotazione nel formato usato dal frontend. */

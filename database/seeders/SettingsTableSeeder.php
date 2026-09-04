@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Field;
+use App\Models\FieldHour;
 use App\Models\Setting;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -90,6 +92,35 @@ class SettingsTableSeeder extends Seeder
             $s['property'] = $string;
             // Creazione della voce di impostazione
             Setting::create($s);
+        }
+
+        $this->campi();
+    }
+
+    /**
+     * I campi nelle loro tabelle: è da lì che il gestionale legge gli orari,
+     * il `field_set` qui sopra resta come copia di sicurezza.
+     */
+    private function campi(): void
+    {
+        foreach (['Campo 1', 'Campo 2', 'Campo 3'] as $sort => $nome) {
+            $field = Field::create([
+                'name' => $nome,
+                'type' => 'padel',
+                'm_during' => 30,
+                'm_during_client' => 90,
+                'sort' => $sort,
+            ]);
+
+            foreach (array_keys(FieldHour::WEEKDAYS) as $weekday) {
+                FieldHour::create([
+                    'field_id' => $field->id,
+                    'weekday' => $weekday,
+                    'closed' => false,
+                    'h_start' => '08:00',
+                    'h_end' => '23:00',
+                ]);
+            }
         }
     }
 }

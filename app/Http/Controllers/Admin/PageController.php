@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Player;
 use App\Models\Setting;
+use App\Services\FieldSchedule;
 use App\Models\Reservation;
 use App\Models\Tournament;
 use Illuminate\Http\Request;
@@ -270,7 +271,7 @@ class PageController extends Controller
         $end   = $start->copy()->endOfMonth();
 
         $adv         = Setting::props('advanced');
-        $field_set   = $adv['field_set'] ?? [];
+        $field_set   = Setting::fieldSet();
         $trainer_set = $adv['trainer_set'] ?? [];
         $day_off     = $adv['day_off'] ?? [];
 
@@ -316,17 +317,26 @@ class PageController extends Controller
 
             foreach ($field_set as $k => $f) {
 
-                if (in_array($day['day_w'], $f['closed_days'])) {
+                // Ogni giorno ha il suo orario: se manca, quel giorno è chiuso.
+                $orario = FieldSchedule::hours($f, (int) $day['day_w']);
+
+                if (! $orario) {
                     continue;
                 }
 
-                $start_time = Carbon::createFromTimeString($f['h_start']);
-                $hour_test  = Carbon::createFromTimeString($f['h_start']);
-                $end_time   = $start_time->copy()->addMinutes(($f['m_during_client'] * $f['n_slot']));
+                $start_time = Carbon::createFromTimeString($orario['h_start']);
+                $end_time   = Carbon::createFromTimeString($orario['h_end']);
 
+                if ($end_time->lessThanOrEqualTo($start_time)) {
+                    $end_time->addDay(); // chiusura dopo la mezzanotte
+                }
+
+                // Le fasce "intere" restano ancorate all'apertura del giorno.
+                $hour_test = $start_time->copy();
                 $hour_array_control = [];
-                for ($t = 0; $t < $f['n_slot']; $t++) {
-                    $hour_array_control[] = $hour_test->copy()->format('H:i');
+
+                while ($hour_test->lessThan($end_time)) {
+                    $hour_array_control[] = $hour_test->format('H:i');
                     $hour_test->addMinutes($f['m_during_client']);
                 }
 

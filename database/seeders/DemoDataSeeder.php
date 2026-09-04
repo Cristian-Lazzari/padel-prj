@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Field;
+use App\Models\FieldHour;
 use App\Models\FixedSlot;
 use App\Models\FixedSlotException;
 use App\Models\Listing;
@@ -71,6 +73,8 @@ class DemoDataSeeder extends Seeder
         DB::table('players')->delete();
         DB::table('users')->delete();
         DB::table('models')->delete();
+        DB::table('field_hours')->delete();
+        DB::table('fields')->delete();
         DB::table('settings')->delete();
     }
 
@@ -122,6 +126,43 @@ class DemoDataSeeder extends Seeder
                 'status' => $s['status'] ?? 1,
                 'property' => json_encode($s['property']),
             ]);
+        }
+
+        $this->campi();
+    }
+
+    /**
+     * I campi con i loro orari giorno per giorno: da qui li legge tutto il
+     * gestionale. Il `field_set` nelle impostazioni resta solo come rete di
+     * sicurezza per le installazioni non ancora migrate.
+     */
+    private function campi(): void
+    {
+        $sort = 0;
+
+        foreach (self::CAMPI as $nome) {
+            $field = Field::create([
+                'name' => $nome,
+                'type' => 'padel',
+                'm_during' => 30,
+                'm_during_client' => 90,
+                'sort' => $sort++,
+            ]);
+
+            foreach (array_keys(FieldHour::WEEKDAYS) as $weekday) {
+                // Campo 4 chiuso la domenica e Campo 3 con il fine settimana
+                // corto: servono a vedere in pagina gli orari per giorno.
+                $chiuso = $nome === 'Campo 4' && $weekday === 7;
+                $corto = $nome === 'Campo 3' && in_array($weekday, [6, 7], true);
+
+                FieldHour::create([
+                    'field_id' => $field->id,
+                    'weekday' => $weekday,
+                    'closed' => $chiuso,
+                    'h_start' => $chiuso ? null : ($corto ? '09:00' : '08:00'),
+                    'h_end' => $chiuso ? null : ($corto ? '20:00' : '23:00'),
+                ]);
+            }
         }
     }
 

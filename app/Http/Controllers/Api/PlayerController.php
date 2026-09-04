@@ -544,9 +544,7 @@ class PlayerController extends Controller
             return response()->json(['success' => true, 'data' => null]);
         }
 
-        $setting = Setting::where('name', 'advanced')->first();
-        $fieldSet = $setting ? (json_decode($setting->property, true)['field_set'] ?? []) : [];
-        $minutes = $fieldSet[$slot->field]['m_during'] ?? 30;
+        $minutes = Setting::fieldSet()[$slot->field]['m_during'] ?? 30;
 
         return response()->json([
             'success' => true,

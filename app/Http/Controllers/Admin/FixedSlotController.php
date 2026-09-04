@@ -7,8 +7,8 @@ use App\Models\FixedSlot;
 use App\Models\FixedSlotException;
 use App\Models\Player;
 use App\Models\Setting;
+use App\Services\FieldSchedule;
 use App\Services\FixedSlotService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -220,22 +220,19 @@ class FixedSlotController extends Controller
             return $this->fields;
         }
 
-        $setting = Setting::where('name', 'advanced')->first();
-
-        return $this->fields = $setting
-            ? (json_decode($setting->property, true)['field_set'] ?? [])
-            : [];
+        return $this->fields = Setting::fieldSet();
     }
 
     /**
-     * La griglia oraria di un campo: dall'apertura alla chiusura, un punto
-     * ogni m_during. Sono le opzioni delle due select del modulo e sono
-     * anche il limite vero della durata, perché dopo l'ultimo punto il
-     * campo è chiuso: non esiste un tetto di fasce scritto a mano.
+     * La griglia oraria di un campo in un giorno della settimana:
+     * dall'apertura alla chiusura di quel giorno, un punto ogni m_during.
+     * Sono le opzioni delle due select del modulo e sono anche il limite
+     * vero della durata — dopo l'ultimo punto il campo è chiuso.
      *
+     * @param  int  $weekday  come lo salva FixedSlot: 0 = domenica
      * @return string[] orari 'H:i', apertura e chiusura comprese
      */
-    private function gridPoints(string $field): array
+    private function gridPoints(string $field, int $weekday): array
     {
         $set = $this->fieldSet()[$field] ?? null;
 
@@ -243,45 +240,37 @@ class FixedSlotController extends Controller
             return [];
         }
 
-        $step = (int) ($set['m_during'] ?? 30);
-        $slots = (int) ($set['n_slot'] ?? 0);
-        // La chiusura è la stessa che calcolano impostazioni e disponibilità.
-        $span = (int) ($set['m_during_client'] ?? $step) * $slots;
-
-        if ($step < 1 || $span < 1) {
-            return [];
-        }
-
-        try {
-            $cursor = Carbon::createFromFormat('H:i', substr((string) ($set['h_start'] ?? ''), 0, 5));
-        } catch (\Throwable $e) {
-            return [];
-        }
-
-        $close = $cursor->copy()->addMinutes($span);
-
-        $points = [];
-        while ($cursor->lte($close) && count($points) < 200) {
-            $points[] = $cursor->format('H:i');
-            $cursor->addMinutes($step);
-        }
-
-        return $points;
+        return FieldSchedule::points($set, self::isoWeekday($weekday));
     }
 
-    /** Le griglie di tutti i campi, come le legge il javascript del modulo. */
+    /**
+     * Le griglie di ogni campo per ogni giorno, come le legge il javascript
+     * del modulo: cambiando campo o giorno le due select si rifanno da qui.
+     */
     private function grids(): array
     {
         $grids = [];
 
         foreach ($this->fieldSet() as $key => $set) {
+            $days = [];
+
+            foreach (array_keys(FixedSlot::WEEKDAYS) as $weekday) {
+                $days[$weekday] = $this->gridPoints($key, $weekday);
+            }
+
             $grids[$key] = [
                 'step' => (int) ($set['m_during'] ?? 30),
-                'points' => $this->gridPoints($key),
+                'days' => $days,
             ];
         }
 
         return $grids;
+    }
+
+    /** Da 0 = domenica (FixedSlot) a 7 = domenica (orari dei campi). */
+    private static function isoWeekday(int $weekday): int
+    {
+        return $weekday === 0 ? 7 : $weekday;
     }
 
     /**
@@ -291,11 +280,14 @@ class FixedSlotController extends Controller
      */
     private function withDuration(array $data): array
     {
-        $points = $this->gridPoints($data['field']);
+        $weekday = (int) $data['weekday'];
+        $points = $this->gridPoints($data['field'], $weekday);
 
         if (count($points) < 2) {
             throw ValidationException::withMessages([
-                'field' => 'Questo campo non ha una griglia oraria in impostazioni: controlla apertura, durata minima e numero di fasce.',
+                'weekday' => 'Il campo '.$data['field'].' è chiuso di '
+                    .mb_strtolower(FixedSlot::WEEKDAYS[$weekday] ?? 'quel giorno')
+                    .': scegli un altro giorno o cambia gli orari in impostazioni.',
             ]);
         }
 

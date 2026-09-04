@@ -277,13 +277,7 @@ class FixedSlotService
 
     private function fieldSet(): array
     {
-        $setting = Setting::where('name', 'advanced')->first();
-
-        if (! $setting) {
-            return [];
-        }
-
-        return json_decode($setting->property, true)['field_set'] ?? [];
+        return Setting::fieldSet();
     }
 
     private function parseSlot(string $dateSlot): ?Carbon

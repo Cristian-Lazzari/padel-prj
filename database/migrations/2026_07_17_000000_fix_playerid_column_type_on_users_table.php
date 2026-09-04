@@ -16,6 +16,11 @@ return new class extends Migration
      */
     public function up()
     {
+        // `MODIFY` esiste solo in MySQL: sotto SQLite (i test) non serve.
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE `users` MODIFY `playerId` BIGINT UNSIGNED NULL');
     }
 
@@ -26,6 +31,11 @@ return new class extends Migration
      */
     public function down()
     {
+        // `MODIFY` esiste solo in MySQL: sotto SQLite (i test) non serve.
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE `users` MODIFY `playerId` TINYINT NULL');
     }
 };

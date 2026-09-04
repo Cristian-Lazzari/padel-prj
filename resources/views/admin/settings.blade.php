@@ -2,16 +2,49 @@
 
 @section('title', 'Impostazioni - F+')
 
+@section('styles')
+<style>
+/* La settimana di un campo: un giorno per riga, orari in linea. */
+.ui-page .ui-week{ display: grid; gap: 8px; }
+.ui-page .ui-week__row{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+}
+.ui-page .ui-week__day{
+    flex: 0 0 96px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ui-ink-soft);
+}
+.ui-page .ui-week__closed{ flex: 0 0 auto; }
+.ui-page .ui-week__row input[type="time"]{ width: auto; min-width: 118px; }
+.ui-page .ui-week__row input[type="time"]:disabled{ opacity: .35; }
+.ui-page .ui-week__sep{ color: var(--ui-ink-soft); }
+.ui-page .ui-week__tools{ margin-top: 10px; }
+@media (max-width: 640px){
+    .ui-page .ui-week__day{ flex-basis: 100%; }
+}
+</style>
+@endsection
+
 @section('contents')
 
 @php
     $property_adv     = json_decode($settings['advanced']['property'], true);
-    $field_set        = $property_adv['field_set'];
+    // I campi arrivano dalle tabelle `fields`/`field_hours`, non più dal JSON.
+    $field_set        = \App\Models\Setting::fieldSet();
     $trainer_set      = $property_adv['trainer_set'] ?? [];
     $this_trainer     = $trainer_set[auth()->user()->id] ?? [];
     $is_admin         = auth()->user()->role === 'admin';
     $this_trainer_field     = $this_trainer['field'] ?? 0;
     $this_trainer_field_set = $field_set[$this_trainer_field] ?? [];
+    $trainer_span  = \App\Services\FieldSchedule::span($this_trainer_field_set) ?? ['h_start' => '08:00', 'h_end' => '23:00'];
+    $trainer_slots = (int) floor(
+        \App\Services\FieldSchedule::spanMinutes($this_trainer_field_set)
+        / max(1, (int) ($this_trainer_field_set['m_during_client'] ?? 90))
+    );
 
     $property_contatti = json_decode($settings['Contatti']['property'], true);
     $ferie   = json_decode($settings['Periodo di Ferie']['property'], true);
@@ -166,21 +199,8 @@
 
                     <div class="ui-fields ui-fields--2">
                         <div class="ui-field">
-                            <label for="h_start_{{ $loop->index }}">Apertura</label>
-                            <input type="text" id="h_start_{{ $loop->index }}" name="field_set[{{ $k }}][h_start]" value="{{ $f['h_start'] }}">
-                        </div>
-                        <div class="ui-field">
-                            <label for="n_slot_{{ $loop->index }}">Numero di fasce</label>
-                            <input type="text" id="n_slot_{{ $loop->index }}" name="field_set[{{ $k }}][n_slot]" value="{{ $f['n_slot'] }}">
-                            @php
-                                $chiusura = \Carbon\Carbon::createFromTimeString($f['h_start'])
-                                    ->addMinutes((int) $f['m_during_client'] * (int) $f['n_slot']);
-                            @endphp
-                            <p class="ui-hint">Apertura + fascia × numero fasce: il campo chiude alle <b>{{ $chiusura->format('H:i') }}</b>.</p>
-                        </div>
-                        <div class="ui-field">
                             <label for="m_during_{{ $loop->index }}">Durata minima (min)</label>
-                            <input type="text" id="m_during_{{ $loop->index }}" name="field_set[{{ $k }}][m_during]" value="{{ $f['m_during'] }}">
+                            <input type="number" id="m_during_{{ $loop->index }}" name="field_set[{{ $k }}][m_during]" value="{{ $f['m_during'] }}" min="5" max="240">
                             <p class="ui-hint">
                                 È il passo della griglia: da qui partono sia le fasce del calendario
                                 sia gli orari che il cliente può scegliere.
@@ -188,26 +208,51 @@
                         </div>
                         <div class="ui-field">
                             <label for="m_during_client_{{ $loop->index }}">Durata fascia (min)</label>
-                            <input type="text" id="m_during_client_{{ $loop->index }}" name="field_set[{{ $k }}][m_during_client]" value="{{ $f['m_during_client'] }}">
+                            <input type="number" id="m_during_client_{{ $loop->index }}" name="field_set[{{ $k }}][m_during_client]" value="{{ $f['m_during_client'] }}" min="5" max="600">
                             <p class="ui-hint">
-                                Serve solo a calcolare l'orario di chiusura, qui sotto.
-                                Il cliente non prenota più a fasce: parte da qualsiasi orario libero
-                                della griglia e gioca sempre un'ora e mezza.
+                                Segna le fasce piene nel calendario. Il cliente non prenota più a
+                                fasce: parte da qualsiasi orario libero della griglia e gioca
+                                sempre un'ora e mezza.
                             </p>
                         </div>
                     </div>
 
                     <div class="ui-field">
-                        <label>Giorni di chiusura</label>
-                        <div class="ui-chips__area">
-                            @foreach ($week as $kw => $v)
-                                <label class="ui-chips__item">
-                                    <input type="checkbox" name="field_set[{{ $k }}][closed_days][]"
-                                           value="{{ $v }}" @checked(in_array($v, $f['closed_days']))>
-                                    <span>{{ $kw }}</span>
-                                </label>
+                        <label>Orari di apertura</label>
+                        <div class="ui-week" data-ui-week>
+                            @foreach (\App\Models\FieldHour::WEEKDAYS as $wd => $etichetta)
+                                @php
+                                    // Passa dal servizio, così il modulo si compila
+                                    // anche se i campi arrivano dal vecchio JSON.
+                                    $ore = \App\Services\FieldSchedule::hours($f, $wd);
+                                    $chiuso = $ore === null;
+                                @endphp
+                                <div class="ui-week__row" data-ui-day>
+                                    <span class="ui-week__day">{{ $etichetta }}</span>
+                                    <label class="ui-chips__item ui-week__closed">
+                                        <input type="checkbox" data-ui-closed
+                                               name="field_set[{{ $k }}][hours][{{ $wd }}][closed]"
+                                               value="1" @checked($chiuso)>
+                                        <span>Chiuso</span>
+                                    </label>
+                                    <input type="time" aria-label="{{ $etichetta }}, apertura di {{ $k }}"
+                                           name="field_set[{{ $k }}][hours][{{ $wd }}][h_start]"
+                                           value="{{ $ore['h_start'] ?? '08:00' }}" @disabled($chiuso)>
+                                    <span class="ui-week__sep" aria-hidden="true">→</span>
+                                    <input type="time" aria-label="{{ $etichetta }}, chiusura di {{ $k }}"
+                                           name="field_set[{{ $k }}][hours][{{ $wd }}][h_end]"
+                                           value="{{ $ore['h_end'] ?? '23:00' }}" @disabled($chiuso)>
+                                </div>
                             @endforeach
                         </div>
+                        <div class="ui-week__tools">
+                            <button type="button" class="ui-action" data-ui-week-copy>Applica il lunedì a tutta la settimana</button>
+                        </div>
+                        <p class="ui-hint">Un giorno chiuso sparisce dal calendario e dalle disponibilità online.</p>
+                        @foreach (\App\Models\FieldHour::WEEKDAYS as $wd => $etichetta)
+                            @error("field_set.$k.hours.$wd.h_start") <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
+                            @error("field_set.$k.hours.$wd.h_end") <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
+                        @endforeach
                     </div>
                 </section>
             @endforeach
@@ -224,11 +269,17 @@
                     <label>Campo su cui lavori</label>
                     <div class="ui-chips__area" role="radiogroup" aria-label="Campo dell'istruttore">
                         @foreach ($field_set as $k => $f)
+                            @php
+                                // Gli orari del campo cambiano da un giorno all'altro:
+                                // le fasce dell'istruttore coprono l'arco più largo.
+                                $arco = \App\Services\FieldSchedule::span($f);
+                                $passi = (int) floor(\App\Services\FieldSchedule::spanMinutes($f) / max(1, (int) $f['m_during_client']));
+                            @endphp
                             <label class="ui-chips__item">
                                 <input type="radio" name="set_trainer[field]" value="{{ $k }}"
                                        @checked($this_trainer !== [] && $this_trainer['field'] == $k)
-                                       data-h_start="{{ $f['h_start'] }}"
-                                       data-n_slot="{{ $f['n_slot'] }}"
+                                       data-h_start="{{ $arco['h_start'] ?? '08:00' }}"
+                                       data-n_slot="{{ $passi }}"
                                        data-m_during_client="{{ $f['m_during_client'] }}">
                                 <span>{{ $k }}</span>
                             </label>
@@ -241,8 +292,8 @@
                         <label for="h_start_trainer">Inizio</label>
                         <select id="h_start_trainer" name="set_trainer[h_start]">
                             @if ($this_trainer !== [])
-                                @php $hour_option_1 = Carbon\Carbon::createFromFormat('H:i', $this_trainer_field_set['h_start']); @endphp
-                                @for ($i = 0; $i < $this_trainer_field_set['n_slot']; $i++)
+                                @php $hour_option_1 = Carbon\Carbon::createFromFormat('H:i', $trainer_span['h_start']); @endphp
+                                @for ($i = 0; $i < $trainer_slots; $i++)
                                     <option value="{{ $hour_option_1->copy()->format('H:i') }}" @selected($this_trainer['h_start'] == $hour_option_1->copy()->format('H:i'))>{{ $hour_option_1->copy()->format('H:i') }}</option>
                                     @php $hour_option_1->addMinutes($this_trainer_field_set['m_during_client']); @endphp
                                 @endfor
@@ -253,8 +304,8 @@
                         <label for="h_end_trainer">Fine</label>
                         <select id="h_end_trainer" name="set_trainer[h_end]">
                             @if ($this_trainer !== [])
-                                @php $hour_option_2 = Carbon\Carbon::createFromFormat('H:i', $this_trainer_field_set['h_start'])->addMinutes($this_trainer_field_set['m_during_client']); @endphp
-                                @for ($i = 0; $i < ($this_trainer_field_set['n_slot'] - 1); $i++)
+                                @php $hour_option_2 = Carbon\Carbon::createFromFormat('H:i', $trainer_span['h_start'])->addMinutes($this_trainer_field_set['m_during_client']); @endphp
+                                @for ($i = 0; $i < ($trainer_slots - 1); $i++)
                                     <option value="{{ $hour_option_2->copy()->format('H:i') }}" @selected($this_trainer['h_end'] == $hour_option_2->copy()->format('H:i'))>{{ $hour_option_2->copy()->format('H:i') }}</option>
                                     @php $hour_option_2->addMinutes($this_trainer_field_set['m_during_client']); @endphp
                                 @endfor
@@ -396,6 +447,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ---------- Orari dei campi ----------
+    // La casella "Chiuso" spegne gli orari di quel giorno: disattivati non
+    // vengono nemmeno inviati, e il salvataggio li legge come giorno chiuso.
+    const spegniOrari = (riga) => {
+        const chiuso = riga.querySelector('[data-ui-closed]');
+        riga.querySelectorAll('input[type="time"]').forEach((i) => { i.disabled = chiuso.checked; });
+    };
+
+    document.querySelectorAll('[data-ui-day]').forEach((riga) => {
+        riga.querySelector('[data-ui-closed]')?.addEventListener('change', () => spegniOrari(riga));
+    });
+
+    // Comodità per chi ha la settimana tutta uguale.
+    const copiaLunedi = (contenitore) => {
+        const righe = Array.from(contenitore.querySelectorAll('[data-ui-day]'));
+        const primo = righe[0];
+        if (!primo) return;
+
+        const chiuso = primo.querySelector('[data-ui-closed]').checked;
+        const orari = Array.from(primo.querySelectorAll('input[type="time"]')).map((i) => i.value);
+
+        righe.slice(1).forEach((riga) => {
+            riga.querySelector('[data-ui-closed]').checked = chiuso;
+            riga.querySelectorAll('input[type="time"]').forEach((i, n) => { i.value = orari[n]; });
+            spegniOrari(riga);
+        });
+    };
+
+    document.querySelectorAll('[data-ui-week-copy]').forEach((btn) => {
+        btn.addEventListener('click', () => copiaLunedi(btn.closest('.ui-field')));
+    });
+
     // ---------- Nuovo campo ----------
     const container = document.getElementById('container');
     const addBtn = document.getElementById('addFieldBtn');
@@ -432,14 +515,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const giorni = () => {
             const wrap = document.createElement('div');
             wrap.className = 'ui-field';
-            wrap.innerHTML = `<label>Giorni di chiusura</label>
-                <div class="ui-chips__area">
+            wrap.innerHTML = `<label>Orari di apertura</label>
+                <div class="ui-week" data-ui-week>
                     ${Object.entries(settimana).map(([nome, valore]) => `
-                        <label class="ui-chips__item">
-                            <input type="checkbox" name="field_set[${chiave}][closed_days][]" value="${valore}">
-                            <span>${nome}</span>
-                        </label>`).join('')}
+                        <div class="ui-week__row" data-ui-day>
+                            <span class="ui-week__day">${nome}</span>
+                            <label class="ui-chips__item ui-week__closed">
+                                <input type="checkbox" data-ui-closed name="field_set[${chiave}][hours][${valore}][closed]" value="1">
+                                <span>Chiuso</span>
+                            </label>
+                            <input type="time" aria-label="${nome}, apertura" name="field_set[${chiave}][hours][${valore}][h_start]" value="08:00">
+                            <span class="ui-week__sep" aria-hidden="true">→</span>
+                            <input type="time" aria-label="${nome}, chiusura" name="field_set[${chiave}][hours][${valore}][h_end]" value="23:00">
+                        </div>`).join('')}
+                </div>
+                <div class="ui-week__tools">
+                    <button type="button" class="ui-action" data-ui-week-copy>Applica il lunedì a tutta la settimana</button>
                 </div>`;
+
+            // Gli stessi comandi dei pannelli già in pagina.
+            wrap.querySelectorAll('[data-ui-day]').forEach((riga) => {
+                riga.querySelector('[data-ui-closed]').addEventListener('change', () => spegniOrari(riga));
+            });
+            wrap.querySelector('[data-ui-week-copy]').addEventListener('click', () => copiaLunedi(wrap));
+
             return wrap;
         };
 
@@ -452,10 +551,8 @@ document.addEventListener('DOMContentLoaded', () => {
         griglia.append(
             campo('Nome del campo', 'name_field', 'text', 'Es. Campo 3'),
             sport(),
-            campo('Apertura', 'h_start', 'time'),
-            campo('Numero di fasce', 'n_slot', 'number', '0'),
             campo('Durata minima (min)', 'm_during', 'number', 'Minuti', 'Il passo della griglia degli orari.'),
-            campo('Durata fascia (min)', 'm_during_client', 'number', 'Minuti', 'Fascia × numero fasce = orario di chiusura.')
+            campo('Durata fascia (min)', 'm_during_client', 'number', 'Minuti', 'Segna le fasce piene nel calendario.')
         );
 
         const azioni = document.createElement('div');

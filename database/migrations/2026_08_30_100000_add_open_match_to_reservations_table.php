@@ -67,6 +67,12 @@ return new class extends Migration
             return;
         }
 
+        // `SHOW COLUMNS` e `MODIFY` esistono solo in MySQL: sotto SQLite
+        // (i test) la colonna nasce già come intero senza vincoli.
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         // SHOW COLUMNS non accetta binding: il nome è una costante del codice.
         $column = collect(DB::select("SHOW COLUMNS FROM reservations LIKE 'booking_subject'"))->first();
 

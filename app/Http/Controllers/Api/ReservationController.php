@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Mail\confermaOrdineAdmin;
 use App\Services\OpenMatchService;
 use App\Services\FixedSlotService;
+use App\Services\FieldSchedule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
@@ -38,8 +39,7 @@ class ReservationController extends Controller
 
             $now = Carbon::now('Europe/Rome');
 
-            $adv = Setting::props('advanced');
-            $field_set = $adv['field_set'] ?? [];
+            $field_set = Setting::fieldSet();
             $campo = $field_set[$field] ?? [];
             $during = (int) ($campo['m_during'] ?? 30);
             $slots = Reservation::clientSlots($during);
@@ -47,10 +47,18 @@ class ReservationController extends Controller
             $inizio = Carbon::parse($date_slot);
             $fine = $inizio->copy()->addMinutes(Reservation::CLIENT_MINUTES);
 
-            // L'ora e mezza deve stare dentro l'orario di apertura del campo
+            // L'ora e mezza deve stare dentro l'orario di quel giorno
             if ($campo) {
-                $apertura = Carbon::parse($date.' '.$campo['h_start']);
-                $chiusura = $apertura->copy()->addMinutes($campo['m_during_client'] * $campo['n_slot']);
+                $finestra = FieldSchedule::window($campo, Carbon::parse($date));
+
+                if (! $finestra) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Il campo è chiuso in questa giornata.',
+                    ]);
+                }
+
+                [$apertura, $chiusura] = $finestra;
 
                 if ($inizio->lt($apertura) || $fine->gt($chiusura)) {
                     return response()->json([
@@ -185,20 +193,21 @@ class ReservationController extends Controller
 
     private function get_res($now, $field_set, $type){
         
+        // date_slot è un varchar 'Y-m-d H:i': si taglia e si confronta come
+        // testo, che dà lo stesso ordine delle date e gira anche su SQLite.
         $rows = DB::table('reservations')
             ->select(
                 'type',
                 'field',
                 'duration',
                 'status',
-                DB::raw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS day"),
-                DB::raw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i'))  AS t")
+                DB::raw('substr(date_slot, 1, 10) AS day'),
+                DB::raw('substr(date_slot, 12, 5) AS t')
             )
-            ->whereRaw("STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i') >= ?", [$now->subMinutes(180)])
+            ->where('date_slot', '>=', $now->subMinutes(180)->format('Y-m-d H:i'))
             ->where('status', '!=', 0) // 👈 controllo aggiunto
             ->where('type',  $type) // 👈 controllo aggiunto
-            ->orderByRaw("DATE(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i')) ASC")
-            ->orderByRaw("TIME(STR_TO_DATE(date_slot, '%Y-%m-%d %H:%i')) ASC")
+            ->orderBy('date_slot')
             ->get();
 
         $reserved = [];
@@ -227,7 +236,7 @@ class ReservationController extends Controller
         $dalay_from_res = 30;
 
         $adv = Setting::props('advanced');
-        $field_set = $adv['field_set'] ?? [];
+        $field_set = Setting::fieldSet();
         $trainer_set = $adv['trainer_set'] ?? [];
         $delay_trainer = $adv['delay_trainer'] ?? 0;
         
@@ -262,7 +271,7 @@ class ReservationController extends Controller
             ];
             if(!in_array($first_day->copy()->format('Y-m-d'), $adv['day_off'])){       
                 foreach ($field_set as $k => $f) {
-                    if($f['type'] == $data['type'] && !in_array($day['dayOfWeek'], $f['closed_days'])){
+                    if($f['type'] == $data['type'] && FieldSchedule::isOpen($f, (int) $day['dayOfWeek'])){
                         $day['fields'][$k] = $this->orariDisponibili(
                             $f,
                             $k,
@@ -301,9 +310,14 @@ class ReservationController extends Controller
         $passo = (int) $f['m_during'];
         $celle = Reservation::clientSlots($passo);
 
-        $apertura = Carbon::createFromTimeString($f['h_start']);
-        // La lunghezza della giornata resta quella configurata sul campo
-        $chiusura = $apertura->copy()->addMinutes($f['m_during_client'] * $f['n_slot']);
+        // Apertura e chiusura sono quelle di quel giorno della settimana.
+        $finestra = FieldSchedule::window($f, $giorno);
+
+        if (! $finestra) {
+            return [];
+        }
+
+        [$apertura, $chiusura] = $finestra;
 
         $occupato = $this->celleOccupate($prenotato, $passo);
 

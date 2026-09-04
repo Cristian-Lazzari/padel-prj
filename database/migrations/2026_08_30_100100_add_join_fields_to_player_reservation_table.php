@@ -38,11 +38,15 @@ return new class extends Migration
         ]);
 
         // Chi ha prenotato ed è anche in squadra viene marcato come owner.
+        // Sottoquery invece di UPDATE ... JOIN: la stessa istruzione gira
+        // su MySQL e su SQLite (i test).
         DB::statement('
-            UPDATE player_reservation pr
-            JOIN reservations r ON r.id = pr.reservation_id
-            SET pr.is_owner = 1
-            WHERE pr.player_id = r.booking_subject
+            UPDATE player_reservation
+            SET is_owner = 1
+            WHERE player_id = (
+                SELECT booking_subject FROM reservations
+                WHERE reservations.id = player_reservation.reservation_id
+            )
         ');
     }
 
