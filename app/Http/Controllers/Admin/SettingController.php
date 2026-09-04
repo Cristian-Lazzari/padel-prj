@@ -28,9 +28,49 @@ class SettingController extends Controller
             }
 
             $player->flag = $u->flag;
+            // L'elenco mostra il giocatore, ma il pulsante di rimozione
+            // agisce sull'utenza: servono qui id e indirizzo dell'accesso.
+            $player->user_id = $u->id;
+            $player->user_email = $u->email;
             $trainers[] = $player;
         }
         return view('admin.settings', compact('settings' , 'trainers'));
+    }
+
+    /**
+     * Toglie a un istruttore l'accesso al gestionale.
+     *
+     * Sparisce l'utenza, non la persona: la scheda giocatore resta in
+     * archivio con le sue lezioni e le sue prenotazioni. Va via anche la
+     * fascia di disponibilità del maestro, che è indicizzata sull'id
+     * dell'utenza e senza di questa resterebbe orfana in calendario.
+     */
+    public function trainerDestroy(User $user)
+    {
+        abort_unless($user->role === 'trainer', 404);
+        abort_if($user->id === auth()->id(), 403, 'Non puoi rimuovere il tuo stesso accesso');
+
+        $advanced = Setting::where('name', 'advanced')->first();
+
+        if ($advanced) {
+            $property = json_decode($advanced->property, true) ?: [];
+
+            if (isset($property['trainer_set'][$user->id])) {
+                unset($property['trainer_set'][$user->id]);
+                $advanced->property = json_encode($property);
+                $advanced->save();
+            }
+        }
+
+        $player = Player::find($user->playerId);
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        $nome = trim($user->name.' '.$user->surname) ?: $user->email;
+
+        return back()->with('message', 'Accesso di '.$nome.' rimosso.'
+            .($player ? ' La scheda giocatore #'.$player->nickname.' resta in archivio con le sue lezioni.' : ''));
     }
 
     public function updateAll(Request $request)

@@ -8,7 +8,10 @@ use App\Models\FixedSlotException;
 use App\Models\Player;
 use App\Models\Setting;
 use App\Services\FixedSlotService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Gestione dei campi fissi dal back office.
@@ -18,6 +21,9 @@ use Illuminate\Http\Request;
  */
 class FixedSlotController extends Controller
 {
+    /** Impostazioni dei campi lette una volta sola per richiesta. */
+    private ?array $fields = null;
+
     public function __construct(private FixedSlotService $slots)
     {
     }
@@ -26,10 +32,12 @@ class FixedSlotController extends Controller
     {
         return [
             'player_id' => 'required|exists:players,id',
-            'field' => 'required|string|max:255',
+            'field' => ['required', 'string', 'max:255', Rule::in(array_keys($this->fieldSet()))],
             'weekday' => 'required|integer|min:0|max:6',
+            // Inizio e fine sono due punti della griglia del campo: il numero
+            // di fasce lo ricava withDuration(), non lo scrive il gestore.
             'start_time' => 'required|date_format:H:i',
-            'duration' => 'required|integer|min:1|max:12',
+            'end_time' => 'required|date_format:H:i',
             'valid_from' => 'required|date',
             // Obbligatoria: le prenotazioni si creano tutte adesso, quindi
             // serve sapere fin dove arrivare. Il tetto evita che una data
@@ -73,7 +81,7 @@ class FixedSlotController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate($this->rules());
+        $data = $this->withDuration($request->validate($this->rules()));
         $data['created_by'] = auth()->id();
 
         $slot = FixedSlot::create($data);
@@ -121,7 +129,7 @@ class FixedSlotController extends Controller
 
     public function update(Request $request, FixedSlot $fixedSlot)
     {
-        $data = $request->validate($this->rules());
+        $data = $this->withDuration($request->validate($this->rules()));
 
         $fixedSlot->update($data);
 
@@ -208,9 +216,114 @@ class FixedSlotController extends Controller
 
     private function fieldSet(): array
     {
+        if ($this->fields !== null) {
+            return $this->fields;
+        }
+
         $setting = Setting::where('name', 'advanced')->first();
 
-        return $setting ? (json_decode($setting->property, true)['field_set'] ?? []) : [];
+        return $this->fields = $setting
+            ? (json_decode($setting->property, true)['field_set'] ?? [])
+            : [];
+    }
+
+    /**
+     * La griglia oraria di un campo: dall'apertura alla chiusura, un punto
+     * ogni m_during. Sono le opzioni delle due select del modulo e sono
+     * anche il limite vero della durata, perché dopo l'ultimo punto il
+     * campo è chiuso: non esiste un tetto di fasce scritto a mano.
+     *
+     * @return string[] orari 'H:i', apertura e chiusura comprese
+     */
+    private function gridPoints(string $field): array
+    {
+        $set = $this->fieldSet()[$field] ?? null;
+
+        if (! $set) {
+            return [];
+        }
+
+        $step = (int) ($set['m_during'] ?? 30);
+        $slots = (int) ($set['n_slot'] ?? 0);
+        // La chiusura è la stessa che calcolano impostazioni e disponibilità.
+        $span = (int) ($set['m_during_client'] ?? $step) * $slots;
+
+        if ($step < 1 || $span < 1) {
+            return [];
+        }
+
+        try {
+            $cursor = Carbon::createFromFormat('H:i', substr((string) ($set['h_start'] ?? ''), 0, 5));
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $close = $cursor->copy()->addMinutes($span);
+
+        $points = [];
+        while ($cursor->lte($close) && count($points) < 200) {
+            $points[] = $cursor->format('H:i');
+            $cursor->addMinutes($step);
+        }
+
+        return $points;
+    }
+
+    /** Le griglie di tutti i campi, come le legge il javascript del modulo. */
+    private function grids(): array
+    {
+        $grids = [];
+
+        foreach ($this->fieldSet() as $key => $set) {
+            $grids[$key] = [
+                'step' => (int) ($set['m_during'] ?? 30),
+                'points' => $this->gridPoints($key),
+            ];
+        }
+
+        return $grids;
+    }
+
+    /**
+     * Traduce ora di inizio e ora di fine nel numero di fasce salvato in
+     * `duration`. Rifiuta tutto ciò che sta fuori dalla griglia del campo:
+     * la fine non può superare la chiusura né precedere l'inizio.
+     */
+    private function withDuration(array $data): array
+    {
+        $points = $this->gridPoints($data['field']);
+
+        if (count($points) < 2) {
+            throw ValidationException::withMessages([
+                'field' => 'Questo campo non ha una griglia oraria in impostazioni: controlla apertura, durata minima e numero di fasce.',
+            ]);
+        }
+
+        $start = array_search($data['start_time'], $points, true);
+        $end = array_search($data['end_time'], $points, true);
+
+        if ($start === false || $start === count($points) - 1) {
+            throw ValidationException::withMessages([
+                'start_time' => 'Ora di inizio fuori dagli orari del campo: scegline una dall\'elenco.',
+            ]);
+        }
+
+        if ($end === false) {
+            throw ValidationException::withMessages([
+                'end_time' => 'Ora di fine fuori dagli orari del campo: l\'ultima possibile è le '.end($points).'.',
+            ]);
+        }
+
+        if ($end <= $start) {
+            throw ValidationException::withMessages([
+                'end_time' => 'L\'ora di fine deve venire dopo quella di inizio.',
+            ]);
+        }
+
+        $data['duration'] = $end - $start;
+        unset($data['end_time']);
+
+        return $data;
     }
 
     private function formData(): array
@@ -218,6 +331,7 @@ class FixedSlotController extends Controller
         return [
             'players' => Player::orderBy('nickname')->get(['id', 'nickname', 'name', 'surname']),
             'field_set' => $this->fieldSet(),
+            'grids' => $this->grids(),
             'weekdays' => FixedSlot::WEEKDAYS,
         ];
     }

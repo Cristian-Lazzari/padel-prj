@@ -9,6 +9,7 @@
     $field_set        = $property_adv['field_set'];
     $trainer_set      = $property_adv['trainer_set'] ?? [];
     $this_trainer     = $trainer_set[auth()->user()->id] ?? [];
+    $is_admin         = auth()->user()->role === 'admin';
     $this_trainer_field     = $this_trainer['field'] ?? 0;
     $this_trainer_field_set = $field_set[$this_trainer_field] ?? [];
 
@@ -336,10 +337,24 @@
                             <span class="ui-code">liv {{ $r->level }}</span>
                         </div>
                     </div>
+                    @if ($is_admin && $r->user_id !== auth()->id())
+                        {{-- Il modulo sta in fondo alla pagina: qui dentro siamo
+                             già dentro il form delle impostazioni. --}}
+                        <button type="submit" class="ui-action ui-action--danger" style="margin-left:auto;"
+                                form="trainer-del-{{ $r->user_id }}"
+                                data-ui-trainer-del
+                                data-nome="{{ $r->name }} {{ $r->surname }}"
+                                data-nick="{{ $r->nickname }}"
+                                aria-label="Rimuovi l'accesso di {{ $r->name }} {{ $r->surname }}">Rimuovi accesso</button>
+                    @endif
                 </div>
             @empty
                 <p class="ui-hint">Nessun istruttore registrato.</p>
             @endforelse
+
+            @if ($is_admin)
+                <p class="ui-hint">Rimuovere un istruttore cancella solo il suo accesso al gestionale: la scheda giocatore, le lezioni e le prenotazioni restano in archivio.</p>
+            @endif
 
             <a class="ui-btn" href="{{ route('admin.players.trainer_register') }}">
                 @include('admin.partials.ui-icon', ['name' => 'plus-lg', 'size' => 16])
@@ -350,6 +365,18 @@
 
 </form>
 
+@if ($is_admin)
+    {{-- Moduli separati: i pulsanti dell'elenco li richiamano con form="…",
+         perché il pannello vive dentro al form delle impostazioni. --}}
+    @foreach ($trainers as $r)
+        @continue($r->user_id === auth()->id())
+        <form id="trainer-del-{{ $r->user_id }}" action="{{ route('admin.trainers.destroy', $r->user_id) }}" method="post">
+            @csrf
+            @method('DELETE')
+        </form>
+    @endforeach
+@endif
+
 @endsection
 
 @section('scripts')
@@ -357,6 +384,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-ui-dismiss]').forEach((b) => {
         b.addEventListener('click', () => b.closest('.ui-flash')?.remove());
+    });
+
+    // Rimozione di un istruttore: si conferma qui, il modulo è in fondo alla pagina.
+    document.querySelectorAll('[data-ui-trainer-del]').forEach((b) => {
+        b.addEventListener('click', (ev) => {
+            const ok = confirm("Rimuovere l'accesso di " + b.dataset.nome
+                + "? La scheda giocatore #" + b.dataset.nick
+                + " resta in archivio con le sue lezioni.");
+            if (!ok) ev.preventDefault();
+        });
     });
 
     // ---------- Nuovo campo ----------

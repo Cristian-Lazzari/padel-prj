@@ -66,6 +66,9 @@ Route::middleware(['auth', 'verified'])
         
         Route::get('/players/trainer_register',    [PlayerController::class, 'trainer_register'])->name('players.trainer_register');
         Route::post('/players/create_register',    [PlayerController::class, 'create_register'])->name('players.create_register');
+        // Toglie l'accesso a un istruttore: sparisce l'utenza, non il giocatore.
+        Route::delete('/trainers/{user}',          [SettingController::class, 'trainerDestroy'])
+            ->middleware('role:admin')->name('trainers.destroy');
 
         
 

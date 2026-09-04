@@ -1,4 +1,30 @@
 {{-- Campi condivisi da creazione e modifica del campo fisso --}}
+@php
+    // Il campo scelto detta la griglia: gli orari delle due select sono i suoi,
+    // dall'apertura alla chiusura. Il javascript qui sotto le rifà al volo
+    // quando si cambia campo, questo è quanto serve senza javascript.
+    $field_selected = old('field', $slot->field);
+    // Se il campo salvato non è più in impostazioni, si riparte dal primo.
+    if (! isset($grids[$field_selected])) {
+        $field_selected = array_key_first($grids);
+    }
+    $points = $grids[$field_selected]['points'] ?? [];
+    $step = $grids[$field_selected]['step'] ?? 30;
+
+    $start_current = substr((string) old('start_time', $slot->start_time), 0, 5);
+    if (! in_array($start_current, $points, true)) {
+        $start_current = $points[0] ?? '';
+    }
+    $start_index = array_search($start_current, $points, true);
+
+    $end_current = substr((string) old('end_time', ''), 0, 5);
+    if (! in_array($end_current, $points, true) && $start_index !== false) {
+        // Proposta: la durata che il campo fisso ha già (o le tre fasce
+        // di partenza), tagliata alla chiusura se non ci sta.
+        $end_index = min($start_index + max(1, (int) $slot->duration), count($points) - 1);
+        $end_current = $points[$end_index] ?? '';
+    }
+@endphp
 <div class="ui-form__main">
 
     <section class="ui-panel">
@@ -43,14 +69,24 @@
             </div>
             <div class="ui-field">
                 <label for="start_time">Ora di inizio <b>*</b></label>
-                <input type="time" name="start_time" id="start_time" value="{{ old('start_time', $slot->start_time) }}" required>
+                <select name="start_time" id="start_time" required>
+                    @foreach (array_slice($points, 0, -1) as $t)
+                        <option value="{{ $t }}" @selected($t === $start_current)>{{ $t }}</option>
+                    @endforeach
+                </select>
+                <p class="ui-hint">Gli orari sono quelli del campo, uno ogni {{ $step }} minuti.</p>
                 @error('start_time') <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
             </div>
             <div class="ui-field">
-                <label for="duration">Durata <b>*</b></label>
-                <input type="number" name="duration" id="duration" min="1" max="12" value="{{ old('duration', $slot->duration) }}" required>
-                <p class="ui-hint">In numero di slot: uno slot è la durata minima del campo, di norma 30 minuti.</p>
-                @error('duration') <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
+                <label for="end_time">Ora di fine <b>*</b></label>
+                <select name="end_time" id="end_time" required>
+                    @foreach ($points as $i => $t)
+                        @continue($start_index === false || $i <= $start_index)
+                        <option value="{{ $t }}" @selected($t === $end_current)>{{ $t }}</option>
+                    @endforeach
+                </select>
+                <p class="ui-hint" data-ui-durata>L'elenco arriva fino alla chiusura del campo: oltre non si va.</p>
+                @error('end_time') <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
             </div>
         </div>
     </section>
@@ -123,5 +159,85 @@ document.addEventListener('DOMContentLoaded', () => {
         const visible = options.filter(({ el }) => el.value && !el.hidden);
         if (term && visible.length === 1) select.value = visible[0].el.value;
     });
+});
+
+// Orari: ogni campo ha la sua griglia, dall'apertura alla chiusura.
+// L'ora di inizio elenca tutti i punti tranne l'ultimo (dopo non ci sta
+// nemmeno una fascia), l'ora di fine solo quelli successivi all'inizio:
+// il limite della durata è la chiusura del campo, non un numero deciso qui.
+document.addEventListener('DOMContentLoaded', () => {
+    const griglie = @json($grids);
+    const campo = document.getElementById('field');
+    const inizio = document.getElementById('start_time');
+    const fine = document.getElementById('end_time');
+    const nota = document.querySelector('[data-ui-durata]');
+    if (!campo || !inizio || !fine) return;
+
+    let indiceInizio = -1; // serve a conservare la durata quando si sposta l'inizio
+
+    const punti = () => (griglie[campo.value] || {}).points || [];
+    const passo = () => (griglie[campo.value] || {}).step || 30;
+
+    function riempi(select, orari, preferito) {
+        select.innerHTML = '';
+        orari.forEach((t) => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            select.appendChild(opt);
+        });
+        select.value = orari.includes(preferito) ? preferito : (orari[0] || '');
+        select.disabled = orari.length === 0;
+    }
+
+    function scriviDurata() {
+        if (!nota) return;
+
+        const p = punti();
+        const fasce = p.indexOf(fine.value) - p.indexOf(inizio.value);
+
+        if (fasce <= 0) {
+            nota.textContent = "L'elenco arriva fino alla chiusura del campo: oltre non si va.";
+            return;
+        }
+
+        const minuti = fasce * passo();
+        const ore = Math.floor(minuti / 60);
+        const resto = minuti % 60;
+        const durata = [ore ? ore + (ore === 1 ? ' ora' : ' ore') : '', resto ? resto + ' minuti' : '']
+            .filter(Boolean).join(' e ');
+
+        nota.textContent = durata + ' — ' + fasce + (fasce === 1 ? ' fascia' : ' fasce')
+            + '. Il campo chiude alle ' + p[p.length - 1] + '.';
+    }
+
+    function aggiornaFine(preferito) {
+        const p = punti();
+        const i = p.indexOf(inizio.value);
+        riempi(fine, i < 0 ? [] : p.slice(i + 1), preferito);
+        indiceInizio = i;
+        scriviDurata();
+    }
+
+    function aggiornaTutto() {
+        const p = punti();
+        riempi(inizio, p.slice(0, -1), inizio.value);
+        aggiornaFine(fine.value);
+    }
+
+    campo.addEventListener('change', aggiornaTutto);
+
+    inizio.addEventListener('change', () => {
+        // Spostando l'inizio si tiene la stessa durata, se ci sta ancora.
+        const p = punti();
+        const fasce = Math.max(1, p.indexOf(fine.value) - indiceInizio);
+        const nuovo = p[Math.min(p.indexOf(inizio.value) + fasce, p.length - 1)];
+        aggiornaFine(nuovo);
+    });
+
+    fine.addEventListener('change', scriviDurata);
+
+    indiceInizio = punti().indexOf(inizio.value);
+    scriviDurata();
 });
 </script>
