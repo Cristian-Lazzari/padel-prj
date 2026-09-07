@@ -101,71 +101,89 @@ class ReservationController extends Controller
                 ]);
             }
 
+            // La cena è facoltativa: se il blocco non arriva vale come non
+            // prenotata, invece di far saltare la richiesta.
+            $dinner = is_array($data['dinner'] ?? null)
+                ? $data['dinner']
+                : ['status' => false, 'guests' => null, 'time' => null];
+
             $match = new Reservation;
             $match->date_slot = $date_slot;
             $match->field = $field; // 1, 2, 3
             $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
             $match->duration = $slots; // sempre un'ora e mezza, nelle fasce del campo
             $match->type = $data['type']; // padel, basket , calcio ...
-            $match->dinner = json_encode($data['dinner']); // [ status, guests, time]
+            $match->dinner = json_encode($dinner); // [ status, guests, time]
             $match->message = $data['message'] ?? null;
             $match->booking_subject = $booking_subject->id;
 
             $match->save();
-            $team = [];
-            if (isset($data['players']) && count($data['players']) > 0) {
-                foreach ($data['players'] as $p) {
-                    $player = Player::where('nickname', $p)->first();
-                    if ($player) {
-                        array_push($team, $player->id);
-                    }
-                }
-                // syncWithPivotValues: stessa sincronizzazione di prima,
-                // in più valorizza i campi di iscrizione del pivot.
-                $match->players()->syncWithPivotValues($team, [
-                    'join_status' => 'accepted',
-                    'joined_at' => now(),
-                ]);
-            }
 
-            // Opzionale: la prenotazione nasce già fra le partite aperte.
-            $this->publishAsOpenMatch($match, $data);
-            $contact = Setting::props('Contatti');
-            $bodymail = [
-                'to' => 'admin',
-                'res_id' => $match->id,
-
-                'title' => $booking_subject->name.' ha appena prenotato il campo '.$match->field,
-                'subtitle' => $data['dinner']['status'] ? 'Ha anche prenotato la cena per '.$data['dinner']['guests'].' persone alle ore '.$data['dinner']['time'] : 'Non ha prenotato la cena',
-
-                'name' => $booking_subject->name,
-                'surname' => $booking_subject->surname,
-                'mail' => $booking_subject->mail,
-
-                'date_slot' => $match->date_slot,
-                'team' => $match->players,
-                'status' => $match->status,
-
-                'message' => $data['message'] ?? null,
-                'booking_subject_id' => $booking_subject->id,
-
-                'field' => $match->field,
-                'phone' => $booking_subject->phone,
-                'admin_phone' => $contact['phone'] ?? null,
-                'max_delay_default' => $adv['max_delay_default'],
-
-            ];
+            // Da qui in avanti la prenotazione esiste già: squadra, partita
+            // aperta ed email sono contorni. Se uno di questi passi va storto
+            // va registrato, non trasformato in un errore per chi ha appena
+            // prenotato: vedrebbe "chiama la struttura" con la fascia occupata
+            // dalla sua stessa prenotazione.
             try {
+                $team = [];
+                if (isset($data['players']) && count($data['players']) > 0) {
+                    foreach ($data['players'] as $p) {
+                        $player = Player::where('nickname', $p)->first();
+                        if ($player) {
+                            array_push($team, $player->id);
+                        }
+                    }
+                    // syncWithPivotValues: stessa sincronizzazione di prima,
+                    // in più valorizza i campi di iscrizione del pivot.
+                    $match->players()->syncWithPivotValues($team, [
+                        'join_status' => 'accepted',
+                        'joined_at' => now(),
+                    ]);
+                }
+
+                // Opzionale: la prenotazione nasce già fra le partite aperte.
+                $this->publishAsOpenMatch($match, $data);
+
+                $contact = Setting::props('Contatti');
+                $adv = Setting::props('advanced');
+                $bodymail = [
+                    'to' => 'admin',
+                    'res_id' => $match->id,
+
+                    'title' => $booking_subject->name.' ha appena prenotato il campo '.$match->field,
+                    'subtitle' => ($dinner['status'] ?? false) ? 'Ha anche prenotato la cena per '.($dinner['guests'] ?? '').' persone alle ore '.($dinner['time'] ?? '') : 'Non ha prenotato la cena',
+
+                    'name' => $booking_subject->name,
+                    'surname' => $booking_subject->surname,
+                    'mail' => $booking_subject->mail,
+
+                    'date_slot' => $match->date_slot,
+                    'team' => $match->players,
+                    'status' => $match->status,
+
+                    'message' => $data['message'] ?? null,
+                    'booking_subject_id' => $booking_subject->id,
+
+                    'field' => $match->field,
+                    'phone' => $booking_subject->phone,
+                    'admin_phone' => $contact['phone'] ?? null,
+                    // Ore entro cui il cliente può annullare da solo: il
+                    // template della mail la usa sempre, anche quando le
+                    // impostazioni non la valorizzano.
+                    'max_delay_default' => $adv['max_delay_default'] ?? 24,
+
+                ];
+
                 $mailAdmin = new confermaOrdineAdmin($bodymail);
                 Mail::to($contact['email'])->send($mailAdmin);
 
                 $bodymail['to'] = 'user';
                 $bodymail['title'] = 'Ciao '.$booking_subject->nickname.', grazie per aver prenotato un campo tramite la nostra web-app';
-                $bodymail['subtitle'] = 'Ti aspettiamo il '.$match->date_slot.' al campo '.$match->field.($data['dinner']['status'] ? ' e ricorda che hai prenotato la cena per '.$data['dinner']['guests'].' persone alle ore '.$data['dinner']['time'] : '');
+                $bodymail['subtitle'] = 'Ti aspettiamo il '.$match->date_slot.' al campo '.$match->field.(($dinner['status'] ?? false) ? ' e ricorda che hai prenotato la cena per '.($dinner['guests'] ?? '').' persone alle ore '.($dinner['time'] ?? '') : '');
                 $mail = new confermaOrdineAdmin($bodymail);
                 Mail::to($bodymail['mail'])->send($mail);
             } catch (\Throwable $e) {
-                Log::warning('Reservation confirmation email failed', [
+                Log::warning('Reservation saved, post-save steps failed', [
                     'reservation_id' => $match->id,
                     'exception' => $e,
                 ]);
