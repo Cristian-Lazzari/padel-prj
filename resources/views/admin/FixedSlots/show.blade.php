@@ -179,29 +179,32 @@
             </div>
 
             @if ($upcoming->count())
-                <details class="ui-data" open>
-                    <summary>
-                        <span>Tutte le date del campo fisso</span>
-                        @include('admin.partials.ui-icon', ['name' => 'chevron-down', 'size' => 16])
-                    </summary>
-                    <div class="ui-data__scroll">
-                        <table>
-                            <thead>
-                                <tr><th>Data</th><th>Orario</th><th>Prenotazione</th></tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($upcoming as $u)
-                                    <tr>
-                                        <td>{{ $u['date']->locale('it')->translatedFormat('D j M Y') }}</td>
-                                        <td>{{ $fixedSlot->start_time }} – {{ $fixedSlot->endTime($minutes) }}</td>
-                                        {{-- Se manca, quel giorno il campo era già occupato da qualcun altro --}}
-                                        <td>{{ $u['materialized'] ? 'In calendario' : 'Non creata: campo occupato' }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </details>
+                {{-- Un mese per riquadro: tutte insieme erano un elenco lunghissimo --}}
+                @foreach ($upcoming->groupBy(fn ($u) => $u['date']->format('Y-m')) as $mese => $date)
+                    <details class="ui-data" @if ($loop->first) open @endif>
+                        <summary>
+                            <span>{{ ucfirst($date->first()['date']->locale('it')->translatedFormat('F Y')) }} · {{ $date->count() }} {{ $date->count() == 1 ? 'data' : 'date' }}</span>
+                            @include('admin.partials.ui-icon', ['name' => 'chevron-down', 'size' => 16])
+                        </summary>
+                        <div class="ui-data__scroll">
+                            <table>
+                                <thead>
+                                    <tr><th>Data</th><th>Orario</th><th>Prenotazione</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($date as $u)
+                                        <tr>
+                                            <td>{{ $u['date']->locale('it')->translatedFormat('D j M Y') }}</td>
+                                            <td>{{ $fixedSlot->start_time }} – {{ $fixedSlot->endTime($minutes) }}</td>
+                                            {{-- Se manca, quel giorno il campo era già occupato da qualcun altro --}}
+                                            <td>{{ $u['materialized'] ? 'In calendario' : 'Non creata: campo occupato' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                @endforeach
                 <p class="ui-hint">
                     Sono tutte le date che restano, fino al
                     {{ $fixedSlot->valid_to?->format('d/m/Y') ?: 'termine della validità' }}:

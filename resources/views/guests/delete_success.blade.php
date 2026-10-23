@@ -13,14 +13,13 @@
     <header>
         <div class="container text-center my-5" >
             <h1>
-                La tua prenotazione è stata annullata con successo
+                {{ ($ok ?? true) ? 'La tua prenotazione è stata annullata con successo' : 'Non è stato possibile annullare la prenotazione' }}
             </h1>
-
+            @isset($text)
+                <p class="mt-3">{{ $text }}</p>
+            @endisset
         </div>
     </header>
-
-
-    
 
 </body>
 </html>

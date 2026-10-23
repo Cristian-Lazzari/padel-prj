@@ -171,6 +171,43 @@ class Reservation extends Model
         }
     }
 
+    /**
+     * Ore minime di preavviso con cui il giocatore può disdire da solo
+     * (impostazioni avanzate, "Ore minime per annullare").
+     */
+    public static function cancelHours(): int
+    {
+        return (int) (Setting::props('advanced')['max_delay_default'] ?? 24);
+    }
+
+    /**
+     * Perché il giocatore non può disdire da solo, oppure null se può.
+     * Unica regola per il bottone dell'app e per il link nella mail.
+     */
+    public function playerCancelBlock(?int $hours = null): ?string
+    {
+        $hours ??= self::cancelHours();
+        $start = $this->slotStartsAt();
+
+        if ((string) $this->status === '0') {
+            return 'La prenotazione è già annullata.';
+        }
+        if ($this->fixed_slot_id) {
+            return 'È un campo fisso: per saltare una data contatta il circolo.';
+        }
+        if ((int) $this->lesson === 2) {
+            return 'È una partita di torneo: per annullarla contatta il circolo.';
+        }
+        if (! $start || $start->isPast()) {
+            return 'La partita è già iniziata o passata.';
+        }
+        if ($start->lt(now()->addHours($hours))) {
+            return 'Si può disdire fino a '.$hours.' ore prima: ora contatta direttamente il circolo.';
+        }
+
+        return null;
+    }
+
     /** True se le iscrizioni sono ancora aperte. */
     public function joinWindowIsOpen(): bool
     {

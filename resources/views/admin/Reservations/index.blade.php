@@ -44,6 +44,10 @@
         </div>
     </div>
     <div class="ui-head__actions">
+        <a class="ui-btn" href="{{ route('admin.reservations.index') }}">
+            @include('admin.partials.ui-icon', ['name' => 'calendar2-week', 'size' => 16])
+            <span>Vista per mese</span>
+        </a>
         <a class="ui-btn" href="{{ route('admin.dashboard') }}">
             @include('admin.partials.ui-icon', ['name' => 'calendar2-week', 'size' => 16])
             <span>Vai al calendario</span>
@@ -54,6 +58,7 @@
 <form class="ui-filters" method="GET" action="{{ route('admin.reservations.index') }}" id="filtri">
     {{-- Stato, "solo aperte" e ordinamento viaggiano nascosti: li cambiano i
          pulsanti qui sotto, che poi mandano il modulo. --}}
+    <input type="hidden" name="view" value="list">
     <input type="hidden" name="status" value="{{ $status }}">
     <input type="hidden" name="open" value="{{ $open ? '1' : '0' }}">
 
@@ -231,7 +236,7 @@
                 <span class="ui-empty__icon">@include('admin.partials.ui-icon', ['name' => 'search', 'size' => 25])</span>
                 <h2>Nessuna prenotazione con questi filtri</h2>
                 <p>Prova a cambiare stato o a cercare un altro nome.</p>
-                <a class="ui-btn" href="{{ route('admin.reservations.index', ['per_page' => $per_page]) }}">Azzera i filtri</a>
+                <a class="ui-btn" href="{{ route('admin.reservations.index', ['view' => 'list', 'per_page' => $per_page]) }}">Azzera i filtri</a>
             </div>
         @else
             <div class="ui-empty">

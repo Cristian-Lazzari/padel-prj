@@ -392,7 +392,16 @@ class PlayerController extends Controller
         }
 
         $reservations = Reservation::where('booking_subject', $player->id)->with('players')->get();
+
+        // L'app mostra il bottone "Disdici" solo dove la regola lo consente.
+        $hours = Reservation::cancelHours();
+        foreach ($reservations as $r) {
+            $r->cancel_block = $r->playerCancelBlock($hours);
+            $r->can_cancel = $r->cancel_block === null;
+        }
+
         $player->reservations_play = $reservations;
+        $player->cancel_hours = $hours;
         $player->logged = true;
 
         return response()->json([

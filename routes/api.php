@@ -85,7 +85,8 @@ Route::middleware('player.verified')->group(function () {
     Route::post('listings/{listing}/sold',   [ListingController::class, 'sold'])->name('api.listings.sold');
 
     Route::post('account/listings',          [ListingController::class, 'mine'])->name('api.account.listings');
-    Route::post('account/fixed-slot',        [PlayerController::class, 'fixedSlot'])->name('api.account.fixed_slot');
+    Route::post('reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('api.reservations.cancel');
+    Route::post('account/fixed-slot',       [PlayerController::class, 'fixedSlot'])->name('api.account.fixed_slot');
 });
 
 Route::get('client_default',                [SettingController::class, 'client_default'])->name('api.client_default'); // annullamento tramite mail

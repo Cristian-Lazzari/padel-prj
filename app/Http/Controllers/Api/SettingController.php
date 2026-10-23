@@ -28,34 +28,41 @@ class SettingController extends Controller
         ]);
     }
 
+    /**
+     * Link "Annulla" della mail di conferma: code = "idPrenotazione.idGiocatore".
+     * Stesse regole del bottone nell'app; risponde sempre con una pagina
+     * leggibile, perché lo apre il giocatore dal telefono.
+     */
     public function client_default(Request $request) {
-        $code = $request->query('code');
-        [$res_id, $player_id] = explode('.', $code);
-        if (!$code) {
-            return response()->json(['error' => 'id mancante'], 400);
-        }
-        $reservation = Reservation::where('id', $res_id)->where('booking_subject', $player_id)->first();
-         // parse della data
-        $date = Carbon::createFromFormat('Y-m-d H:i', $reservation->date_slot);
+        $code = (string) $request->query('code', '');
+        [$res_id, $player_id] = array_pad(explode('.', $code, 2), 2, null);
 
-        // se la data è già passata → false
-        if ($date->isPast()) {
-            return false;
-        }
-        $hours = json_decode(Setting::where('name', 'advanced')->property, 1)['max_delay_default'];
-        // controlla se manca almeno 1 giorno
-        $is_ok=  $date->gte(now()->addHours($hours));
-        if (!$reservation) {
-            return response()->json(['error' => 'Nessuna prenotazione trovata'], 404);
-        }
-        if(in_array($reservation->status, [0]) && $is_ok){
-            $reservation->status = 0;
-            
-            return view('guests.delete_success');
+        $reservation = ($res_id && $player_id)
+            ? Reservation::where('id', $res_id)->where('booking_subject', $player_id)->first()
+            : null;
+
+        if (! $reservation) {
+            return response()->view('guests.delete_success', [
+                'ok' => false,
+                'text' => 'Non abbiamo trovato la prenotazione. Controlla il link oppure contatta il circolo.',
+            ], 404);
         }
 
+        $hours = Reservation::cancelHours();
 
+        if ($motivo = $reservation->playerCancelBlock($hours)) {
+            return view('guests.delete_success', ['ok' => false, 'text' => $motivo]);
+        }
 
-        return response()->json(['error' => 'Prenotazione gia annullata'], 400);
+        $reservation->status = 0;
+        $reservation->is_open = false;
+        $reservation->save();
+
+        ReservationController::notifyCancel($reservation, $hours);
+
+        return view('guests.delete_success', [
+            'ok' => true,
+            'text' => $reservation->field.' del '.Carbon::createFromFormat('Y-m-d H:i', $reservation->date_slot)->format('d/m/Y \a\l\l\e H:i').': lo slot è di nuovo libero.',
+        ]);
     }
 }

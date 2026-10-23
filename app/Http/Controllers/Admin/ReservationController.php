@@ -214,6 +214,14 @@ class ReservationController extends Controller
         }
 
         $q      = trim((string) $request->input('q', ''));
+
+        // Di base si apre la vista per mese: i campi fissi creano prenotazioni
+        // fino a un anno avanti e l'elenco completo, che parte dalla più
+        // lontana, sembrava non finire mai.
+        if ($request->input('view') !== 'list') {
+            return $this->monthView($request, $q, $field_set, $dinner_off);
+        }
+
         $status = in_array($request->input('status'), ['confirmed', 'cancelled'], true)
             ? $request->input('status')
             : 'all';
@@ -294,6 +302,67 @@ class ReservationController extends Controller
             'status'         => $status,
             'open'           => $open,
             'sort'           => $sort,
+        ]);
+    }
+
+    /**
+     * Prenotazioni di un mese raggruppate per chi ha prenotato: in pagina c'è
+     * l'elenco dei nomi, e ogni nome si apre sulle sue prenotazioni del mese.
+     */
+    private function monthView(Request $request, string $q, array $field_set, $dinner_off)
+    {
+        try {
+            $cursor = Carbon::createFromFormat('Y-m-d', $request->input('month', '').'-01')->startOfMonth();
+        } catch (\Throwable $e) {
+            $cursor = Carbon::now()->startOfMonth();
+        }
+
+        // date_slot è una stringa 'Y-m-d H:i': il prefisso del mese basta e
+        // lascia lavorare l'indice.
+        $reservations = Reservation::query()
+            ->where('date_slot', 'like', $cursor->format('Y-m').'-%')
+            ->when($q !== '', function ($query) use ($q) {
+                $query->whereHas('owner', function ($o) use ($q) {
+                    $o->where('name', 'like', '%'.$q.'%')
+                      ->orWhere('surname', 'like', '%'.$q.'%')
+                      ->orWhere('nickname', 'like', '%'.$q.'%');
+                });
+            })
+            ->with(['owner:id,name,surname,nickname', 'players:id'])
+            ->orderBy('date_slot')
+            ->get();
+
+        $groups = $reservations
+            ->groupBy(fn ($r) => (int) $r->booking_subject)
+            ->map(function ($items) {
+                $owner = $items->first()->owner;
+                $attive = $items->where('status', '!=', 0);
+
+                return [
+                    'id'        => $owner->id ?? 0,
+                    'name'      => trim(($owner->name ?? '').' '.($owner->surname ?? '')) ?: 'Senza intestatario',
+                    'nickname'  => $owner->nickname ?? null,
+                    'items'     => $items,
+                    'confirmed' => $attive->count(),
+                    'cancelled' => $items->count() - $attive->count(),
+                    'fixed'     => $items->whereNotNull('fixed_slot_id')->isNotEmpty(),
+                    'next'      => $attive->first(fn ($r) => $r->date_slot >= now()->format('Y-m-d H:i')),
+                ];
+            })
+            ->sortBy(fn ($g) => mb_strtolower($g['name']))
+            ->values();
+
+        return view('admin.Reservations.month', [
+            'groups'     => $groups,
+            'total'      => $reservations->count(),
+            'cursor'     => $cursor,
+            'label'      => PageController::MESI[$cursor->month].' '.$cursor->year,
+            'prev'       => $cursor->copy()->subMonth()->format('Y-m'),
+            'next'       => $cursor->copy()->addMonth()->format('Y-m'),
+            'is_current' => $cursor->isSameMonth(now()),
+            'q'          => $q,
+            'field_set'  => $field_set,
+            'dinner_off' => $dinner_off,
         ]);
     }
 

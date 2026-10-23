@@ -56,8 +56,9 @@
 
         @endif
         <!-- Se destinatario è user e la prenotazione è fatta a piu di 24 h dalla prenotazione -->
-        @if ($content_mail['to'] == 'user' && $content_mail['status'] == 1 && $dateString >= now()->addHours($content_mail['max_delay_default'])->format('d/m/Y H:i'))
-            <p style="font-size: 13px; color: #04001d; opacity: .7;" >* Entro e non oltre {{$content_mail['max_delay_default']}} ore dalla data prenotata puoi annullare la prenotazione in autonomia premendo questo bottone </p>
+        {{-- Confronto fra date vere: prima si confrontavano due stringhe in formati diversi e il bottone spesso spariva --}}
+        @if ($content_mail['to'] == 'user' && $content_mail['status'] == 1 && Carbon::createFromFormat('Y-m-d H:i', $dateString)->gte(now()->addHours((int) $content_mail['max_delay_default'])))
+            <p style="font-size: 13px; color: #04001d; opacity: .7;" >* Fino a {{$content_mail['max_delay_default']}} ore prima della partita puoi annullare la prenotazione in autonomia premendo questo bottone </p>
             <p style="margin: 5px 10px;">
                 <a href="{{config('c.APP_URL')}}/api/client_default/?code={{$content_mail['res_id'] . '.' . $content_mail['booking_subject_id']}}" style="background-color: #9f2323d8; color: rgb(255, 255, 255); padding: 5px 16px; text-align: center; text-decoration: none; border-radius: 8px; font-size: 14px;">Annulla</a>
             </p>

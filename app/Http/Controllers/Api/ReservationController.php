@@ -18,7 +18,90 @@ use Illuminate\Support\Facades\Mail;
 
 class ReservationController extends Controller
 {
-    
+    /**
+     * Disdetta dall'area cliente: solo chi ha prenotato, e solo con almeno
+     * le ore di preavviso fissate nelle impostazioni.
+     */
+    public function cancel(Request $request, Reservation $reservation)
+    {
+        if ((int) $reservation->booking_subject !== (int) $request->input('user_id')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Puoi disdire solo le prenotazioni fatte da te.',
+            ]);
+        }
+
+        $hours = Reservation::cancelHours();
+
+        if ($motivo = $reservation->playerCancelBlock($hours)) {
+            return response()->json([
+                'success' => false,
+                'message' => $motivo,
+            ]);
+        }
+
+        $reservation->status = 0;
+        // Una partita disdetta non può restare fra quelle aperte.
+        $reservation->is_open = false;
+        $reservation->save();
+
+        $this->notifyCancel($reservation, $hours);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Prenotazione disdetta',
+        ]);
+    }
+
+    /** Avvisa il circolo e il giocatore della disdetta fatta dal cliente. */
+    public static function notifyCancel(Reservation $reservation, int $hours): void
+    {
+        try {
+            $player  = Player::find($reservation->booking_subject);
+            $contact = Setting::props('Contatti');
+
+            $bodymail = [
+                'to' => 'admin',
+                'res_id' => $reservation->id,
+                'booking_subject_id' => $player->id ?? null,
+
+                'title' => ($player->name ?? 'Un giocatore').' ha disdetto il campo '.$reservation->field,
+                'subtitle' => 'Lo slot del '.$reservation->date_slot.' è di nuovo libero',
+
+                'name' => $player->name ?? '',
+                'surname' => $player->surname ?? '',
+                'mail' => $player->mail ?? '',
+
+                'date_slot' => $reservation->date_slot,
+                'team' => $reservation->players,
+                'status' => $reservation->status,
+
+                'message' => null,
+
+                'field' => $reservation->field,
+                'phone' => $player->phone ?? '',
+                'admin_phone' => $contact['phone'] ?? null,
+                'max_delay_default' => $hours,
+            ];
+
+            if (! empty($contact['email'])) {
+                Mail::to($contact['email'])->send(new confermaOrdineAdmin($bodymail));
+            }
+
+            if ($player && $player->mail) {
+                $bodymail['to'] = 'user';
+                $bodymail['title'] = 'Ciao '.$player->nickname.', la tua prenotazione è stata disdetta';
+                $bodymail['subtitle'] = 'Campo '.$reservation->field.' del '.$reservation->date_slot;
+                Mail::to($player->mail)->send(new confermaOrdineAdmin($bodymail));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Reservation cancelled, mails failed', [
+                'reservation_id' => $reservation->id,
+                'exception' => $e,
+            ]);
+        }
+    }
+
     public function get_reservation(Request $request)
     {
         try {
