@@ -73,6 +73,9 @@ class ReservationController extends Controller
                 $key = $date . '|' . $field;
                 $grouped[$key][] = $time;
             }
+            // Prima si controllano tutti i giorni, poi si salva: o passano
+            // tutte le prenotazioni o nessuna, niente metà fatte.
+            $da_creare = [];
             foreach ($grouped as $key => $arr_times) {
                 sort($arr_times);
                 [$date, $field] = explode('|', $key);
@@ -104,13 +107,16 @@ class ReservationController extends Controller
                 // Prima ora come riferimento
                 $date_slot = $date . ' ' . $arr_times[0];
 
-                $this->create_res(
-                    $field,
-                    $type,
-                    $date_slot,
-                    $arr_times,
-                    $data
-                );
+                if ($occupato = Reservation::overlapping($field, Carbon::parse($date_slot), count($arr_times))) {
+                    return redirect()
+                        ->route('admin.dashboard')
+                        ->with('error', 'Errore: '.$occupato->busyMessage().' Nessuna prenotazione è stata creata.');
+                }
+
+                $da_creare[] = [$field, $type, $date_slot, $arr_times];
+            }
+            foreach ($da_creare as [$field, $type, $date_slot, $arr_times]) {
+                $this->create_res($field, $type, $date_slot, $arr_times, $data);
             }
             $m = 'Prenotazioni multiple create con successo.';
         }else{
@@ -142,7 +148,13 @@ class ReservationController extends Controller
                 return redirect()->route('admin.dashboard')->with('error', 'Errore: gli orari devono essere consecutivi !');
             }
             $date_slot = $date . ' ' . $time;
-    
+
+            // Lezioni e partite dalla dashboard non possono finire sopra
+            // un'altra prenotazione, come succede già dall'app.
+            if ($occupato = Reservation::overlapping($field, Carbon::parse($date_slot), count($arr_times))) {
+                return redirect()->route('admin.dashboard')->with('error', 'Errore: '.$occupato->busyMessage());
+            }
+
             $this->create_res($field, $type, $date_slot, $arr_times, $data); 
             $m = 'Prenotazione creata con successo per il campo ' . $field . ' il ' . $date . ' dalle ore ' . $arr_times[0] . ' alle ore ' . Carbon::createFromFormat('H:i', end($arr_times))->addMinutes($slot)->format('H:i');
         }
@@ -447,6 +459,16 @@ class ReservationController extends Controller
         $data = $request->all();
         $reservation = Reservation::find($id);
         $old_dinner = json_decode($reservation->dinner, 1);
+
+        // Riattivare una prenotazione annullata: nel frattempo lo slot
+        // potrebbe essere stato preso da qualcun altro.
+        if ((string) $reservation->status === '0' && (string) $data['status'] !== '0') {
+            $occupato = Reservation::overlapping($reservation->field, Carbon::parse($reservation->date_slot), (int) $reservation->duration, $reservation->id);
+
+            if ($occupato) {
+                return back()->with('error', 'Non si può riattivare: '.$occupato->busyMessage());
+            }
+        }
 
         if($old_dinner['status']){
             $old_dinner['guests'] = $data['guests'];

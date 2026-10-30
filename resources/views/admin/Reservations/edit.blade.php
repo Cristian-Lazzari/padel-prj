@@ -4,6 +4,16 @@
 
 @section('contents')
 
+@if (session('error'))
+    <div class="ui-flash ui-flash--error" role="alert">
+        @include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 20])
+        <span>{{ session('error') }}</span>
+        <button type="button" class="ui-flash__close" data-ui-dismiss aria-label="Chiudi avviso">
+            @include('admin.partials.ui-icon', ['name' => 'x-lg', 'size' => 14])
+        </button>
+    </div>
+@endif
+
 @php
     $datetime = Carbon\Carbon::parse($reservation->date_slot)->locale('it');
     $data     = $datetime->translatedFormat('l j F');

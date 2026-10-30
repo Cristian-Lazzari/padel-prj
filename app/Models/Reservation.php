@@ -97,6 +97,47 @@ class Reservation extends Model
         return (int) max(1, ceil(self::CLIENT_MINUTES / max(1, $mDuring)));
     }
 
+    /**
+     * La prima prenotazione attiva che si accavalla, su quel campo, con
+     * l'intervallo che parte da $start e dura $cells fasce. Null se il campo
+     * è libero. $exceptId esclude la prenotazione che si sta modificando.
+     */
+    public static function overlapping(string $field, Carbon $start, int $cells, ?int $exceptId = null): ?self
+    {
+        $during = (int) (Setting::fieldSet()[$field]['m_during'] ?? 30);
+        $end = $start->copy()->addMinutes($during * max(1, $cells));
+
+        $candidates = self::where('field', $field)
+            ->where('status', '!=', 0)
+            ->where('date_slot', 'LIKE', $start->format('Y-m-d').'%')
+            ->when($exceptId, fn ($q) => $q->where('id', '!=', $exceptId))
+            ->orderBy('date_slot')
+            ->get(['id', 'date_slot', 'field', 'duration', 'lesson', 'booking_subject']);
+
+        foreach ($candidates as $r) {
+            $otherStart = Carbon::parse($r->date_slot);
+            $otherEnd = $otherStart->copy()->addMinutes($during * max(1, (int) $r->duration));
+
+            if ($start->lt($otherEnd) && $otherStart->lt($end)) {
+                return $r;
+            }
+        }
+
+        return null;
+    }
+
+    /** "Campo 1 è già occupato il 30/10 dalle 09:00 alle 20:30": per i messaggi d'errore. */
+    public function busyMessage(): string
+    {
+        $during = (int) (Setting::fieldSet()[$this->field]['m_during'] ?? 30);
+        $start = Carbon::parse($this->date_slot);
+        $end = $start->copy()->addMinutes($during * max(1, (int) $this->duration));
+        $what = (int) $this->lesson === 1 ? 'una lezione' : ((int) $this->lesson === 2 ? 'una partita di torneo' : 'una prenotazione');
+
+        return $this->field.' è già occupato il '.$start->format('d/m').' dalle '.$start->format('H:i')
+            .' alle '.$end->format('H:i').' da '.$what.' (#'.$this->id.').';
+    }
+
     public static function acceptedCountSql(): string
     {
         return "select count(*) from player_reservation pr
