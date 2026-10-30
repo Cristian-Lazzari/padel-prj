@@ -292,10 +292,12 @@ class ReservationController extends Controller
         }
     }
 
-    private function get_res($now, $field_set, $type){
-        
+    private function get_res(Carbon $from, $field_set, $type){
+
         // date_slot è un varchar 'Y-m-d H:i': si taglia e si confronta come
         // testo, che dà lo stesso ordine delle date e gira anche su SQLite.
+        // Si parte dall'inizio del giorno, non da "adesso": una lezione
+        // iniziata stamattina e lunga tutto il giorno occupa ancora il campo.
         $rows = DB::table('reservations')
             ->select(
                 'type',
@@ -305,7 +307,7 @@ class ReservationController extends Controller
                 DB::raw('substr(date_slot, 1, 10) AS day'),
                 DB::raw('substr(date_slot, 12, 5) AS t')
             )
-            ->where('date_slot', '>=', $now->subMinutes(180)->format('Y-m-d H:i'))
+            ->where('date_slot', '>=', $from->format('Y-m-d'))
             ->where('status', '!=', 0) // 👈 controllo aggiunto
             ->where('type',  $type) // 👈 controllo aggiunto
             ->orderBy('date_slot')
@@ -334,14 +336,13 @@ class ReservationController extends Controller
     public function get_date(Request $request){
         $data = $request->all();
         $now = Carbon::now('Europe/Rome');
-        $dalay_from_res = 30;
 
         $adv = Setting::props('advanced');
         $field_set = Setting::fieldSet();
         $trainer_set = $adv['trainer_set'] ?? [];
         $delay_trainer = $adv['delay_trainer'] ?? 0;
         
-        $reserved = $this->get_res($now->addMinutes($dalay_from_res), $field_set, $data['type']);
+        $reserved = $this->get_res($now->copy()->startOfDay(), $field_set, $data['type']);
         //return $reserved;
 
         $days = [];

@@ -162,4 +162,65 @@ class ClientBookingTest extends TestCase
         $this->assertDatabaseCount('reservations', 1);
         $this->assertSame(3, Reservation::first()->duration);
     }
+
+    /**
+     * Una lezione lunga tutto il giorno, iniziata stamattina: nel pomeriggio
+     * il campo è ancora occupato e l'app non deve proporre orari liberi.
+     * Prima l'API caricava solo le prenotazioni iniziate da meno di due ore
+     * e mezza, e la lezione spariva dalle disponibilità.
+     */
+    private function lezioneDalMattino(): string
+    {
+        Carbon::setTestNow(Carbon::today('Europe/Rome')->setTime(15, 0));
+
+        Setting::create([
+            'name' => 'advanced',
+            'status' => 1,
+            'property' => json_encode(['day_off' => [], 'trainer_set' => [], 'delay_trainer' => 0]),
+        ]);
+
+        $oggi = Carbon::today('Europe/Rome')->format('Y-m-d');
+
+        $lezione = new Reservation;
+        $lezione->date_slot = $oggi.' 09:00';
+        $lezione->field = 'Campo 1';
+        $lezione->status = 1;
+        $lezione->duration = 23; // fino alle 20:30
+        $lezione->type = 'padel';
+        $lezione->lesson = 1;
+        $lezione->dinner = json_encode(['status' => false]);
+        $lezione->booking_subject = 0;
+        $lezione->save();
+
+        return $oggi;
+    }
+
+    public function test_una_lezione_iniziata_ore_fa_blocca_ancora_le_disponibilita(): void
+    {
+        $oggi = $this->lezioneDalMattino();
+
+        $giorni = $this->getJson('/api/reservation/get_date?type=padel')->json('data');
+        $orari = collect($giorni)->firstWhere('date', $oggi)['fields']['Campo 1'];
+
+        // Fino alle 20:30 è tutto della lezione: la prima partenza utile è 20:30.
+        $this->assertSame('20:30', $orari[0] ?? null);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_non_si_prenota_sopra_una_lezione_iniziata_ore_fa(): void
+    {
+        Mail::fake();
+        $this->contatti();
+        $oggi = $this->lezioneDalMattino();
+        $player = $this->giocatore();
+
+        $this->postJson('/api/get_reservation', $this->payload($player, [
+            'date_slot' => $oggi.' 17:00',
+        ]))->assertJson(['success' => false]);
+
+        $this->assertDatabaseCount('reservations', 1);
+
+        Carbon::setTestNow();
+    }
 }
