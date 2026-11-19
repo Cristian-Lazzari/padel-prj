@@ -53,12 +53,9 @@
 
     @include('admin.Players._form', ['player' => $player, 'nuovo' => true])
 
-    <div class="ui-savebar" style="grid-column: 1 / -1;">
-        <span class="ui-savebar__note">Il giocatore riceverà la verifica email al primo accesso.</span>
-        <div class="ui-savebar__actions">
-            <button class="ui-btn" name="add_new" value="1" type="submit">Salva e creane un altro</button>
-            <button class="ui-btn ui-btn--primary" type="submit">Salva giocatore</button>
-        </div>
+    <div class="ui-submit" style="grid-column: 1 / -1;">
+        <button class="ui-btn" name="add_new" value="1" type="submit">Salva e creane un altro</button>
+        <button class="ui-btn ui-btn--primary" type="submit">Salva giocatore</button>
     </div>
 </form>
 

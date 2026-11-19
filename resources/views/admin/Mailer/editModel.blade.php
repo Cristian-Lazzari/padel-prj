@@ -38,12 +38,9 @@
 
     @include('admin.Mailer._form', ['model' => $model])
 
-    <div class="ui-savebar" style="grid-column: 1 / -1;">
-        <span class="ui-savebar__note">Le modifiche valgono per le campagne future.</span>
-        <div class="ui-savebar__actions">
-            <a class="ui-btn" href="{{ route('admin.mailer.index') }}">Annulla</a>
-            <button class="ui-btn ui-btn--primary" type="submit">Salva modifiche</button>
-        </div>
+    <div class="ui-submit" style="grid-column: 1 / -1;">
+        <a class="ui-btn" href="{{ route('admin.mailer.index') }}">Annulla</a>
+        <button class="ui-btn ui-btn--primary" type="submit">Salva modifiche</button>
     </div>
 </form>
 

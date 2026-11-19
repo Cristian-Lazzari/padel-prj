@@ -872,34 +872,13 @@ body.ui-body{
 .ui-chips__item input:focus-visible + span{ outline: 2px solid var(--c2); outline-offset: 2px; }
 .ui-chips__empty{ font-size: 13px; color: var(--ui-ink-soft); }
 
-/* Barra di salvataggio: statica, chiude il flusso della pagina senza sfondo proprio */
-.ui-savebar{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 18px 0 0;
-    border-top: 1px solid var(--ui-rule);
-    background: transparent;
-}
-.ui-savebar__note{ font-size: 13px; color: var(--ui-ink-soft); }
-.ui-savebar__actions{ display: flex; gap: 10px; flex-wrap: wrap; }
-
-/* Variante in colonna: apre una colonna laterale, azioni prima della nota */
-.ui-savebar--stack{
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    padding: 0;
-    border-top: 0;
-}
-.ui-savebar--stack .ui-savebar__actions{ order: -1; }
-.ui-savebar--stack .ui-savebar__actions .ui-btn{ flex: 1 1 auto; justify-content: center; }
+/* Bottoni di fine modulo: in fondo, fermi, senza riquadro né testo */
+.ui-submit{ display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+/* chiudono la colonna principale: la laterale sticky non ci scorre sopra */
+.ui-form > .ui-submit{ grid-column: 1; }
 
 @media (max-width: 500px){
-    .ui-savebar__actions{ width: 100%; }
-    .ui-savebar__actions .ui-btn{ flex: 1 1 auto; }
+    .ui-submit .ui-btn{ flex: 1 1 auto; }
 }
 
 /* =========================================================================

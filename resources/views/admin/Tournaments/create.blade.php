@@ -37,12 +37,9 @@
 
     @include('admin.Tournaments._form')
 
-    <div class="ui-savebar" style="grid-column: 1 / -1;">
-        <span class="ui-savebar__note">Salvandolo in "Bozza" resta invisibile ai clienti.</span>
-        <div class="ui-savebar__actions">
-            <a class="ui-btn" href="{{ route('admin.tournaments.index') }}">Annulla</a>
-            <button class="ui-btn ui-btn--primary" type="submit">Crea torneo</button>
-        </div>
+    <div class="ui-submit" style="grid-column: 1 / -1;">
+        <a class="ui-btn" href="{{ route('admin.tournaments.index') }}">Annulla</a>
+        <button class="ui-btn ui-btn--primary" type="submit">Crea torneo</button>
     </div>
 </form>
 

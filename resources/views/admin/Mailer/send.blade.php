@@ -95,15 +95,13 @@
         @error('models') <p class="ui-err">@include('admin.partials.ui-icon', ['name' => 'exclamation-triangle-fill', 'size' => 13]) {{ $message }}</p> @enderror
     </section>
 
-    <div class="ui-savebar">
-        <span class="ui-savebar__note">L'invio parte subito e non si annulla.</span>
-        <div class="ui-savebar__actions">
-            <a class="ui-btn" href="{{ route('admin.mailer.index') }}">Annulla</a>
-            <button class="ui-btn ui-btn--primary" type="submit">
-                @include('admin.partials.ui-icon', ['name' => 'envelope-at', 'size' => 16])
-                <span>Invia la campagna</span>
-            </button>
-        </div>
+    <p class="ui-hint">L'invio parte subito e non si annulla.</p>
+    <div class="ui-submit">
+        <a class="ui-btn" href="{{ route('admin.mailer.index') }}">Annulla</a>
+        <button class="ui-btn ui-btn--primary" type="submit">
+            @include('admin.partials.ui-icon', ['name' => 'envelope-at', 'size' => 16])
+            <span>Invia la campagna</span>
+        </button>
     </div>
 </form>
 

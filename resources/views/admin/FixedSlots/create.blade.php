@@ -36,12 +36,9 @@
     @csrf
     @include('admin.FixedSlots._form')
 
-    <div class="ui-savebar" style="grid-column: 1 / -1;">
-        <span class="ui-savebar__note">Nelle date in cui il campo è già prenotato da altri, la ricorrenza viene saltata e te lo diciamo.</span>
-        <div class="ui-savebar__actions">
-            <a class="ui-btn" href="{{ route('admin.fixed-slots.index') }}">Annulla</a>
-            <button class="ui-btn ui-btn--primary" type="submit">Crea campo fisso</button>
-        </div>
+    <div class="ui-submit" style="grid-column: 1 / -1;">
+        <a class="ui-btn" href="{{ route('admin.fixed-slots.index') }}">Annulla</a>
+        <button class="ui-btn ui-btn--primary" type="submit">Crea campo fisso</button>
     </div>
 </form>
 

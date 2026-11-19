@@ -167,12 +167,9 @@
         </section>
     </aside>
 
-    <div class="ui-savebar" style="grid-column: 1 / -1;">
-        <span class="ui-savebar__note">Le modifiche valgono solo dopo il salvataggio.</span>
-        <div class="ui-savebar__actions">
-            <a class="ui-btn" href="{{ route('admin.reservations.show', $reservation) }}">Annulla</a>
-            <button class="ui-btn ui-btn--primary" type="submit">Conferma modifiche</button>
-        </div>
+    <div class="ui-submit" style="grid-column: 1 / -1;">
+        <a class="ui-btn" href="{{ route('admin.reservations.show', $reservation) }}">Annulla</a>
+        <button class="ui-btn ui-btn--primary" type="submit">Conferma modifiche</button>
     </div>
 </form>
 

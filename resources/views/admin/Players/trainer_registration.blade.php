@@ -118,12 +118,9 @@
         </section>
     </aside>
 
-    <div class="ui-savebar" style="grid-column: 1 / -1;">
-        <span class="ui-savebar__note">Vengono creati insieme la scheda giocatore e l'utenza.</span>
-        <div class="ui-savebar__actions">
-            <a class="ui-btn" href="{{ route('admin.players.index') }}">Annulla</a>
-            <button class="ui-btn ui-btn--primary" type="submit">Registra istruttore</button>
-        </div>
+    <div class="ui-submit" style="grid-column: 1 / -1;">
+        <a class="ui-btn" href="{{ route('admin.players.index') }}">Annulla</a>
+        <button class="ui-btn ui-btn--primary" type="submit">Registra istruttore</button>
     </div>
 </form>
 

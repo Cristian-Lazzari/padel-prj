@@ -37,12 +37,9 @@
 
     @include('admin.Mailer._form', ['model' => null])
 
-    <div class="ui-savebar" style="grid-column: 1 / -1;">
-        <span class="ui-savebar__note">Il modello resta salvato: potrai riusarlo in più campagne.</span>
-        <div class="ui-savebar__actions">
-            <a class="ui-btn" href="{{ route('admin.mailer.index') }}">Annulla</a>
-            <button class="ui-btn ui-btn--primary" type="submit">Crea modello</button>
-        </div>
+    <div class="ui-submit" style="grid-column: 1 / -1;">
+        <a class="ui-btn" href="{{ route('admin.mailer.index') }}">Annulla</a>
+        <button class="ui-btn ui-btn--primary" type="submit">Crea modello</button>
     </div>
 </form>
 
