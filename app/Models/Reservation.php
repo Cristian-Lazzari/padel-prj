@@ -112,7 +112,7 @@ class Reservation extends Model
             ->where('date_slot', 'LIKE', $start->format('Y-m-d').'%')
             ->when($exceptId, fn ($q) => $q->where('id', '!=', $exceptId))
             ->orderBy('date_slot')
-            ->get(['id', 'date_slot', 'field', 'duration', 'lesson', 'booking_subject']);
+            ->get(['id', 'date_slot', 'field', 'duration', 'lesson', 'booking_subject', 'created_at']);
 
         foreach ($candidates as $r) {
             $otherStart = Carbon::parse($r->date_slot);

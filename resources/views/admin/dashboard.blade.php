@@ -705,7 +705,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Al submit aggiungo un campo nascosto per ogni fascia selezionata
-    bookingForm.addEventListener('submit', () => {
+    bookingForm.addEventListener('submit', (e) => {
+        // Un doppio tocco mandava due richieste nello stesso secondo: la prima
+        // creava la prenotazione, la seconda mostrava "campo già occupato".
+        // Il bottone non si disabilita, altrimenti type_res non partirebbe.
+        if (bookingForm.dataset.sending) {
+            e.preventDefault();
+            return;
+        }
+        bookingForm.dataset.sending = '1';
+        document.querySelector('#smbt_btn').setAttribute('aria-busy', 'true');
+        document.querySelector('#smbt_btn').style.opacity = '.6';
+
         saveCurrentDaySelections();
         bookingForm.querySelectorAll('.dynamic-slot').forEach((e) => e.remove());
 
@@ -721,6 +732,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
         });
+    });
+
+    // Tornando indietro col browser la pagina può riaprirsi dalla cache:
+    // il form deve tornare inviabile.
+    window.addEventListener('pageshow', () => {
+        delete bookingForm.dataset.sending;
+        document.querySelector('#smbt_btn').removeAttribute('aria-busy');
+        document.querySelector('#smbt_btn').style.opacity = '';
     });
 
     // All'apertura la banda mostra già i tornei di oggi: la fascia oraria

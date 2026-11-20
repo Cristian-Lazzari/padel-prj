@@ -107,7 +107,12 @@ class ReservationController extends Controller
                 // Prima ora come riferimento
                 $date_slot = $date . ' ' . $arr_times[0];
 
-                if ($occupato = Reservation::overlapping($field, Carbon::parse($date_slot), count($arr_times))) {
+                $occupato = Reservation::overlapping($field, Carbon::parse($date_slot), count($arr_times));
+                if ($occupato && $this->isJustCreatedDuplicate($occupato, $date_slot, count($arr_times))) {
+                    // Già creata da un invio doppio di pochi secondi fa.
+                    continue;
+                }
+                if ($occupato) {
                     return redirect()
                         ->route('admin.dashboard')
                         ->with('error', 'Errore: '.$occupato->busyMessage().' Nessuna prenotazione è stata creata.');
@@ -151,16 +156,35 @@ class ReservationController extends Controller
 
             // Lezioni e partite dalla dashboard non possono finire sopra
             // un'altra prenotazione, come succede già dall'app.
-            if ($occupato = Reservation::overlapping($field, Carbon::parse($date_slot), count($arr_times))) {
+            $occupato = Reservation::overlapping($field, Carbon::parse($date_slot), count($arr_times));
+            if ($occupato && ! $this->isJustCreatedDuplicate($occupato, $date_slot, count($arr_times))) {
                 return redirect()->route('admin.dashboard')->with('error', 'Errore: '.$occupato->busyMessage());
             }
 
-            $this->create_res($field, $type, $date_slot, $arr_times, $data); 
+            // Se è un invio doppio la prenotazione c'è già: si conferma e basta.
+            if (! $occupato) {
+                $this->create_res($field, $type, $date_slot, $arr_times, $data);
+            }
             $m = 'Prenotazione creata con successo per il campo ' . $field . ' il ' . $date . ' dalle ore ' . $arr_times[0] . ' alle ore ' . Carbon::createFromFormat('H:i', end($arr_times))->addMinutes($slot)->format('H:i');
         }
 
         return redirect()->route('admin.dashboard')->with('message', $m);
     }
+    /**
+     * True se la prenotazione che occupa il campo è proprio quella appena
+     * creata da questo utente con lo stesso orario: succede quando il form
+     * parte due volte (doppio tocco sul telefono). In quel caso non è un
+     * conflitto, la prenotazione richiesta esiste già.
+     */
+    private function isJustCreatedDuplicate(Reservation $occupato, string $date_slot, int $cells): bool
+    {
+        return $occupato->date_slot === $date_slot
+            && (int) $occupato->duration === $cells
+            && (int) $occupato->booking_subject === (int) auth()->user()->playerId
+            && $occupato->created_at
+            && $occupato->created_at->gt(now()->subMinute());
+    }
+
     private function checkTimeIntervals(array $times, int $slot): bool
     {
         $times = array_filter($times, fn($t) => !empty($t)); // Filtra eventuali valori vuoti o non validi

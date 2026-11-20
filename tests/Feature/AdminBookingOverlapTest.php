@@ -145,4 +145,30 @@ class AdminBookingOverlapTest extends TestCase
 
         $this->assertSame('0', (string) $annullata->fresh()->status);
     }
+
+    /**
+     * Doppio tocco sul telefono: due invii uguali nello stesso secondo.
+     * Il secondo non deve mostrare "campo già occupato" dalla prenotazione
+     * appena creata dal primo.
+     */
+    public function test_il_doppio_invio_non_mostra_errore_e_crea_una_sola_prenotazione(): void
+    {
+        $fasce = $this->fasce('Campo 2', ['16:30', '17:00', '17:30']);
+
+        $this->crea($fasce)->assertSessionHas('message');
+        $this->crea($fasce)->assertSessionHas('message')->assertSessionMissing('error');
+
+        $this->assertDatabaseCount('reservations', 1);
+    }
+
+    public function test_la_stessa_fascia_creata_da_tempo_resta_un_conflitto(): void
+    {
+        $this->crea($this->fasce('Campo 2', ['16:30', '17:00', '17:30']));
+        Reservation::query()->update(['created_at' => now()->subHour()]);
+
+        $this->crea($this->fasce('Campo 2', ['16:30', '17:00', '17:30']))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseCount('reservations', 1);
+    }
 }

@@ -9,10 +9,10 @@ use App\Models\Reservation;
 use Illuminate\Http\Request;
 use App\Mail\confermaOrdineAdmin;
 use App\Services\OpenMatchService;
-use App\Services\FixedSlotService;
 use App\Services\FieldSchedule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -151,56 +151,47 @@ class ReservationController extends Controller
                 }
             }
 
-            $reservations = Reservation::where('date_slot', 'LIKE', '%'.$date.'%')
-                ->where('field', $field)
-                ->where('status', '!=', 0)
-                ->select('date_slot', 'duration')
-                ->get();
-
-            // Sovrapposizione fra intervalli, non più solo "l'inizio cade dentro
-            // un'altra prenotazione": con la partenza libera una richiesta alle
-            // 18:00 può scavalcare una prenotazione che comincia alle 18:30.
-            foreach ($reservations as $r) {
-                $altroInizio = Carbon::parse($r->date_slot);
-                $altroFine = $altroInizio->copy()->addMinutes($during * (int) $r->duration);
-
-                if ($inizio->lt($altroFine) && $altroInizio->lt($fine)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Campo non disponibile, ricarica la pagina per aggiornare le disponibilità!',
-                    ]);
-                }
-            }
-
-            // Rete di sicurezza sui campi fissi: se un'occorrenza non è stata
-            // generata (per esempio perché quel giorno il campo era occupato),
-            // l'accordo vale comunque e lo slot resta riservato.
-            $fixed = app(FixedSlotService::class)->conflictingSlot($field, $date_slot, $slots);
-
-            if ($fixed) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Campo non disponibile: questo orario è assegnato come campo fisso.',
-                ]);
-            }
-
             // La cena è facoltativa: se il blocco non arriva vale come non
             // prenotata, invece di far saltare la richiesta.
             $dinner = is_array($data['dinner'] ?? null)
                 ? $data['dinner']
                 : ['status' => false, 'guests' => null, 'time' => null];
 
-            $match = new Reservation;
-            $match->date_slot = $date_slot;
-            $match->field = $field; // 1, 2, 3
-            $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
-            $match->duration = $slots; // sempre un'ora e mezza, nelle fasce del campo
-            $match->type = $data['type']; // padel, basket , calcio ...
-            $match->dinner = json_encode($dinner); // [ status, guests, time]
-            $match->message = $data['message'] ?? null;
-            $match->booking_subject = $booking_subject->id;
+            // Controllo e salvataggio sotto lo stesso lucchetto: due giocatori
+            // che confermano lo stesso orario nello stesso istante non possono
+            // passare entrambi il controllo.
+            //
+            // Il controllo è lo stesso di get_date e della dashboard: conta ciò
+            // che c'è in calendario. Prima si guardavano anche i campi fissi
+            // "sulla carta": un'occorrenza annullata dal gestore, o mai creata
+            // perché il campo fisso si accavallava a un altro, risultava libera
+            // nell'app ma la prenotazione veniva rifiutata. I campi fissi
+            // occupano il campo con le prenotazioni che generano.
+            $match = Cache::lock('padel-booking:'.$field.':'.$date, 15)->block(10, function () use ($field, $date_slot, $inizio, $slots, $data, $dinner, $booking_subject) {
+                if (Reservation::overlapping($field, $inizio, $slots)) {
+                    return null;
+                }
 
-            $match->save();
+                $match = new Reservation;
+                $match->date_slot = $date_slot;
+                $match->field = $field; // 1, 2, 3
+                $match->status = 1; // 1 confirmed, 2 cancelled, 3 noshow
+                $match->duration = $slots; // sempre un'ora e mezza, nelle fasce del campo
+                $match->type = $data['type']; // padel, basket , calcio ...
+                $match->dinner = json_encode($dinner); // [ status, guests, time]
+                $match->message = $data['message'] ?? null;
+                $match->booking_subject = $booking_subject->id;
+                $match->save();
+
+                return $match;
+            });
+
+            if (! $match) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Campo non disponibile, ricarica la pagina per aggiornare le disponibilità!',
+                ]);
+            }
 
             // Da qui in avanti la prenotazione esiste già: squadra, partita
             // aperta ed email sono contorni. Se uno di questi passi va storto
@@ -347,10 +338,13 @@ class ReservationController extends Controller
 
         $days = [];
         
-        $limite = $now->setTime(20, 0); // massimo orario per prenotare in giornata 20:00
-        $first_day = $now;
+        // Dopo le 20:00 il calendario parte da domani. Con copy(): setTime()
+        // modificava $now stesso, il confronto era sempre falso e la sera
+        // l'app proponeva ancora la giornata in corso.
+        $limite = $now->copy()->setTime(20, 0);
+        $first_day = $now->copy()->startOfDay();
         if($now->greaterThan($limite)){
-            $first_day = Carbon::tomorrow();
+            $first_day = $now->copy()->addDay()->startOfDay();
         }
         
         $field_arr = [];

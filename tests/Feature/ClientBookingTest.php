@@ -73,6 +73,15 @@ class ClientBookingTest extends TestCase
         return $player;
     }
 
+    private function impostazioni(): void
+    {
+        Setting::create([
+            'name' => 'advanced',
+            'status' => 1,
+            'property' => json_encode(['day_off' => [], 'trainer_set' => [], 'delay_trainer' => 0]),
+        ]);
+    }
+
     private function contatti(): void
     {
         Setting::create([
@@ -222,5 +231,84 @@ class ClientBookingTest extends TestCase
         $this->assertDatabaseCount('reservations', 1);
 
         Carbon::setTestNow();
+    }
+
+    /**
+     * Il gestore annulla una settimana di un campo fisso: l'app mostra
+     * l'orario libero e la prenotazione deve passare. Prima il controllo
+     * guardava il campo fisso "sulla carta" e rispondeva "campo non
+     * disponibile" su un orario proposto come libero.
+     */
+    public function test_un_campo_fisso_annullato_quel_giorno_si_puo_prenotare(): void
+    {
+        Mail::fake();
+        $this->contatti();
+        $player = $this->giocatore();
+        $domani = Carbon::tomorrow('Europe/Rome');
+
+        $this->impostazioni();
+        $fisso = \App\Models\FixedSlot::create([
+            'player_id' => $player->id,
+            'field' => 'Campo 1',
+            'weekday' => $domani->dayOfWeek,
+            'start_time' => '18:00',
+            'duration' => 3,
+            'valid_from' => $domani->copy()->subWeek()->format('Y-m-d'),
+            'valid_to' => $domani->copy()->addMonth()->format('Y-m-d'),
+            'status' => 'active',
+        ]);
+
+        $occorrenza = new Reservation;
+        $occorrenza->date_slot = $domani->format('Y-m-d').' 18:00';
+        $occorrenza->field = 'Campo 1';
+        $occorrenza->status = 0; // annullata dal gestore
+        $occorrenza->duration = 3;
+        $occorrenza->type = 'padel';
+        $occorrenza->dinner = json_encode(['status' => false]);
+        $occorrenza->booking_subject = 0;
+        $occorrenza->fixed_slot_id = $fisso->id;
+        $occorrenza->save();
+
+        $giorni = $this->getJson('/api/reservation/get_date?type=padel')->json('data');
+        $orari = collect($giorni)->firstWhere('date', $domani->format('Y-m-d'))['fields']['Campo 1'];
+        $this->assertContains('18:00', $orari);
+
+        $this->postJson('/api/get_reservation', $this->payload($player))
+            ->assertJson(['success' => true]);
+
+        $this->assertDatabaseCount('reservations', 2);
+    }
+
+    /** Ogni orario proposto dall'app deve essere davvero prenotabile. */
+    public function test_ogni_orario_proposto_si_puo_prenotare(): void
+    {
+        Mail::fake();
+        $this->contatti();
+        $player = $this->giocatore();
+        $domani = Carbon::tomorrow('Europe/Rome')->format('Y-m-d');
+        $this->impostazioni();
+
+        $altra = new Reservation;
+        $altra->date_slot = $domani.' 18:00';
+        $altra->field = 'Campo 1';
+        $altra->status = 1;
+        $altra->duration = 3;
+        $altra->type = 'padel';
+        $altra->dinner = json_encode(['status' => false]);
+        $altra->booking_subject = 0;
+        $altra->save();
+
+        $giorni = $this->getJson('/api/reservation/get_date?type=padel')->json('data');
+        $orari = collect($giorni)->firstWhere('date', $domani)['fields']['Campo 1'];
+
+        foreach ($orari as $ora) {
+            $this->assertNull(
+                Reservation::overlapping('Campo 1', Carbon::parse($domani.' '.$ora), 3),
+                "L'app propone le $ora ma il campo è occupato"
+            );
+        }
+        $this->assertNotContains('17:00', $orari);
+        $this->assertNotContains('19:00', $orari);
+        $this->assertContains('19:30', $orari);
     }
 }
